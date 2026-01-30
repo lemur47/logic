@@ -4,7 +4,7 @@ TCO Calculator - Standalone Version
 A simple, dependency-light tool for Total Cost of Ownership calculations.
 Perfect for scripts, notebooks, and custom integrations.
 
-Author: Everyday Magic for Wise Investors
+Author: lemur47
 License: MIT
 Version: 1.0.0
 

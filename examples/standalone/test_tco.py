@@ -1,7 +1,13 @@
 # test_tco.py
 import pytest
 import pandas as pd  # Need for isinstance check
-from tco import calculate_tco, compare_tco, calculate_breakeven_point
+import matplotlib.pyplot as plt  # Need for isinstance check
+from tco import (
+    calculate_tco,
+    compare_tco,
+    calculate_breakeven_point,
+    visualize_tco_comparison,
+)
 
 
 def test_calculate_tco():
@@ -10,7 +16,7 @@ def test_calculate_tco():
 
     assert result["total_cost"] == 100000
     assert result["annual_cost"] == 20000
-    assert result["monthly_cost"] == 1666.67  # Exact match expectrred
+    assert result["monthly_cost"] == 1666.67  # Exact match expected
     assert result["cost_per_day"] == 54.79  # Exact match expected
     assert result["npv_tco"] == 100000.0
     assert result["npv_annual"] == 20000.0
@@ -86,3 +92,28 @@ def test_calculate_breakeven_point():
     # Extra upfront: 110,000 - 100,000 = 10,000
     # Break-even: 10,000 / 8,000 = 1.25 years
     assert result == 1.25
+
+
+def test_visualize_tco_comparison():
+    """Test visualize_tco_comparison returns a matplotlib Figure."""
+    options = [
+        {
+            "name": "Premium",
+            "initial_price": 450000,
+            "useful_life_years": 12,
+            "residual_value": 90000,
+        },
+        {"name": "Budget", "initial_price": 50000, "useful_life_years": 3},
+    ]
+
+    # Call the function
+    result = visualize_tco_comparison(options)
+
+    # Verify it returns something (not None)
+    assert result is not None
+
+    # Verify it's a matplotlib Figure object
+    assert isinstance(result, plt.Figure)
+
+    # Clean up (close the Figure object to avoid memory issues)
+    plt.close(result)
