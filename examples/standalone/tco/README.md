@@ -12,7 +12,7 @@ Your boss wants new office chairs. Budget option: ¥50,000. Premium option: ¥45
 
 Not so fast. Let's do the math.
 
-![Premium vs Budget](./test_tco_comparison.)
+![Premium vs Budget](./test_tco_comparison.png)
 
 ## Quick Start
 
