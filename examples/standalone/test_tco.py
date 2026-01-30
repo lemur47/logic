@@ -1,7 +1,7 @@
 # test_tco.py
 import pytest
 import pandas as pd  # Need for isinstance check
-from tco import calculate_tco, compare_tco
+from tco import calculate_tco, compare_tco, calculate_breakeven_point
 
 
 def test_calculate_tco():
@@ -50,3 +50,39 @@ def test_compare_tco():
     option_names = result["option"].tolist()
     assert "Premium" in option_names
     assert "Budget" in option_names
+
+
+def test_calculate_breakeven_point():
+    """Test calculate_breakeven_point with simple scenario."""
+    # Option A: Higher upfront, lower annual cost
+    option_a = {
+        "initial_price": 110000,
+        "useful_life_years": 5,
+        "annual_operating_cost": 5000,
+    }
+
+    # Option B: Lower upfront, higher annual cost
+    option_b = {
+        "initial_price": 100000,
+        "useful_life_years": 5,
+        "annual_operating_cost": 15000,
+    }
+
+    # Calculate break-even
+    result = calculate_breakeven_point(option_a, option_b)
+
+    # Verify it returns a number (not None)
+    assert result is not None
+
+    # Verify it's the correct break-even time
+    #
+    # Option A TCO per year:
+    # (110,000 + 5,000*5) / 5 = 135,000 / 5 = 27,000/year
+    #
+    # Option B TCO per year:
+    # (100,000 + 15,000*5) / 5 = 175,000 / 5 = 35,000/year
+    #
+    # Annual savings: 35,000 - 27,000 = 8,000
+    # Extra upfront: 110,000 - 100,000 = 10,000
+    # Break-even: 10,000 / 8,000 = 1.25 years
+    assert result == 1.25
