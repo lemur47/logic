@@ -1,0 +1,51 @@
+# Gitleaks Configuration for logic repo
+# Compatible with gitleaks v8.30.0+
+# Detects Anthropic API keys and other common secrets
+
+title = "logic repo gitleaks config"
+
+[extend]
+useDefault = true
+
+# Custom rule for Anthropic API keys (sk-ant- pattern)
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic API Key"
+regex = '''sk-ant-[a-zA-Z0-9\-_]{20,}'''
+keywords = ["sk-ant-"]
+tags = ["api", "anthropic", "key"]
+
+# Cloudflare API tokens (starts with letters, 40 chars)
+[[rules]]
+id = "cloudflare-api-token"
+description = "Cloudflare API Token"
+regex = '''[a-zA-Z0-9_]{37,40}'''
+keywords = ["CF_API_TOKEN", "CLOUDFLARE_API_TOKEN"]
+tags = ["api", "cloudflare"]
+
+# Generic high-entropy secrets in Python files
+[[rules]]
+id = "python-secret-assignment"
+description = "Hardcoded secret in Python"
+regex = '''(?i)(api_key|secret|token|password)\s*=\s*["\'][a-zA-Z0-9\-_]{16,}["\']'''
+path = '''\.py$'''
+tags = ["python", "secret"]
+
+# Allowlist for false positives
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''^\.gitleaks\.toml$''',
+    '''^tests/.*test.*\.py$''',
+    '''\.md$''',
+    '''__pycache__''',
+]
+
+# Allow example/placeholder patterns
+regexes = [
+    '''sk-ant-your-key-here''',
+    '''sk-ant-\.\.\.''',
+    '''your_.*_here''',
+    '''REPLACE_WITH_.*''',
+    '''<YOUR_.*>''',
+]

@@ -125,7 +125,7 @@ def compare_tco(options):
     except ImportError:
         raise ImportError(
             "pandas is required for compare_tco(). Install with: pip install pandas"
-        )
+        ) from None
 
     if not options:
         raise ValueError("options list cannot be empty")
@@ -204,7 +204,7 @@ def visualize_tco_comparison(options, save_path=None):
         raise ImportError(
             "matplotlib is required for visualize_tco_comparison(). "
             "Install with: pip install matplotlib"
-        )
+        ) from None
 
     comparison = compare_tco(options)
 
@@ -296,9 +296,9 @@ if __name__ == "__main__":
     )
 
     print(f"Initial Price:    ¥{450000:,}")
-    print(f"Useful Life:      12 years")
+    print("Useful Life:      12 years")
     print(f"Residual Value:   ¥{90000:,}")
-    print(f"\nResults:")
+    print("\nResults:")
     print(f"  Monthly Cost:   ¥{hm_result['monthly_cost']:,.2f}")
     print(f"  Annual Cost:    ¥{hm_result['annual_cost']:,.2f}")
     print(f"  Daily Cost:     ¥{hm_result['cost_per_day']:,.2f}")

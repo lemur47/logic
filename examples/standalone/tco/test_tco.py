@@ -1,11 +1,10 @@
 # test_tco.py
-import pytest
-import pandas as pd  # Need for isinstance check
 import matplotlib.pyplot as plt  # Need for isinstance check
+import pandas as pd  # Need for isinstance check
 from tco import (
+    calculate_breakeven_point,
     calculate_tco,
     compare_tco,
-    calculate_breakeven_point,
     visualize_tco_comparison,
 )
 
