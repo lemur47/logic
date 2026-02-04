@@ -2,6 +2,8 @@
 TCO CRUD operations.
 """
 
+from typing import cast
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -79,12 +81,12 @@ def update_scenario(
 
     # Recalculate TCO
     tco_result = calculate_tco(
-        initial_price=db_scenario.initial_price,
-        useful_life_years=db_scenario.useful_life_years,
-        residual_value=db_scenario.residual_value,
-        annual_maintenance=db_scenario.annual_maintenance,
-        annual_operating_cost=db_scenario.annual_operating_cost,
-        discount_rate=db_scenario.discount_rate,
+        initial_price=float(cast(float, db_scenario.initial_price)),
+        useful_life_years=int(cast(int, db_scenario.useful_life_years)),
+        residual_value=float(cast(float, db_scenario.residual_value)),
+        annual_maintenance=float(cast(float, db_scenario.annual_maintenance)),
+        annual_operating_cost=float(cast(float, db_scenario.annual_operating_cost)),
+        discount_rate=float(cast(float, db_scenario.discount_rate)),
     )
     for field, value in tco_result.items():
         setattr(db_scenario, field, value)
@@ -113,6 +115,14 @@ def get_scenario_stats(db: Session) -> dict:
         func.min(models.Scenario.monthly_cost).label("min_monthly_cost"),
         func.max(models.Scenario.monthly_cost).label("max_monthly_cost"),
     ).first()
+
+    if result is None:
+        return {
+            "total_scenarios": 0,
+            "avg_monthly_cost": 0,
+            "min_monthly_cost": 0,
+            "max_monthly_cost": 0,
+        }
 
     return {
         "total_scenarios": result.total_scenarios or 0,

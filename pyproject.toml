@@ -85,7 +85,7 @@ addopts = "-v --tb=short"
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "basic"  # Start lenient, move to "strict" later
-include = ["app", "examples"]
-exclude = ["tests", ".venv", "__pycache__"]
+include = ["app"]
+exclude = ["tests", ".venv", "__pycache__", "examples"]
 reportMissingImports = true
 reportMissingTypeStubs = false  # Avoid noise from untyped libraries

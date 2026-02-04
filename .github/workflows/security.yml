@@ -1,5 +1,5 @@
 # GitHub Actions Security Workflow
-# Runs on push to main/dev and all PRs
+# Runs on push to main and all PRs
 #
 # Jobs: gitleaks scan, bandit audit, ruff lint, pyright typecheck
 
