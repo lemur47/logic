@@ -39,7 +39,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+          cache: "pip"
 
       - name: Install bandit
         run: pip install bandit[toml]
@@ -62,7 +63,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+          cache: "pip"
 
       - name: Install ruff
         run: pip install ruff
@@ -82,12 +84,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
           pip install pyright
-          pip install fastapi uvicorn
+          pip install fastapi uvicorn sqlalchemy
 
       - name: Run Pyright
         run: pyright

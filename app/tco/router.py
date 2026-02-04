@@ -98,7 +98,12 @@ async def list_scenarios(
 ):
     """List all saved scenarios with pagination."""
     scenarios, total = crud.get_scenarios(db, page=page, per_page=per_page, search=search)
-    return schemas.ScenarioList(items=scenarios, total=total, page=page, per_page=per_page)
+    return schemas.ScenarioList(
+        items=[schemas.ScenarioResponse.model_validate(s) for s in scenarios],
+        total=total,
+        page=page,
+        per_page=per_page,
+    )
 
 
 @router.get("/scenarios/stats")
