@@ -2,8 +2,8 @@
 TCO CRUD operations.
 """
 
-from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .core import calculate_tco
@@ -59,10 +59,7 @@ def get_scenarios(
     total = query.count()
     offset = (page - 1) * per_page
     scenarios = (
-        query.order_by(models.Scenario.updated_at.desc())
-        .offset(offset)
-        .limit(per_page)
-        .all()
+        query.order_by(models.Scenario.updated_at.desc()).offset(offset).limit(per_page).all()
     )
 
     return scenarios, total

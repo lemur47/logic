@@ -1,6 +1,6 @@
 # logic
 
-**Atomic logic for decision making.**  
+**Atomic logic for decision making.**
 Turning abstract ideas into executable functions.
 
 ## Philosophy
@@ -22,4 +22,3 @@ Turning abstract ideas into executable functions.
 
 ## License
 MIT
-

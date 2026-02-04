@@ -8,17 +8,18 @@ Run with: uv run uvicorn app.main:app --reload
 """
 
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import engine, Base
+from .database import Base, engine
 
 # Import feature routers
 from .tco.router import router as tco_router
 
 
 @asynccontextmanager
-async def lifespan(app: FASTAPI):
+async def lifespan(app: FastAPI):
     """Create database tables on startup."""
     Base.metadata.create_all(bind=engine)
     yield

@@ -2,8 +2,9 @@
 TCO SQLAlchemy models.
 """
 
-from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, Float, String, DateTime, JSON
+from datetime import UTC, datetime
+
+from sqlalchemy import JSON, Column, DateTime, Float, Integer, String
 
 from ..database import Base
 
@@ -18,11 +19,11 @@ class Scenario(Base):
     # Metadata
     name = Column(String(255), nullable=False, index=True)
     description = Column(String(1000), nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     # Input parameters

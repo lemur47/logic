@@ -8,8 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from . import schemas, crud
-from .core import calculate_tco, calculate_breakeven, compare_options
+from . import crud, schemas
+from .core import calculate_breakeven, calculate_tco, compare_options
 
 router = APIRouter()
 
@@ -28,11 +28,9 @@ async def calculate(input_data: schemas.TCOInput):
     """
     try:
         result = calculate_tco(**input_data.model_dump())
-        return schemas.TCOCalculation(
-            input=input_data, result=schemas.TCOResult(**result)
-        )
+        return schemas.TCOCalculation(input=input_data, result=schemas.TCOResult(**result))
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/compare", response_model=schemas.CompareResponse)
@@ -50,7 +48,7 @@ async def compare(request: schemas.CompareRequest):
             best_option=results[0]["name"],
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/breakeven", response_model=schemas.BreakevenResponse)
@@ -61,9 +59,7 @@ async def breakeven(request: schemas.BreakevenRequest):
     Determines when a higher initial investment pays off.
     """
     try:
-        years = calculate_breakeven(
-            request.option_a.model_dump(), request.option_b.model_dump()
-        )
+        years = calculate_breakeven(request.option_a.model_dump(), request.option_b.model_dump())
         if years is not None:
             return schemas.BreakevenResponse(
                 breakeven_years=years,
@@ -76,7 +72,7 @@ async def breakeven(request: schemas.BreakevenRequest):
             message="No break-even: Option A has higher or equal annual cost",
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 # =============================================================================
@@ -85,14 +81,12 @@ async def breakeven(request: schemas.BreakevenRequest):
 
 
 @router.post("/scenarios", response_model=schemas.ScenarioResponse, status_code=201)
-async def create_scenario(
-    scenario: schemas.ScenarioCreate, db: Session = Depends(get_db)
-):
+async def create_scenario(scenario: schemas.ScenarioCreate, db: Session = Depends(get_db)):
     """Save a new TCO scenario."""
     try:
         return crud.create_scenario(db, scenario)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/scenarios", response_model=schemas.ScenarioList)
@@ -103,12 +97,8 @@ async def list_scenarios(
     db: Session = Depends(get_db),
 ):
     """List all saved scenarios with pagination."""
-    scenarios, total = crud.get_scenarios(
-        db, page=page, per_page=per_page, search=search
-    )
-    return schemas.ScenarioList(
-        items=scenarios, total=total, page=page, per_page=per_page
-    )
+    scenarios, total = crud.get_scenarios(db, page=page, per_page=per_page, search=search)
+    return schemas.ScenarioList(items=scenarios, total=total, page=page, per_page=per_page)
 
 
 @router.get("/scenarios/stats")
