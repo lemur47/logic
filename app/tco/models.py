@@ -4,9 +4,8 @@ TCO SQLAlchemy models.
 
 from datetime import UTC, datetime
 
+from database import Base
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String
-
-from ..database import Base
 
 
 class Scenario(Base):

@@ -4,12 +4,11 @@ TCO API Router.
 All TCO endpoints are defined here and mounted to /tco in main.py.
 """
 
+from database import get_db
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from . import crud, schemas
-from .core import calculate_breakeven, calculate_tco, compare_options
+from . import calculate_breakeven, calculate_tco, compare_options, crud, schemas
 
 router = APIRouter()
 
