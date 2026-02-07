@@ -35,51 +35,30 @@ Turning abstract ideas into executable functions.
 ## Quick Start
 
 ```bash
-# Clone
-git clone https://github.com/lemur47/logic.git
-cd logic
-
-# Install (using uv)
+git clone https://github.com/lemur47/logic.git && cd logic
 uv pip install -e ".[dev]"
-
-# Run API
-uv run uvicorn app.main:app --reload
-
-# Run standalone TCO
-python examples/standalone/tco/tco.py
+uv run uvicorn app.main:app --reload   # API at http://127.0.0.1:8000
 ```
 
 ## API Endpoints
 
 ```
-GET  /              → API info
-GET  /health        → Health check
-POST /tco/calculate → Calculate TCO
-POST /tco/compare   → Compare options
-POST /tco/breakeven → Break-even analysis
+GET    /                       API info
+GET    /health                 Health check
+POST   /tco/calculate          Calculate TCO (stateless)
+POST   /tco/compare            Compare options, ranked by annual cost
+POST   /tco/breakeven          Break-even analysis between two options
+POST   /tco/scenarios          Save a scenario
+GET    /tco/scenarios          List scenarios (paginated, searchable)
+GET    /tco/scenarios/{id}     Get a scenario
+PATCH  /tco/scenarios/{id}     Update a scenario (auto-recalculates)
+DELETE /tco/scenarios/{id}     Delete a scenario
+GET    /tco/scenarios/stats    Aggregate statistics
 ```
 
 ## Development
 
-```bash
-# Install pre-commit hooks
-pre-commit install
-
-# Run checks
-pre-commit run --all-files
-
-# Type check
-pyright
-```
-
-## Security Pipeline
-
-Local pre-commit and GitHub Actions run:
-
-- **gitleaks** — Secret detection (sk-ant-* patterns included)
-- **ruff** — Linting + formatting
-- **bandit** — Python security audit
-- **pyright** — Type checking
+Commands, architecture, and code style conventions are documented in [`CLAUDE.md`](CLAUDE.md).
 
 ## License
 
