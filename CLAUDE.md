@@ -60,4 +60,4 @@ Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
 - Ruff lint rules: E, F, I, N, W, B, C4, UP, SIM (with E501 and B008 ignored)
 - Pyright basic mode on `app/` only
 - SQLite for development (`logic.db`, gitignored)
-- Pre-commit hooks: gitleaks, bandit, ruff, standard hygiene checks
+- Pre-commit hooks: gitleaks, bandit, ruff, pyright, pytest, standard hygiene checks
