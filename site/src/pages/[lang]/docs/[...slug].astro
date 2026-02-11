@@ -1,0 +1,26 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { getCollection, render } from "astro:content";
+import { parseEntryLocale } from "../../../i18n/utils";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("docs");
+  return entries.map((entry) => {
+    const { lang, slug } = parseEntryLocale(entry.id);
+    return {
+      params: { lang, slug },
+      props: { entry },
+    };
+  });
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Base title={entry.data.title} description={entry.data.description}>
+  <article class="prose prose-gray max-w-none">
+    <h1>{entry.data.title}</h1>
+    <Content />
+  </article>
+</Base>

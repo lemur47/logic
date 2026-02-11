@@ -1,0 +1,52 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+import { useTranslations, parseEntryLocale } from "../../../i18n/utils";
+import type { Lang } from "../../../i18n/ui";
+
+export function getStaticPaths() {
+  return [{ params: { lang: "en" } }, { params: { lang: "ja" } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+
+const allPosts = await getCollection("blog", (entry) => {
+  const { lang: entryLang } = parseEntryLocale(entry.id);
+  return entryLang === lang && !entry.data.draft;
+});
+
+const posts = allPosts.sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<Base title={t("blog.title")}>
+  <h1 class="text-3xl font-bold mb-8">{t("blog.title")}</h1>
+  {posts.length === 0 ? (
+    <p class="text-gray-500">{t("blog.empty")}</p>
+  ) : (
+    <ul class="grid gap-6">
+      {posts.map((post) => {
+        const { slug } = parseEntryLocale(post.id);
+        return (
+          <li>
+            <a href={`/${lang}/blog/${slug}/`} class="block group">
+              <h2 class="text-xl font-semibold group-hover:underline">
+                {post.data.title}
+              </h2>
+              <p class="text-sm text-gray-500">
+                {post.data.pubDate.toLocaleDateString(lang, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+              <p class="text-gray-600 mt-1">{post.data.description}</p>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</Base>

@@ -1,0 +1,44 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+import { useTranslations, parseEntryLocale } from "../../../i18n/utils";
+import type { Lang } from "../../../i18n/ui";
+
+export function getStaticPaths() {
+  return [{ params: { lang: "en" } }, { params: { lang: "ja" } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+
+const allDocs = await getCollection("docs", (entry) => {
+  const { lang: entryLang } = parseEntryLocale(entry.id);
+  return entryLang === lang;
+});
+
+const docs = allDocs.sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base title={t("docs.title")}>
+  <h1 class="text-3xl font-bold mb-8">{t("docs.title")}</h1>
+  {docs.length === 0 ? (
+    <p class="text-gray-500">{t("docs.empty")}</p>
+  ) : (
+    <ul class="grid gap-4">
+      {docs.map((doc) => {
+        const { slug } = parseEntryLocale(doc.id);
+        return (
+          <li>
+            <a
+              href={`/${lang}/docs/${slug}/`}
+              class="block border rounded p-4 hover:border-gray-400"
+            >
+              <h2 class="font-semibold">{doc.data.title}</h2>
+              <p class="text-sm text-gray-600">{doc.data.description}</p>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</Base>

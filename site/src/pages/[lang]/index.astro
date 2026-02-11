@@ -1,0 +1,27 @@
+---
+import Base from "../../layouts/Base.astro";
+import { useTranslations } from "../../i18n/utils";
+import type { Lang } from "../../i18n/ui";
+
+export function getStaticPaths() {
+  return [{ params: { lang: "en" } }, { params: { lang: "ja" } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+---
+
+<Base>
+  <section class="py-20 text-center">
+    <h1 class="text-4xl font-bold mb-4">{t("landing.hero")}</h1>
+    <p class="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
+      {t("landing.sub")}
+    </p>
+    <a
+      href={`/${lang}/tools/tco/`}
+      class="inline-block bg-gray-900 text-white px-6 py-3 rounded font-medium hover:bg-gray-800"
+    >
+      {t("landing.cta")}
+    </a>
+  </section>
+</Base>

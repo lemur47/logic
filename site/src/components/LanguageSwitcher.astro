@@ -1,0 +1,24 @@
+---
+import { languages, type Lang } from "../i18n/ui";
+import { getLangFromUrl, getLocalizedPath } from "../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const path = Astro.url.pathname;
+---
+
+<ul class="flex gap-2 text-sm">
+  {Object.entries(languages).map(([code, label]) => (
+    <li>
+      <a
+        href={getLocalizedPath(path, code as Lang)}
+        class:list={[
+          "px-2 py-1 rounded",
+          code === lang ? "bg-gray-900 text-white" : "text-gray-600 hover:text-gray-900",
+        ]}
+        aria-current={code === lang ? "page" : undefined}
+      >
+        {label}
+      </a>
+    </li>
+  ))}
+</ul>

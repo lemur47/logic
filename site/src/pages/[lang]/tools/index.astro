@@ -1,0 +1,39 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { useTranslations } from "../../../i18n/utils";
+import type { Lang } from "../../../i18n/ui";
+
+export function getStaticPaths() {
+  return [{ params: { lang: "en" } }, { params: { lang: "ja" } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+
+const tools = [
+  {
+    href: `/${lang}/tools/tco/`,
+    name: t("tools.tco"),
+    desc: t("tools.tco.desc"),
+  },
+  {
+    href: `/${lang}/tools/breakeven/`,
+    name: t("tools.breakeven"),
+    desc: t("tools.breakeven.desc"),
+  },
+];
+---
+
+<Base title={t("nav.tools")}>
+  <h1 class="text-3xl font-bold mb-8">{t("nav.tools")}</h1>
+  <ul class="grid gap-4">
+    {tools.map(({ href, name, desc }) => (
+      <li>
+        <a href={href} class="block border rounded p-4 hover:border-gray-400">
+          <h2 class="font-semibold">{name}</h2>
+          <p class="text-sm text-gray-600">{desc}</p>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>
