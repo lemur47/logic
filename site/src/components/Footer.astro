@@ -6,7 +6,18 @@ const t = useTranslations(lang);
 ---
 
 <footer class="border-t border-gray-200 mt-auto">
-  <div class="max-w-4xl mx-auto px-4 py-6 text-sm text-gray-500">
-    &copy; {new Date().getFullYear()} {t("footer.copy")}
+  <div class="max-w-4xl mx-auto px-4 py-6 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-500">
+    <span>&copy; {new Date().getFullYear()} {t("footer.copy")}</span>
+    <nav class="flex gap-6">
+      <a href="https://github.com/lemur47/logic" target="_blank" class="hover:text-gray-900">
+        {t("footer.github")}
+      </a>
+      <a href={`/${lang}/blog/`} class="hover:text-gray-900">
+        {t("footer.blog")}
+      </a>
+      <a href={`/${lang}/docs/`} class="hover:text-gray-900">
+        {t("footer.docs")}
+      </a>
+    </nav>
   </div>
 </footer>

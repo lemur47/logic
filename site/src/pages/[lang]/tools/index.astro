@@ -11,16 +11,7 @@ const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 
 const tools = [
-  {
-    href: `/${lang}/tools/tco/`,
-    name: t("tools.tco"),
-    desc: t("tools.tco.desc"),
-  },
-  {
-    href: `/${lang}/tools/breakeven/`,
-    name: t("tools.breakeven"),
-    desc: t("tools.breakeven.desc"),
-  },
+  { href: `/${lang}/tools/tco/`, name: t("tools.tco"), desc: t("tools.tco.desc") },
 ];
 ---
 
