@@ -26,20 +26,20 @@ const trustItems = [
 
 <Base wide>
   <section class="py-24 text-center max-w-3xl mx-auto">
-    <h1 class="text-5xl font-bold tracking-tight">{t("landing.hero")}</h1>
-    <p class="text-xl text-gray-600 mt-6 max-w-2xl mx-auto">
+    <h1 class="text-3xl sm:text-5xl font-bold tracking-tight">{t("landing.hero")}</h1>
+    <p class="text-lg sm:text-xl text-gray-600 mt-6 max-w-2xl mx-auto">
       {t("landing.sub")}
     </p>
     <a
       href={`/${lang}/tools/tco/`}
-      class="mt-8 inline-block bg-gray-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-800 text-lg"
+      class="mt-8 inline-block bg-gray-900 text-white px-6 sm:px-8 py-4 rounded-lg font-medium hover:bg-gray-800 text-base sm:text-lg"
     >
       {t("landing.cta")}
     </a>
   </section>
 
   <section class="py-8 border-y border-gray-100">
-    <div class="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
+    <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-gray-500">
       {trustItems.map((item, i) => (
         <>
           {i > 0 && <span aria-hidden="true">&middot;</span>}
