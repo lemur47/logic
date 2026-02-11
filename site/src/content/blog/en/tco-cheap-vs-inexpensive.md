@@ -1,7 +1,7 @@
 ---
 title: "Cheap vs Inexpensive: Why TCO Changes the Conversation"
 description: "A $200 printer and a $600 printer walk into an office. Five years later, only one was actually inexpensive."
-pubDate: 2025-01-15
+pubDate: 2026-02-11
 tags: ["tco", "procurement", "case-study"]
 ---
 
@@ -38,4 +38,4 @@ Option B is 3x the sticker price but **24% less expensive** over its lifetime.
 
 TCO isn't about being cheap or frugal. It's about knowing the real number before you commit. The goal is to make the invisible costs visible — and then decide.
 
-That's what the [PMO TCO calculator](/en/tools/tco/) is built for.
+That's what the [TCO calculator](/en/tools/tco/) is built for.
