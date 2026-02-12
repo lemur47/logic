@@ -9,7 +9,7 @@ tags: ["tco", "procurement", "case-study"]
 
 Your team needs a new office printer. Option A costs $200 upfront. Option B costs $600. Which is cheaper?
 
-If you answered "Option A," you're not wrong — but you might be making a $2,000 mistake.
+If you answered "Option A," you're not wrong — but you might be paying $375 more than you need to.
 
 ## Total Cost of Ownership
 
