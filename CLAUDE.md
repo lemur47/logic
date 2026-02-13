@@ -61,3 +61,7 @@ Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
 - Pyright basic mode on `app/` only
 - SQLite for development (`logic.db`, gitignored)
 - Pre-commit hooks: gitleaks, bandit, ruff, pyright, pytest, standard hygiene checks
+
+## Git workflow
+
+- **GitHub Flow** — always create a `feature/*` branch, push, and open a PR. Never commit directly to `main`.

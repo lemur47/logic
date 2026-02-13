@@ -50,6 +50,16 @@ repos:
         always_run: true
         stages: [pre-commit]
 
+  # Type checking - Astro (site/ only)
+  - repo: local
+    hooks:
+      - id: astro-check
+        name: astro check
+        entry: bash -c 'cd site && npx astro check'
+        language: system
+        pass_filenames: false
+        files: ^site/
+
   # General hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
