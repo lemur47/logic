@@ -1,9 +1,9 @@
-# GitHub Actions Security Workflow
+# GitHub Actions CI Workflow
 # Runs on push to main and all PRs
 #
-# Jobs: gitleaks scan, bandit audit, ruff lint, pyright typecheck
+# Jobs: gitleaks scan, bandit audit, ruff lint, pyright typecheck, frontend checks
 
-name: Security and Lint
+name: CI
 
 on:
   push:
@@ -94,3 +94,30 @@ jobs:
 
       - name: Run Pyright
         run: pyright
+
+  # Frontend checks (Astro + Svelte + TypeScript)
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx astro check
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate --omit=dev
