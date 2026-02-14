@@ -1,15 +1,48 @@
-# pmo.run — Launch Strategy
+# pmo.run — Strategy
 
 **Domain:** pmo.run
 **Repo:** github.com/lemur47/logic
-**Phase:** Awareness & Prototype
-**Last updated:** 2026-02-10
+**Phase:** Awareness & Prototype → Agent PoC
+**Last updated:** 2026-02-14
 
 ---
 
 ## Mission
 
-Provide AI + human PMO services to SMEs, backed by open source tools that serve the global PM/PMO community. Practical, privacy-first, simple.
+Ship decisions, not spreadsheets.
+
+Provide AI + human PMO services to SMEs, backed by open source decision-making tools that serve the global PM/PMO community. Every R&D deliverable creates value for the world — contribution first, revenue follows naturally.
+
+## Philosophy: R&D for Everyone
+
+Our flywheel runs on a simple principle: every experiment, every formula, every line of code we write becomes a public deliverable. We don't build in private and sell — we build in public and earn trust.
+
+![R&D for Everyone](assets/flywheel.svg)
+
+```
+Real Problems (consulting & PMO work)
+  → Logic & Math (formulas & analysis)
+    → Open Source (Python PoC & modules)
+      → Content (blog posts EN/JA)
+        → Community (trust & adoption)
+          → Value (to the world, always)
+            → back to Real Problems
+```
+
+This is not a growth hack. It's the ethical foundation of the business.
+
+## Principles
+
+1. **Ship, don't perfect.** A live page beats a perfect plan.
+2. **R&D = Content.** Every experiment becomes a blog post.
+3. **Privacy by default.** No tracking, no analytics cookies, encrypted storage.
+4. **Two audiences, one brand.** SME clients (JA) and PMO community (EN).
+5. **AI + Human.** The service is the product. Tools are the proof.
+6. **Open source trust.** The logic repo is the credibility engine.
+7. **Composable over monolithic.** Small modules anyone can import, not a walled garden.
+8. **Authenticity over marketing.** When math contradicts the pitch, fix the pitch.
+
+---
 
 ## Two Audiences, Two Languages
 
@@ -31,43 +64,140 @@ Provide AI + human PMO services to SMEs, backed by open source tools that serve 
 
 ## Product Architecture
 
-### What Exists (logic repo)
+### Five-Layer Architecture
 
 ```
-app/
-├── main.py          → FastAPI entry point
-├── database.py      → SQLAlchemy + SQLite
-└── tco/             → TCO module (live)
-    ├── core.py      → Pure calculation functions
-    ├── router.py    → API endpoints
-    ├── schemas.py   → Pydantic validation
-    ├── models.py    → SQLAlchemy ORM
-    └── crud.py      → DB operations
-
-examples/standalone/tco/  → Standalone Python version
+┌─────────────────────────────────────────────────────────┐
+│  CLIENT LAYER                                           │
+│  Astro + Svelte  |  E2EE via Web Crypto API  |  EN/JA  │
+├─────────────────────────────────────────────────────────┤
+│  AGENT LAYER                                            │
+│  Cloudflare Agents SDK  |  Durable Objects  |           │
+│  AI Gateway  |  Workflows (human-in-the-loop)           │
+├─────────────────────────────────────────────────────────┤
+│  LOGIC LAYER                                            │
+│  TCO | PERT | Base-rate | Bayesian | NPV | IRR          │
+│  Python (community) + TypeScript (product)              │
+├─────────────────────────────────────────────────────────┤
+│  DATA LAYER                                             │
+│  D1 (plaintext metadata)  |  R2 (encrypted blobs)      │
+│  Vectorize (future RAG)                                 │
+├─────────────────────────────────────────────────────────┤
+│  INTEGRATION LAYER                                      │
+│  Baserow | External APIs | MCP Servers                  │
+│  Browser Rendering                                      │
+└─────────────────────────────────────────────────────────┘
 ```
+
+### Dual Codebase Strategy
+
+| Codebase | Language | Purpose | Audience |
+|----------|----------|---------|----------|
+| `logic` repo | Python | Open source PoCs, standalone modules, FastAPI prototypes | Community, developers, self-hosters |
+| Cloudflare Agent | TypeScript | Production product, Agents SDK, Workers runtime | Paying customers, platform |
+
+Same math, two runtimes. The Python-to-TypeScript port is itself a blog post series.
+
+### Logic Modules
+
+Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → Interactive UI**
+
+| Module | Category | Status | Description |
+|--------|----------|--------|-------------|
+| TCO | Finance | ✅ Live | Total Cost of Ownership with NPV adjustment |
+| PERT | P3M/P3G | 🔨 Next | Three-point estimation (optimistic/likely/pessimistic) |
+| Base-rate | P3M/P3G | 📋 Planned | Reference class forecasting, reduce subjective bias |
+| Bayesian | P3M/P3G | 📋 Planned | Bayesian updating for base-rate learning |
+| NPV | Finance | 📋 Planned | Net Present Value analysis |
+| IRR | Finance | 📋 Planned | Internal Rate of Return |
+
+### Logic API
+
+Every logic module is available as:
+
+- **Python import:** `from logic.tco.core import calculate_tco` — for developers integrating into their own systems
+- **FastAPI endpoint:** `POST /tco/calculate` — stateless HTTP API for any client
+- **Agent tool:** Callable by the Cloudflare Agent for orchestrated decision workflows
+
+The API is not a separate product — it's an inherent property of composable logic.
 
 ### TCO Endpoints (Live)
 
 ```
-POST /tco/calculate    → Stateless TCO calculation
-POST /tco/compare      → Compare options, ranked by annual cost
-POST /tco/breakeven    → Break-even analysis between two options
-POST /tco/scenarios    → Save scenario (CRUD: create/read/update/delete)
-GET  /tco/scenarios    → List scenarios (paginated, searchable)
+POST /tco/calculate       → Stateless TCO calculation
+POST /tco/compare         → Compare options, ranked by annual cost
+POST /tco/breakeven       → Break-even analysis between two options
+POST /tco/scenarios       → Save scenario (CRUD)
+GET  /tco/scenarios       → List scenarios (paginated, searchable)
 GET  /tco/scenarios/stats → Aggregate statistics
 ```
 
-### Planned Modules
+---
 
-| Module | Category | Priority | Description |
-|--------|----------|----------|-------------|
-| PERT | P3M/P3G | Next | Three-point estimation (optimistic/likely/pessimistic) |
-| Base-rate | P3M/P3G | High | Reference class forecasting, reduce subjective bias |
-| Bayesian | P3M/P3G | Medium | Bayesian updating for base-rate learning |
-| NPV | Finance | Medium | Net Present Value analysis |
-| IRR | Finance | Medium | Internal Rate of Return |
-| Image metadata removal | Privacy | Low | Strip EXIF/metadata from images |
+## Agent Architecture
+
+### Why an Agent, Not Just an API
+
+A raw LLM gives essays. Our PMO Agent gives auditable decisions backed by deterministic math, governance workflows, and integration with the client's actual operational tools.
+
+**Differentiation from generic AI:**
+
+- **Domain-encoded logic.** PERT, TCO, Bayesian — precise calculations, not probabilistic text.
+- **Human-in-the-loop as a feature.** Cloudflare Workflows `waitForApproval()` maps to real PMO governance: calculate → review → approve → execute.
+- **External tool orchestration.** Agent writes to Baserow (WBS/timeline), reads from D1 (metadata), triggers reports — automation that LLMs alone can't do.
+
+### Decision Flow Example
+
+```
+Client question
+  → Agent reasons about intent (LLM via AI Gateway)
+    → Calls TCO/PERT tools (our logic layer)
+      → Stores results in D1 (structured metadata)
+        → Pushes WBS/timeline to Baserow
+          → Pauses for human review (Workflow)
+            → On approval: generates report, updates status
+              → Logs everything via AI Gateway (billing/analytics)
+```
+
+### AI Gateway: Billing, Analytics, and Process Mining
+
+AI Gateway provides cost visibility and model-switching flexibility. Beyond billing:
+
+- Every agent interaction is logged — which tools get called, how often, in what sequence.
+- Over time, this becomes a **process mining dataset**: how SMEs actually make decisions.
+- Anonymised, aggregated insights become blog content and consulting IP.
+- 30-day Cloudflare analytics for operational view; archive to R2/D1 for long-term analysis.
+
+---
+
+## Privacy Architecture: E2EE
+
+Inspired by Proton Mail's PGP model, adapted for PMO data.
+
+### The Split: Plaintext Metadata + Encrypted Body
+
+```
+D1 (plaintext, queryable by agent):
+  - project_id, client_id, created_at
+  - document_type: "tco_scenario"
+  - tags: ["build-vs-buy", "q3-2026"]
+  - status: "pending_review"
+
+R2 (encrypted blob, decrypted only in client browser):
+  - Full TCO calculation results
+  - Client's proprietary cost data
+  - Decision rationale and notes
+```
+
+### Encryption Stack
+
+- **Browser (Svelte):** AES-256-GCM via Web Crypto API. Key derived from user passphrase via PBKDF2. Key never leaves the browser.
+- **Cloudflare Workers:** Web Crypto API natively supported. Can handle encrypted blob routing without decryption.
+- **Python (logic repo):** Reference implementation for CLI tools and third-party integrations.
+
+### Zero-Knowledge Guarantee
+
+The agent queries D1 metadata to orchestrate workflows (schedule, approve, report) without ever accessing the encrypted body. We never see client data in plaintext. This is the enterprise security moat.
 
 ---
 
@@ -76,11 +206,11 @@ GET  /tco/scenarios/stats → Aggregate statistics
 ### Tech Stack
 
 - **Framework:** Astro (static + islands)
-- **Interactive components:** Svelte or Vue (for calculator UIs)
+- **Interactive components:** Svelte (lighter, aligns with Astro)
 - **Styling:** Tailwind CSS
 - **Hosting:** Cloudflare Pages
 - **i18n:** Astro built-in (EN/JA)
-- **API backend:** FastAPI on Cloudflare Workers or small VPS
+- **API backend:** Cloudflare Workers (Agent) + FastAPI (Python community)
 
 ### Site Structure
 
@@ -110,32 +240,52 @@ pmo.run/
 
 ## Monetisation Strategy
 
-### Phase 1: Consulting + Free Tools (Now)
+### Phase 1: Consulting + Free Tools + PoC Spike (Now → Q2 2026)
 
 Revenue comes from consulting. Tools and content are free. The website and repo are the storefront.
 
-**Service model:** AI + human working together to:
-- Analyse client data
-- Provide strategic advice on investments, projects, portfolios
-- Calculate with our tools (TCO, PERT, etc.)
-- Write small PoC code for client-specific problems
-- Deliver reports and recommendations
+**Service model:** AI + human working together to analyse, calculate, advise, prototype, and deliver.
+
+**Key deliverables this phase:**
+- PERT module (standalone → FastAPI → interactive page)
+- Cloudflare Agent PoC spike (TCO as tool + Workflow approval gate)
+- 5+ blog posts (bilingual, from R&D and consulting experience)
+- First direct consulting clients (JA market)
 
 **Pricing:** Project-based or retainer. Japanese SME market first.
 
-### Phase 2: Freemium SaaS (When Demand Signals Appear)
+### Phase 2: PMO Agent MVP + Freemium SaaS (Q3-Q4 2026)
 
-Free tools remain free. Paid tier adds: saved scenarios, PDF report export, team sharing, encrypted storage, API rate increases, and integrations with tools like Airtable and Baserow.
+Free tools remain free. Agent goes live. Paid tier adds:
+- Saved scenarios and PDF report export
+- Team sharing with role-based access
+- Encrypted storage (E2EE)
+- Baserow integration for WBS/timeline management
+- AI Gateway billing and analytics dashboard
+- API rate increases
 
-Pricing TBD based on market feedback.
+### Phase 3: Platform + E2EE + Ecosystem (2027)
 
-### Phase 3: Platform (When Phase 2 Validates)
+- Full E2EE implementation (Web Crypto API, Proton pattern)
+- Vectorize for RAG over PMO knowledge base
+- MCP servers for third-party integrations
+- AI PMO Assistant (natural language queries over project data)
+- Enterprise custom plans (private cloud storage option)
+- Process mining dashboard (anonymised decision analytics)
 
-- Encrypted object storage + index DB
-- AI interface for natural language queries over project data
-- Security/privacy tools for SMEs
-- Integrations with NoCode platforms for P3M workflows
-- Automation pipelines
+---
+
+## Technical Decisions
+
+| Decision | Resolution | Notes |
+|----------|-----------|-------|
+| API hosting | Cloudflare Workers (Agent) | Agent architecture supersedes VPS option |
+| Interactive components | Svelte | Lighter, aligns with Astro islands |
+| i18n approach | Astro content collections | Scales better for bilingual content |
+| Auth (Phase 2) | Cloudflare Access | Integrates with Agent/Workers stack |
+| Storage | D1 (metadata) + R2 (encrypted blobs) | Proton pattern: plaintext index + encrypted body |
+| Encryption | AES-256-GCM via Web Crypto API | Same API in browser, Workers, and Node.js |
+| Python vs TypeScript | Both | Python for community, TypeScript for product |
 
 ---
 
@@ -144,87 +294,136 @@ Pricing TBD based on market feedback.
 Every R&D experiment and consulting engagement produces content:
 
 ```
-R&D / Client Work
+R&D / Consulting / Real PMO Problems
       ↓
-PoC Script (committed to logic repo)
+PoC Script (committed to logic repo, MIT)
       ↓
-Blog Post (EN/JP) explaining the problem, math, and solution
+Blog Post (EN + JA) explaining the problem, math, and solution
       ↓
-Tool Page on pmo.run (interactive version)
+Tool Page on pmo.run (interactive Svelte component)
       ↓
 Social sharing (LinkedIn JP, dev.to EN, Hacker News)
       ↓
-Traffic → Consulting inquiries + API users
+Traffic → Consulting inquiries + API/tool users
       ↓
-More client work → More content
+More real problems → More content → More trust
 ```
 
-### Blog Post Ideas
+### Blog Post Pipeline
 
 | # | Title (EN) | Title (JA) | Ties to |
 |---|-----------|-----------|---------|
 | 1 | "Cheap vs Inexpensive: TCO for office equipment" | 「安い」と「お得」は違う：オフィス機器のTCO分析 | TCO tool |
 | 2 | "Build vs Buy: A framework with real numbers" | 内製 vs 外注：数字で考えるフレームワーク | TCO breakeven |
 | 3 | "Why your project estimates are always wrong" | なぜプロジェクトの見積もりはいつも外れるのか | PERT tool |
-| 4 | "Reference class forecasting for SMEs" | 中小企業のための参照クラス予測 | Base-rate tool |
-| 5 | "The time value of money, explained with Python" | Pythonで理解するお金の時間的価値 | NPV module |
-| 6 | "Privacy-first project data: a PoC with encryption" | プライバシー優先のプロジェクトデータ管理 | Encryption PoC |
-| 7 | "Connecting Baserow to automated cost analysis" | Baserowで自動コスト分析を構築する | Integration PoC |
-| 8 | "How AI + human PMO services actually work" | AI×人間のPMOサービスとは何か | Service marketing |
-| 9 | "Open source tools for PMO: why we build in public" | なぜ私たちはオープンソースでPMOツールを作るのか | Brand story |
-| 10 | "Cloud migration TCO: numbers your vendor won't show" | クラウド移行のTCO：ベンダーが見せない数字 | TCO tool |
+| 4 | "Why your project docs rot — and a system-level fix" | なぜプロジェクトのドキュメントは腐るのか | DevSecOps insight |
+| 5 | "Reference class forecasting for SMEs" | 中小企業のための参照クラス予測 | Base-rate tool |
+| 6 | "The time value of money, explained with Python" | Pythonで理解するお金の時間的価値 | NPV module |
+| 7 | "Privacy-first project data: E2EE with Web Crypto API" | プライバシー優先のプロジェクトデータ管理 | Encryption PoC |
+| 8 | "PMO tools on Cloudflare Agents: a PoC" | Cloudflare Agentsで動くPMOツール | Agent architecture |
+| 9 | "Connecting Baserow to automated cost analysis" | Baserowで自動コスト分析を構築する | Integration PoC |
+| 10 | "How AI + human PMO services actually work" | AI×人間のPMOサービスとは何か | Service marketing |
+| 11 | "Open source tools for PMO: why we build in public" | なぜ私たちはオープンソースでPMOツールを作るのか | Brand story |
+| 12 | "Cloud migration TCO: numbers your vendor won't show" | クラウド移行のTCO：ベンダーが見せない数字 | TCO tool |
 
 ---
 
-## Go-to-Market: First 90 Days
+## Real-World Problem: DevSecOps in PMO
 
-### Days 1-30: Quiet Launch
+From direct consulting experience — the pattern every enterprise PMO team suffers:
 
-- [ ] Deploy Astro site to pmo.run (Cloudflare Pages)
-- [ ] Landing page with value prop (bilingual)
-- [ ] TCO interactive tool page (bilingual, Svelte/Vue component)
-- [ ] Contact/inquiry form
-- [ ] Blog post #1: TCO office equipment case study
-- [ ] README in logic repo links to pmo.run
-- [ ] Share with trusted contacts for feedback
+**Symptoms:**
+- Notion/Confluence/Wiki manually edited and slowly rotting
+- ClickUp/Jira tickets non-maintained, disconnected from reality
+- GitLab/GitHub Issues used as a poor backlog with no estimation discipline
+- WBS in spreadsheets: estimation-result gaps never tracked or learned from
 
-### Days 31-60: LinkedIn Drip + Second Tool
+**Our solution stack maps directly:**
 
-- [ ] PERT module: standalone PoC → FastAPI → interactive page
-- [ ] Blog posts #2 and #3
-- [ ] API docs page on pmo.run
-- [ ] LinkedIn posts (1-2/week): value-first content, not announcements
-- [ ] First consulting outreach (JA, warm contacts)
+| Pain | Our Module | Level |
+|------|-----------|-------|
+| Estimation gaps | PERT (three-point estimation) | Logic |
+| No learning from past estimates | Bayesian updating | Logic |
+| Manual WBS management | Baserow integration (timeline, status) | Integration |
+| Disconnected tooling | Agent orchestration (Workflows) | Agent |
+| No decision analytics | AI Gateway + process mining | Analytics |
+| Data security concerns | E2EE (Proton pattern) | Privacy |
+| Documentation decay | Our own repo as the example | Meta |
 
-### Days 61-90: Broader Exposure + Validate
+**Key insight:** We don't just build tools for this problem — we live it, document it, and solve it in public. The logic repo's own documentation, issue management, and CI/CD pipeline is the proof that the system works.
 
-- [ ] Blog posts #4 and #5
-- [ ] Submit to Hacker News (Show HN: Open source PMO tools)
+---
+
+## Strategic Positioning
+
+### Appeal to Cloudflare
+
+First PMO-domain Agent on their platform. Showcases: Agents SDK, Workflows, AI Gateway, D1, R2, E2EE, Browser Rendering. Target: Developer Blog co-authorship and "Powered by Cloudflare" showcase.
+
+### Appeal to Anthropic
+
+CLAUDE.md-driven development workflow. PMO prompt library on GitHub. Domain-specific Claude integration for business decision-making. Target: best-practice showcase for "how Claude powers enterprise decisions."
+
+### Competitive Moat
+
+- **Domain logic:** PMO-specific math no generic AI provides
+- **Human-in-the-loop:** Governance workflows, not just chat
+- **E2EE by default:** Zero-knowledge, enterprise-ready
+- **Dual language:** JA consulting + EN community
+- **Open source trust:** Credibility via radical transparency
+- **Composable modules:** Partial adoption lowers barrier, builds embedded presence
+
+---
+
+## Go-to-Market: Sprint Plan
+
+### March 2026: Distil & Ship (before SIer engagement ends March 31)
+
+- [ ] Distil all DevSecOps insights from current project into blog drafts
+- [ ] PERT module: standalone PoC → FastAPI endpoint
+- [ ] Blog post #1: TCO case study (publish)
+- [ ] Blog post #4 draft: "Why your project docs rot" (from live experience)
+- [ ] Update CLAUDE.md with agent architecture context
+
+### April 2026: Agent PoC Spike
+
+- [ ] Cloudflare Agent PoC: 1 Agent + 1 Workflow + TCO as tool + waitForApproval
+- [ ] Blog post about the PoC spike (EN — targets Cloudflare/developer audience)
+- [ ] PERT interactive page on pmo.run
+- [ ] Blog posts #2 and #3 (publish)
+- [ ] LinkedIn posts begin (1-2/week, value-first)
+
+### May-June 2026: Content Engine + Consulting Outreach
+
+- [ ] Agent PoC validated → begin TypeScript port of TCO module
+- [ ] Blog posts #5-#7 (publish)
+- [ ] Submit to Hacker News (Show HN: Open source PMO decision tools)
 - [ ] dev.to cross-post (EN)
-- [ ] Gather feedback from tool users and early consulting clients
-- [ ] Begin encryption PoC and Baserow integration PoC
-- [ ] Evaluate: do we have demand signals for Phase 2?
+- [ ] First consulting outreach from content base (JA, warm contacts)
+- [ ] Begin encryption PoC (Web Crypto API in Svelte)
+- [ ] Evaluate: demand signals for Phase 2?
+
+### Q3-Q4 2026: Agent MVP
+
+- [ ] TypeScript logic modules on Cloudflare Workers
+- [ ] Agent with D1 metadata + R2 encrypted storage
+- [ ] Baserow integration prototype
+- [ ] AI Gateway billing dashboard
+- [ ] Freemium tier launch
 
 ---
 
-## Technical Decisions (Pending)
+## Development Environment
 
-| Decision | Options | Notes |
-|----------|---------|-------|
-| API hosting for pmo.run | Cloudflare Workers vs. small VPS | Workers = cheaper, VPS = simpler for SQLite |
-| Interactive components | Svelte vs. Vue | Both work with Astro; Svelte is lighter |
-| i18n approach | Astro content collections vs. manual | Content collections scale better |
-| Auth (Phase 2) | Cloudflare Access vs. custom | Only needed when paid tier launches |
-| Storage (Phase 3) | Cloudflare R2 + D1 vs. S3 + Postgres | R2 aligns with Cloudflare stack |
+- **OS:** Pop!_OS
+- **Package management:** uv
+- **Editor:** Zed
+- **Python:** 3.14+ (FastAPI, SQLAlchemy, pytest)
+- **TypeScript:** Cloudflare Workers, Agents SDK (future)
+- **Frontend:** Astro + Svelte + Tailwind CSS
+- **AI:** Claude (development partner, CLAUDE.md-driven)
+- **Security:** gitleaks, bandit, ruff, pyright, pre-commit hooks, GitHub Actions CI
 
 ---
 
-## Principles
-
-1. **Ship, don't perfect.** A live page beats a perfect plan.
-2. **R&D = Content.** Every experiment becomes a blog post.
-3. **Privacy by default.** No tracking, no analytics cookies, encrypted storage.
-4. **Two audiences, one brand.** SME clients (JA) and PMO community (EN).
-5. **AI + Human.** The service is the product. Tools are the proof.
-6. **Open source trust.** The logic repo is the credibility engine.
-7. **Platform later.** Consulting revenue first. SaaS when demand is proven.
+*This document is our public commitment and the context for Claude Code. Every decision here is traceable to a real problem, a mathematical model, or a consulting insight. We update it as we learn.*
