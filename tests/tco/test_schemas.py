@@ -2,7 +2,8 @@
 
 import pytest
 from pydantic import ValidationError
-from tco.schemas import CompareRequest, ScenarioCreate, ScenarioUpdate, TCOInput
+
+from app.tco.schemas import CompareRequest, ScenarioCreate, ScenarioUpdate, TCOInput
 
 # ── TCOInput ─────────────────────────────────────────────────────────────────
 

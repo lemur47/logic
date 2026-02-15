@@ -1,7 +1,8 @@
 """Unit tests for tco/core.py pure calculation functions."""
 
 import pytest
-from tco.core import calculate_breakeven, calculate_tco, compare_options
+
+from app.tco.core import calculate_breakeven, calculate_tco, compare_options
 
 # ── calculate_tco ────────────────────────────────────────────────────────────
 
