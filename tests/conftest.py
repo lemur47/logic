@@ -1,17 +1,12 @@
 """Root test fixtures: in-memory database, async client."""
 
-import sys
-from pathlib import Path
-
-# Ensure app/ is on sys.path before any app imports
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "app"))
-
 import pytest
-from database import Base, get_db
 from httpx import ASGITransport, AsyncClient
-from main import app
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
+
+from app.database import Base, get_db
+from app.main import app
 
 # In-memory SQLite with StaticPool so every connection shares the same database
 engine = create_engine(
