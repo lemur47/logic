@@ -3,7 +3,7 @@
 **Domain:** pmo.run
 **Repo:** github.com/lemur47/logic
 **Phase:** Awareness & Prototype → Agent PoC
-**Last updated:** 2026-02-14
+**Last updated:** 2026-02-19
 
 ---
 
@@ -372,6 +372,76 @@ CLAUDE.md-driven development workflow. PMO prompt library on GitHub. Domain-spec
 - **Dual language:** JA consulting + EN community
 - **Open source trust:** Credibility via radical transparency
 - **Composable modules:** Partial adoption lowers barrier, builds embedded presence
+
+---
+
+## IP Strategy: Open Core + Proprietary Plugins
+
+### Principle
+
+Logic and code are public. Data and calibration models are protected. The math stays open — what stays proprietary is the *reasoning that tells the math which variables matter*.
+
+### Three-Layer IP Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  OSS LAYER (trust + adoption)                           │
+│  MIT licensed. Pure math: PERT, TCO, NPV, Bayesian.     │
+│  FastAPI endpoints, CLI tools, Python imports.           │
+│  Anyone can use, audit, fork, self-host.                │
+├─────────────────────────────────────────────────────────┤
+│  PRODUCT LAYER (platform + workflows)                   │
+│  Agent orchestration, E2EE, Baserow integration.        │
+│  Cloudflare Workers, Workflows, AI Gateway.             │
+│  Freemium → paid SaaS.                                  │
+├─────────────────────────────────────────────────────────┤
+│  PROPRIETARY PLUGIN LAYER (IP + exit value)             │
+│  Field-calibrated adjustment coefficients.              │
+│  Risk pattern recognition models.                       │
+│  Observation frameworks ("what to measure").             │
+│  Industry-specific delay/risk profiles.                 │
+│  Client's own data (E2EE protected, never visible).     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### What We Sell Is Not Calculations
+
+We deliver **cognition as code** — mental models and mindset encoded as executable logic:
+
+1. **Evaluation frameworks** — "what to observe to find the problem's root cause." The structure of attention, not the data itself.
+2. **Risk detection models** — systems-thinking-based inference that converts observation patterns into probability. Turns ignored gut feeling into "system says 82% chance of resource failure in 3 weeks."
+3. **Calibration plugins** — field-tested adjustments that make standard mathematical models match reality. PERT says duration X; the plugin knows this approval process adds 3 days, this review phase has a 20% rejection rate.
+
+### Plugin Architecture
+
+Each logic module exposes a `PluginInterface` that accepts calibration data:
+
+```
+core.py          → Pure math (OSS, MIT)
+calibration.py   → Plugin interface for field adjustments (OSS, MIT)
+plugins/         → Proprietary calibration data and models (closed, B2B licensed)
+```
+
+A consulting firm buys access to the plugin layer, loads their own 10 years of project data, and gets a proprietary "AI-powered PMO engine" that only they have — built on our auditable open foundation.
+
+### Why This Architecture Maximises Exit Value
+
+- **Clear asset separation:** OSS continues as community trust engine. Proprietary plugins are the acquisition target with defined IP boundaries.
+- **Buyer appeal:** Consulting firms want to turn veteran PMO knowledge ("tacit knowledge") into organisational assets. Our plugin framework is the container for that transformation.
+- **Low acquirer dependency:** The plugin-creation process is documented (CLAUDE.md, development logs, this strategy). A buyer isn't locked into retaining the founder long-term.
+- **E2EE protects everyone:** The buyer's client data stays encrypted. Our open code proves no backdoors. Trust architecture itself is IP.
+
+### What Stays Open vs. Closed
+
+| Layer | License | Rationale |
+|-------|---------|-----------|
+| Mathematical formulas (PERT, TCO, NPV, etc.) | MIT | Trust engine, community adoption, auditability |
+| FastAPI endpoints, CLI tools, schemas | MIT | Adoption surface, composability proof |
+| Plugin interface definitions | MIT | Enables ecosystem, lowers integration barrier |
+| Agent orchestration (Cloudflare Workers) | Source-available or MIT | Platform showcase, transparency |
+| Calibration coefficients and field models | Proprietary (B2B) | Core consulting IP, exit value |
+| Risk pattern recognition models | Proprietary (B2B) | Systems thinking encoded, highest-value asset |
+| Client data | E2EE, zero-knowledge | Never accessible, even by us |
 
 ---
 
