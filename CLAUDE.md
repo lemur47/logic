@@ -65,6 +65,8 @@ Modules support an optional calibration layer for field-tested adjustments:
 
 The boundary is clear: **logic and code are public, calibration data and reasoning models are proprietary.** When developing new modules, always ensure `core.py` works standalone without any plugin. The plugin layer enhances precision, never gates functionality.
 
+`plugins/` directories are gitignored in this repo. Proprietary calibration data is managed separately and never committed to the public repository.
+
 ## Module Development Flow
 
 Every new module follows this pipeline:
