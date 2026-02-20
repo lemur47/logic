@@ -60,6 +60,16 @@ repos:
         pass_filenames: false
         files: ^site/
 
+  # Security check - npm (ommiting dev)
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: npm audit
+        entry: bash -c 'cd site && npm audit --audit-level=moderate --omit=dev'
+        language: system
+        pass_filenames: false
+        files: ^site/
+
   # General hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
