@@ -1,0 +1,31 @@
+---
+import { useTranslations } from "../i18n/utils";
+import type { Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+  tags: string[];
+}
+
+const { lang, tags } = Astro.props;
+const t = useTranslations(lang);
+
+const tool = tags.includes("pert")
+  ? { href: `/${lang}/tools/pert/`, title: t("blog.cta.pert"), desc: t("blog.cta.pert.desc") }
+  : tags.includes("tco")
+    ? { href: `/${lang}/tools/tco/`, title: t("blog.cta.tco"), desc: t("blog.cta.tco.desc") }
+    : null;
+---
+
+{tool && (
+  <div class="not-prose mt-12 border border-gray-200 rounded-lg bg-gray-50 p-6 text-center">
+    <p class="text-lg font-semibold mb-2">{tool.title}</p>
+    <p class="text-sm text-gray-600 mb-4">{tool.desc}</p>
+    <a
+      href={tool.href}
+      class="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 text-sm"
+    >
+      {tool.title} &rarr;
+    </a>
+  </div>
+)}
