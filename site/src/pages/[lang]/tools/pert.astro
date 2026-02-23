@@ -1,0 +1,19 @@
+---
+import Base from "../../../layouts/Base.astro";
+import PertCalculator from "../../../components/svelte/PertCalculator.svelte";
+import { useTranslations } from "../../../i18n/utils";
+import type { Lang } from "../../../i18n/ui";
+
+export function getStaticPaths() {
+  return [{ params: { lang: "en" } }, { params: { lang: "ja" } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+---
+
+<Base title={t("tools.pert")} wide>
+  <h1 class="text-3xl font-bold mb-4">{t("tools.pert")}</h1>
+  <p class="text-gray-600 mb-8">{t("tools.pert.desc")}</p>
+  <PertCalculator client:load lang={lang} />
+</Base>
