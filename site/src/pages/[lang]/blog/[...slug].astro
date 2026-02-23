@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import BlogCta from "../../../components/BlogCta.astro";
 import { getCollection, render } from "astro:content";
 import { parseEntryLocale } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
@@ -33,5 +34,6 @@ const { lang } = Astro.params as { lang: Lang };
       </p>
     </header>
     <Content />
+    <BlogCta lang={lang} tags={post.data.tags} />
   </article>
 </Base>

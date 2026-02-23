@@ -22,14 +22,14 @@ export const ui = {
     "footer.blog": "Blog",
     "footer.docs": "Docs",
     "tools.tco": "TCO Calculator",
-    "tools.tco.desc": "Total Cost of Ownership analysis for informed purchasing decisions.",
+    "tools.tco.desc": "Total Cost of Ownership Analysis for Informed Purchasing Decisions.",
     "tools.breakeven": "Break-Even Analysis",
-    "tools.breakeven.desc": "Find the point where revenue meets costs.",
-    "landing.hero": "Ship decisions, not spreadsheets.",
+    "tools.breakeven.desc": "Find the Point Where Revenue Meets Costs.",
+    "landing.hero": "Ship Decisions, Not Spreadsheets.",
     "landing.sub":
       "Free, open-source tools for TCO analysis and cost comparison. No account required. Your data never leaves your browser.",
-    "landing.cta": "Calculate TCO — Free",
-    "landing.features.title": "Built for real decisions",
+    "landing.cta": "Estimate with PERT — Free",
+    "landing.features.title": "Built for Real Decisions",
     "landing.features.tco.title": "TCO Analysis",
     "landing.features.tco.desc":
       "Compare total cost of ownership across options with NPV adjustment, maintenance factors, and replacement cycles.",
@@ -77,7 +77,7 @@ export const ui = {
     "tco.calc.validation.nonNegative": "Cannot be negative",
     "tco.calc.currency": "$",
     "tools.pert": "PERT Estimator",
-    "tools.pert.desc": "Three-point estimation with reality adjustments for project schedules.",
+    "tools.pert.desc": "Three-Point Estimation with Reality Adjustments for Project Schedules.",
     "pert.calc.title": "PERT Estimation",
     "pert.calc.optimistic": "Optimistic (O)",
     "pert.calc.mostLikely": "Most Likely (M)",
@@ -108,6 +108,10 @@ export const ui = {
     "pert.calc.rangeComparison": "Range Comparison",
     "pert.calc.validation.order": "Must satisfy O \u2264 M \u2264 P",
     "pert.calc.validation.nonNegative": "Cannot be negative",
+    "blog.cta.pert": "Try the PERT Estimator",
+    "blog.cta.pert.desc": "See how reality adjustments change your estimates.",
+    "blog.cta.tco": "Try the TCO Calculator",
+    "blog.cta.tco.desc": "Compare the real cost of your options.",
   },
   ja: {
     "site.title": "pmo.run",
@@ -129,7 +133,7 @@ export const ui = {
     "landing.hero": "スプレッドシートではなく、意思決定の質を高めよう。",
     "landing.sub":
       "TCO分析とコスト比較のためのオープンソースツール。アカウント不要、データは収集されません。",
-    "landing.cta": "TCOを計算する（無料）",
+    "landing.cta": "PERTで見積もる（無料）",
     "landing.features.title": "実践的な意思決定ツール",
     "landing.features.tco.title": "TCO分析",
     "landing.features.tco.desc":
@@ -209,5 +213,9 @@ export const ui = {
     "pert.calc.rangeComparison": "区間比較",
     "pert.calc.validation.order": "O ≦ M ≦ P を満たしてください",
     "pert.calc.validation.nonNegative": "負の値は入力できません",
+    "blog.cta.pert": "PERTツールを試す",
+    "blog.cta.pert.desc": "現実の調整がどう見積もりを変えるか、試してみてください。",
+    "blog.cta.tco": "TCO計算ツールを試す",
+    "blog.cta.tco.desc": "選択肢の本当のコストを比較してみてください。",
   },
 } as const;
