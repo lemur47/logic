@@ -544,6 +544,7 @@ Revoking a member: remove from project_members. Future reports exclude their key
 - Key fingerprint displayed for out-of-band verification
 - Public key signature verified by agent before every encryption operation
 - Key registration payload includes `account_id` and `created_at` to prevent replay
+- Key recovery uses a client-generated recovery secret (mnemonic phrase or downloadable file) created at account setup. The encrypted private key backup is stored in R2; the recovery secret never leaves the client's control. If both the private key and recovery secret are lost, Zone 1 data is permanently inaccessible — this is an inherent property of zero-knowledge architecture, not a flaw. Zone 3 operational data remains unaffected.
 
 ### Security Positioning (Public Commitment)
 
