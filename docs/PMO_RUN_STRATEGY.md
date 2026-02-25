@@ -3,7 +3,7 @@
 **Domain:** pmo.run
 **Repo:** github.com/lemur47/logic
 **Phase:** Awareness & Prototype → Agent PoC
-**Last updated:** 2026-02-19
+**Last updated:** 2026-02-25
 
 ---
 
@@ -35,12 +35,13 @@ This is not a growth hack. It's the ethical foundation of the business.
 
 1. **Ship, don't perfect.** A live page beats a perfect plan.
 2. **R&D = Content.** Every experiment becomes a blog post.
-3. **Privacy by default.** No tracking, no analytics cookies, encrypted storage.
+3. **Privacy by design.** Explicit data zones with transparent boundaries (see Privacy Architecture).
 4. **Two audiences, one brand.** SME clients (JA) and PMO community (EN).
 5. **AI + Human.** The service is the product. Tools are the proof.
 6. **Open source trust.** The logic repo is the credibility engine.
 7. **Composable over monolithic.** Small modules anyone can import, not a walled garden.
 8. **Authenticity over marketing.** When math contradicts the pitch, fix the pitch.
+9. **Simplicity.** Fewer managed entities, more computed insights. If nobody maintains it, don't make it a table.
 
 ---
 
@@ -64,30 +65,207 @@ This is not a growth hack. It's the ethical foundation of the business.
 
 ## Product Architecture
 
-### Five-Layer Architecture
+### Six-Layer Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  CLIENT LAYER                                           │
-│  Astro + Svelte  |  E2EE via Web Crypto API  |  EN/JA  │
+│  CLIENT LAYER (View / Boundary)                         │
+│  Astro + Svelte (pmo.run)  |  Baserow (operational UI)  │
+│  EN/JA  |  Web Crypto API (client-side encryption)      │
 ├─────────────────────────────────────────────────────────┤
 │  AGENT LAYER                                            │
 │  Cloudflare Agents SDK  |  Durable Objects  |           │
 │  AI Gateway  |  Workflows (human-in-the-loop)           │
 ├─────────────────────────────────────────────────────────┤
 │  LOGIC LAYER                                            │
-│  TCO | PERT | Base-rate | Bayesian | NPV | IRR          │
+│  Finance: TCO | NPV | IRR | ROI                         │
+│  Performance: PERT | EVM (SV, SPI, CV, CPI) | Baseline  │
+│  Value Delivery: Flow Metrics | Benefits Realisation     │
 │  Python (community) + TypeScript (product)              │
 ├─────────────────────────────────────────────────────────┤
-│  DATA LAYER                                             │
-│  D1 (plaintext metadata)  |  R2 (encrypted blobs)      │
-│  Vectorize (future RAG)                                 │
+│  DATA LAYER (Model / Entity)                            │
+│  D1 (structured metadata, queryable — Zone 3)           │
+│  R2 (encrypted blobs, zero-knowledge — Zone 1)          │
 ├─────────────────────────────────────────────────────────┤
 │  INTEGRATION LAYER                                      │
-│  Baserow | External APIs | MCP Servers                  │
+│  Baserow API  |  GitHub/GitLab webhooks  |  MCP Servers │
 │  Browser Rendering                                      │
+├─────────────────────────────────────────────────────────┤
+│  PRIVACY LAYER                                          │
+│  Three-zone model  |  Asymmetric key management         │
+│  Envelope encryption  |  Digital signatures              │
+│  Team key distribution                                  │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Two-Layer Data Architecture
+
+Baserow is the View. D1 + R2 is the Model. The agent is the bridge.
+
+**D1 (Model/Entity)** stores everything — all work items including archived, all process events, all financial history, all estimation history, all audit logs. It grows indefinitely and is queryable via SQL for analytics and AI. It feeds Bayesian updating with full historical data.
+
+**R2 (Encrypted Blob Storage)** stores zero-knowledge encrypted documents, generated reports, audit archives, and proprietary calibration data. Client data in R2 is encrypted with the client's public key — we cannot read it.
+
+**Baserow (View/Boundary)** shows only what's currently relevant — active projects, open work items (WBS work packages), unresolved risks, recent decisions. It's a materialised view of D1, curated by the agent. When a project completes, the agent archives from Baserow but retains everything in D1.
+
+```
+┌──────────────────────────────────────────────────────┐
+│  VIEW / BOUNDARY (Baserow)                           │
+│  Filtered, aggregated, current-state only.           │
+│  Rows: hundreds, not thousands.                      │
+│  Tables: Active Work Items (WBS), Current Risks,     │
+│          Live EVM Dashboard, Open Decisions           │
+└──────────────────────┬───────────────────────────────┘
+                       │  agent reads/writes
+┌──────────────────────┴───────────────────────────────┐
+│  AGENT LAYER (Cloudflare Workers / Agents SDK)       │
+│  Queries D1, computes with logic modules,            │
+│  writes summaries to Baserow, syncs with GitHub.     │
+│  Translates between abstraction levels:              │
+│  work packages (managers) ↔ issues (developers)      │
+└──────────────────────┬───────────────────────────────┘
+                       │  agent reads/writes
+┌──────────────────────┴───────────────────────────────┐
+│  MODEL / ENTITY (D1 + R2)                            │
+│  All raw data. Full history. Every event.            │
+│  D1: structured (SQL, relational, indexed)           │
+│  R2: blobs (encrypted docs, reports, archives)       │
+└──────────────────────────────────────────────────────┘
+```
+
+### Baserow Relational Schema
+
+Baserow is a relational visual database. We use it *as* a relational database — not one flat table, but a proper entity graph that solves the core SIer/PMO problem: "nothing is related systematically."
+
+**Design principle:** Work Items represent WBS work packages only — never activities or tasks. Activities are observed by the agent from GitHub events and stored in D1 analytics. Managers plan at work package level. Developers work at issue level. The agent bridges the gap.
+
+**Who manages activities? Nobody.** That's the point. Work packages are managed by humans. GitHub issues are created by developers at natural granularity. Activity-level analytics are computed by the agent from observed events. No human maintains the activity layer — it emerges from developer behaviour.
+
+```
+BASEROW — Core Tables (managed by humans, viewed by managers)
+
+┌─────────────┐     ┌──────────────────┐     ┌──────────────┐
+│  Projects   │────<│  Work Items      │>────│   People     │
+│             │     │  (WBS work pkgs) │     │  (RACI)      │
+│ name        │     │                  │     │              │
+│ sponsor     │     │ wbs_code         │     │ name, role   │
+│ baseline_   │     │ parent_id        │ ← hierarchy       │
+│   start/end │     │ pert_o/m/p       │   (phase → pkg)   │
+│ status      │     │ pert_expected    │     │ capacity     │
+│ roi_target  │     │ baseline_cost    │     └──────────────┘
+└──────┬──────┘     │ baseline_date    │
+       │            │ actual_cost      │
+       │            │ actual_date      │
+       │            │ sv, spi, cv, cpi │ ← EVM calculated
+       │            │ status           │ ← Kanban column
+       │            │ assignee         │ ← PM/lead, not devs
+       │            │ github_issue_    │
+       │            │   count          │ ← aggregated by agent
+       │            │ github_          │
+       │            │   completion_%   │ ← computed by agent
+       │            └──────┬───────────┘
+       │                   │
+  ┌────┴─────┐  ┌─────────┴──┐  ┌──────────────┐
+  │ Finance  │  │   Risks    │  │  Decisions   │
+  │          │  │            │  │              │
+  │ tco_ref  │  │ probability│  │ what         │
+  │ npv      │  │ impact     │  │ why (trace)  │
+  │ irr      │  │ owner      │  │ confidence   │
+  │ roi      │  │ status     │  │ evidence     │
+  │ period   │  │ mitigation │  │ approved_by  │
+  └──────────┘  │ work_item_ │  │ work_item_   │
+                │   refs     │  │   refs       │
+                └────────────┘  └──────────────┘
+```
+
+Managers see aggregated GitHub signals on work packages (`github_issue_count: 5`, `github_completion_%: 60%`), never individual issue details. If SPI drops, they investigate — but the default view is work package level.
+
+**Domain extension tables** (added as features ship, never modify core):
+
+```
+┌─────────────┐  ┌────────────┐  ┌──────────────┐
+│ Procurement │  │  Audit Log │  │  Benefits    │
+│             │  │            │  │  Realisation │
+│ vendor      │  │ who        │  │              │
+│ cost        │  │ what       │  │ outcome      │
+│ status      │  │ when       │  │ measured     │
+│ work_item_  │  │ decision_  │  │ target       │
+│   ref       │  │   ref      │  │ project_ref  │
+└─────────────┘  └────────────┘  └──────────────┘
+```
+
+**Scalability principle:** Core tables are stable, domain tables are additive. Every domain table links back to core tables via foreign keys, but core tables never reference domain tables.
+
+### D1 Schema
+
+D1 mirrors the Baserow core schema plus analytics and integration tables that Baserow never sees:
+
+```
+D1 Core (mirrors Baserow, plus archived/historical records)
+├── projects
+├── work_items            ← includes archived, full PERT history
+├── people
+├── risks
+├── finance
+├── decisions
+├── clients               ← public_key, key_signature, key_fingerprint, key_created_at
+├── project_members        ← team access control for encrypted reports
+
+D1 Integration (GitHub bridge — never in Baserow)
+├── github_issue_links     ← junction: work_item_id ↔ github_issue_id + repo + link_type
+├── sync_log               ← every Baserow/GitHub sync event
+
+D1 Analytics (computed by agent — never in Baserow, never manually maintained)
+├── activity_analytics     ← computed from GitHub events per issue per work item
+│     work_item_id, github_issue_id, started_at, completed_at,
+│     duration_days, review_cycles, contributor_count, rework_flag
+├── process_events         ← append-only event log, millions of rows over time
+│     event_type, timestamp, actor, work_item_ref, source,
+│     before_state, after_state, metadata
+├── estimation_log         ← every PERT calc: input, output, actual result
+├── agent_actions          ← what the agent did and why (audit trail)
+└── calibration_data       ← proprietary: field-adjusted coefficients
+```
+
+**`activity_analytics`** is the key table. It's populated entirely by the agent from GitHub webhook events. No human creates or maintains rows. Over time, it feeds Bayesian calibration ("work packages involving authentication historically take 1.4x PERT estimate"), process mining ("issues with 3+ contributors take 40% longer"), and anomaly detection ("WBS 1.3 has 2 open issues but no commits in 5 days").
+
+### GitHub Integration: Input → Agent → Output
+
+Developers live in GitHub. Managers live in Baserow. Neither group changes their workflow. The agent bridges them — translating between abstraction levels.
+
+**GitHub is the input.** Commits, PRs, issue transitions, and label changes generate webhook events. The agent processes these events, updates D1, and pushes aggregated signals to Baserow.
+
+**Baserow is the output.** Managers see real-time project status at work package level — EVM metrics, risk dashboards, aggregated completion signals. When a manager changes a priority in Baserow, the agent syncs back to GitHub as label/assignee changes.
+
+**One canonical record at each level.** Work packages live in Baserow (manager's truth). GitHub issues live in GitHub (developer's truth). The `github_issue_links` junction table in D1 maps between them. The agent computes activity analytics from observed developer behaviour and rolls results up to work package level.
+
+```
+DEVELOPER WORLD                    MANAGER WORLD
+(lives in GitHub)                  (lives in Baserow)
+
+ ┌──────────┐                      ┌──────────────┐
+ │  Issues   │                     │  Work Items  │
+ │  at any   │──── webhook ───────>│  (WBS pkgs)  │
+ │  granu-   │         │          │              │
+ │  larity   │    ┌────┴────┐     │  Aggregated: │
+ │           │    │  Agent  │     │  issue_count │
+ │  Commits  │    │ Bridge  │     │  completion% │
+ │  PRs      │    │         │     │  EVM metrics │
+ │  Reviews  │    │ • links │     │              │
+ └──────────┘    │   issues│     │  Kanban View │
+                  │   to WBS│     │  Timeline    │
+                  │ • computes    │  Dashboard   │
+                  │   activity    └──────────────┘
+                  │   analytics
+                  │ • rolls up
+                  │   to pkg level
+                  │ • pushes
+                  │   aggregates
+                  │   to Baserow
+                  └──────────┘
+```
+
+**Conflict resolution:** The more specific context wins. Developer changes status via PR merge → GitHub wins (ground truth about code). Manager changes priority in Baserow → Baserow wins (ground truth about business value). Every sync is logged in `process_events` for audit.
 
 ### Dual Codebase Strategy
 
@@ -102,14 +280,48 @@ Same math, two runtimes. The Python-to-TypeScript port is itself a blog post ser
 
 Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → Interactive UI**
 
-| Module | Category | Status | Description |
-|--------|----------|--------|-------------|
-| TCO | Finance | ✅ Live | Total Cost of Ownership with NPV adjustment |
-| PERT | P3M/P3G | 🔨 Next | Three-point estimation (optimistic/likely/pessimistic) |
-| Base-rate | P3M/P3G | 📋 Planned | Reference class forecasting, reduce subjective bias |
-| Bayesian | P3M/P3G | 📋 Planned | Bayesian updating for base-rate learning |
-| NPV | Finance | 📋 Planned | Net Present Value analysis |
-| IRR | Finance | 📋 Planned | Internal Rate of Return |
+**Family 1: Finance** — "What will it cost and is it worth it?"
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| TCO | ✅ Live | Total Cost of Ownership with NPV adjustment |
+| NPV | 📋 Planned | Net Present Value analysis |
+| IRR | 📋 Planned | Internal Rate of Return |
+| ROI | 📋 Planned | Return on Investment (capstone — synthesises TCO, NPV, IRR) |
+
+**Family 2: Performance** — "How long will it take and are we on track?"
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| PERT | 🔨 Next | Three-point estimation (optimistic/likely/pessimistic) |
+| EVM Baseline | 📋 Planned | Approved plan reference point for EVM tracking |
+| EVM Metrics | 📋 Planned | SV, SPI, CV, CPI — schedule and cost performance |
+| Base-rate | 📋 Planned | Reference class forecasting, reduce subjective bias |
+| Bayesian | 📋 Planned | Bayesian updating for estimation learning from actuals |
+
+**Family 3: Value Delivery** — "Are we delivering value?" (VDO/VMO)
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| Flow Metrics | 📋 Planned | Cycle time, throughput, WIP analysis |
+| Benefits Realisation | 📋 Future | Outcome tracking against business case |
+
+Module families relate to each other:
+
+```
+FINANCE                PERFORMANCE              VALUE DELIVERY
+(is it worth it?)      (are we on track?)       (are we delivering?)
+
+TCO ─────────────────► Baseline ◄──── PERT      Flow Metrics
+NPV                    EVM:                      Benefits
+IRR                      SV, SPI                 Realisation
+ROI ◄──────────────────  CV, CPI
+ ▲                         │                           │
+ └─────────────────────────┴───────────────────────────┘
+                    all feed into
+              DECISION TRACEABILITY
+                  (the agent layer)
+```
 
 ### Logic API
 
@@ -144,7 +356,45 @@ A raw LLM gives essays. Our PMO Agent gives auditable decisions backed by determ
 
 - **Domain-encoded logic.** PERT, TCO, Bayesian — precise calculations, not probabilistic text.
 - **Human-in-the-loop as a feature.** Cloudflare Workflows `waitForApproval()` maps to real PMO governance: calculate → review → approve → execute.
-- **External tool orchestration.** Agent writes to Baserow (WBS/timeline), reads from D1 (metadata), triggers reports — automation that LLMs alone can't do.
+- **External tool orchestration.** Agent writes to Baserow (WBS/timeline), observes GitHub (developer activity), reads from D1 (metadata), triggers reports — automation that LLMs alone can't do.
+
+### Where AI Enters: The Decomposition Boundary
+
+AI enters at the point where a vague human intention becomes structured, estimable work packages. This is the seam between natural language and deterministic math — the earliest point where AI adds irreplaceable value.
+
+The foundation (PERT, EVM, Baserow schema) is built first (March–April). AI is designed in parallel but ships when the math it depends on is solid (May). The wave isn't gone — PMOs are still figuring out how to use AI. We have time to be precise.
+
+```
+Human input: "implement user authentication" (natural language)
+       │
+       ▼
+  ┌─────────────┐
+  │  LLM Layer  │  Decomposes into work packages with
+  │  (Claude)   │  suggested O/M/P estimates per package
+  └──────┬──────┘
+         │  structured JSON
+         ▼
+  ┌─────────────┐
+  │  PERT Math  │  Calculates expected duration, variance,
+  │  (our logic)│  critical path, confidence intervals
+  └──────┬──────┘
+         │  deterministic results
+         ▼
+  ┌─────────────┐
+  │  Baserow /  │  Visual timeline, Kanban,
+  │  D1 storage │  dependency graph, EVM baseline
+  └─────────────┘
+```
+
+The calibration layer between LLM and math is the proprietary IP insertion point. The open-source PERT math is MIT. The LLM decomposition prompt is generic. But the field-calibrated adjustments ("in SIer projects, authentication tasks typically take 1.3x the initial estimate due to stakeholder review cycles") — that's consulting IP encoded as a plugin.
+
+### AI Surface Growth
+
+AI is present from Sprint 3 and grows with each phase:
+
+- **Sprint 3:** AI decomposes work packages → PERT estimates them
+- **Sprint 4:** AI detects EVM anomalies, narrates GitHub activity into work package status
+- **Sprint 5:** AI orchestrates full decision briefings with traceability across all modules
 
 ### Decision Flow Example
 
@@ -153,10 +403,12 @@ Client question
   → Agent reasons about intent (LLM via AI Gateway)
     → Calls TCO/PERT tools (our logic layer)
       → Stores results in D1 (structured metadata)
-        → Pushes WBS/timeline to Baserow
-          → Pauses for human review (Workflow)
-            → On approval: generates report, updates status
-              → Logs everything via AI Gateway (billing/analytics)
+        → Pushes WBS to Baserow (work package level)
+          → Developers create GitHub issues (natural granularity)
+            → Agent observes, links, computes activity analytics
+              → Pauses for human review (Workflow)
+                → On approval: generates report (encrypted with team keys), updates status
+                  → Logs everything via AI Gateway (billing/analytics)
 ```
 
 ### AI Gateway: Billing, Analytics, and Process Mining
@@ -170,71 +422,272 @@ AI Gateway provides cost visibility and model-switching flexibility. Beyond bill
 
 ---
 
-## Privacy Architecture: E2EE
+## Privacy Architecture: Three-Zone Model
 
-Inspired by Proton Mail's PGP model, adapted for PMO data.
+The real question isn't "is everything encrypted?" The real question is **"where does plaintext exist, for how long, and who can access it?"** We answer this publicly and precisely.
 
-### The Split: Plaintext Metadata + Encrypted Body
+### Three Zones
 
 ```
-D1 (plaintext, queryable by agent):
-  - project_id, client_id, created_at
-  - document_type: "tco_scenario"
-  - tags: ["build-vs-buy", "q3-2026"]
-  - status: "pending_review"
-
-R2 (encrypted blob, decrypted only in client browser):
-  - Full TCO calculation results
-  - Client's proprietary cost data
-  - Decision rationale and notes
+┌────────────────────────────────────────────────────────┐
+│  ZONE 1 — Zero-Knowledge (R2 encrypted storage)       │
+│                                                        │
+│  Client-uploaded documents, agent-generated reports,   │
+│  audit archives, proprietary calibration data.         │
+│  Encrypted with client's public key.                   │
+│  We cannot read this data. Period.                     │
+├────────────────────────────────────────────────────────┤
+│  ZONE 2 — Transient Computation (Cloudflare Workers)   │
+│                                                        │
+│  When the agent generates a report, plaintext exists   │
+│  in Workers memory for milliseconds to seconds.        │
+│  Result is encrypted before storage. Nothing persists  │
+│  in plaintext. Client-side generation available for    │
+│  stricter requirements.                                │
+├────────────────────────────────────────────────────────┤
+│  ZONE 3 — Operational Metadata (D1)                    │
+│                                                        │
+│  Project structure, task status, EVM metrics,          │
+│  estimation parameters. Must be queryable by the       │
+│  agent in real-time. Protected by Cloudflare's         │
+│  infrastructure security and application-level         │
+│  access controls. Not end-to-end encrypted.            │
+└────────────────────────────────────────────────────────┘
 ```
+
+### What Lives in Each Zone
+
+**Zone 1 — Zero-Knowledge (R2):**
+- Client-uploaded documents (contracts, org charts, board decks, vendor quotes)
+- Agent-generated reports (project health PDFs, portfolio summaries, ROI exports)
+- Sensitive records (decision memos with political context, named risk assessments, salary-linked cost breakdowns)
+- Audit archives (raw GitHub payloads, aged-out process event batches)
+- Proprietary IP (calibration coefficient models, risk pattern recognition data)
+
+**Zone 2 — Transient Computation (Workers memory):**
+- Report assembly from D1 data (plaintext in memory only, discarded after encryption)
+- Webhook payload processing (parsed, structured results written to D1, raw payload archived to R2 encrypted)
+
+**Zone 3 — Operational Metadata (D1):**
+- Project structure (IDs, names, status, WBS codes)
+- PERT inputs/outputs, EVM calculations
+- Process events (active retention window)
+- GitHub issue links, sync state, activity analytics
+- Agent action logs
+- Non-sensitive Baserow sync data
 
 ### Encryption Stack
 
-- **Browser (Svelte):** AES-256-GCM via Web Crypto API. Key derived from user passphrase via PBKDF2. Key never leaves the browser.
-- **Cloudflare Workers:** Web Crypto API natively supported. Can handle encrypted blob routing without decryption.
-- **Python (logic repo):** Reference implementation for CLI tools and third-party integrations.
+**Asymmetric key management (client key pairs):**
 
-### Zero-Knowledge Guarantee
+```
+Account Setup (one-time):
+1. Browser generates RSA key pair (Web Crypto API)
+2. Constructs key registration payload: {public_key, created_at, account_id}
+3. Signs payload with private key (self-signature proves possession)
+4. Sends {payload, signature} to server → stored in D1
+5. Private key stays on client device only (never transmitted)
+6. Client receives key fingerprint for out-of-band verification
+```
 
-The agent queries D1 metadata to orchestrate workflows (schedule, approve, report) without ever accessing the encrypted body. We never see client data in plaintext. This is the enterprise security moat.
+**Agent-generated report encryption (envelope encryption):**
+
+```
+1. Agent assembles report from D1 data (in Workers memory)
+2. Agent generates random AES-256-GCM symmetric key
+3. Agent encrypts report with symmetric key
+4. Agent retrieves public key + verifies signature (tamper detection)
+5. Agent encrypts symmetric key with client's public key
+6. Stores {encrypted_report, encrypted_symmetric_key} → R2
+7. Agent discards all plaintext from memory
+8. Client downloads, decrypts symmetric key with private key, decrypts report
+```
+
+**Team sharing (multi-recipient envelope encryption):**
+
+```
+Report encrypted once with random symmetric key.
+Symmetric key encrypted separately for each authorised team member:
+
+{
+  encrypted_report: <single ciphertext>,
+  encrypted_keys: {
+    alice_id: <symmetric_key encrypted with Alice's public key>,
+    bob_id:   <symmetric_key encrypted with Bob's public key>,
+    carol_id: <symmetric_key encrypted with Carol's public key>
+  }
+}
+
+Team access controlled via D1 project_members table:
+  project_id → Projects
+  member_id  → People (with client account)
+  role       (sponsor, pm, lead, viewer)
+  public_key_id → clients (registered public key)
+
+Adding a member: encrypt symmetric key with their public key (no re-encryption of report).
+Revoking a member: remove from project_members. Future reports exclude their key.
+```
+
+**Client-side generation (optional, strict zero-knowledge):**
+
+```
+1. Browser fetches aggregated data via API
+2. Browser assembles report locally
+3. Browser encrypts with own key
+4. Browser uploads encrypted blob → R2
+5. Server never sees assembled report, even in memory
+```
+
+### Key Rotation and Verification
+
+- New keys signed with old private key (chain of trust)
+- Key fingerprint displayed for out-of-band verification
+- Public key signature verified by agent before every encryption operation
+- Key registration payload includes `account_id` and `created_at` to prevent replay
+
+### Security Positioning (Public Commitment)
+
+We tell you exactly where your data is readable — and where it isn't.
+
+PMO data exists on a spectrum from public (estimation formulas) to highly sensitive (financial details, personnel decisions). We define three explicit zones with clear boundaries. We publish our encryption architecture openly. We never claim more protection than we provide. If your threat model requires Zone 1 guarantees for data currently in Zone 3, our architecture is designed to move boundaries as your requirements evolve.
+
+### Privacy Phasing (Market-Driven)
+
+- **Phase 1 (Consulting):** Server-side report generation with envelope encryption. Honest about Zone 2 transient exposure. Consulting clients accept this within the trust relationship.
+- **Phase 2 (Freemium SaaS):** Add client-side report generation option. Self-service users choose between convenience and stricter guarantees.
+- **Phase 3 (Enterprise):** Full client-side computation for sensitive operations. Plaintext never exists on our infrastructure, even transiently.
 
 ---
 
-## Website: pmo.run
+## IP Strategy: Open Core + Proprietary Plugins
 
-### Tech Stack
+### Principle
 
-- **Framework:** Astro (static + islands)
-- **Interactive components:** Svelte (lighter, aligns with Astro)
-- **Styling:** Tailwind CSS
-- **Hosting:** Cloudflare Pages
-- **i18n:** Astro built-in (EN/JA)
-- **API backend:** Cloudflare Workers (Agent) + FastAPI (Python community)
+Logic and code are public. Data and calibration models are protected. The math stays open — what stays proprietary is the *reasoning that tells the math which variables matter*.
 
-### Site Structure
+### Three-Layer IP Architecture
 
 ```
-pmo.run/
-├── /[lang]/                → Landing page
-│   ├── /en/                → "PMO tools + services powered by AI"
-│   └── /ja/                → "AIとプロフェッショナルによるPMOサービス"
-├── /[lang]/tools/
-│   ├── /tools/tco          → Interactive TCO calculator
-│   ├── /tools/pert         → PERT estimator (when ready)
-│   └── /tools/breakeven    → Break-even analyzer
-├── /[lang]/blog/           → R&D notes, case studies (bilingual)
-├── /[lang]/docs/           → API documentation
-└── /[lang]/contact/        → Consulting inquiry form
+┌─────────────────────────────────────────────────────────┐
+│  OSS LAYER (trust + adoption)                           │
+│  MIT licensed. Pure math: PERT, TCO, NPV, Bayesian.     │
+│  FastAPI endpoints, CLI tools, Python imports.           │
+│  Anyone can use, audit, fork, self-host.                │
+├─────────────────────────────────────────────────────────┤
+│  PRODUCT LAYER (platform + workflows)                   │
+│  Agent orchestration, Baserow integration,              │
+│  Three-zone privacy model, GitHub sync.                 │
+│  Cloudflare Workers, Workflows, AI Gateway.             │
+│  Freemium → paid SaaS.                                  │
+├─────────────────────────────────────────────────────────┤
+│  PROPRIETARY PLUGIN LAYER (IP + exit value)             │
+│  Field-calibrated adjustment coefficients.              │
+│  Risk pattern recognition models.                       │
+│  Observation frameworks ("what to measure").             │
+│  Industry-specific delay/risk profiles.                 │
+│  Client data (Zone 1 encrypted, never accessible).      │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Design Principles
+### What We Sell Is Not Calculations
 
-- Nerdy but simple — no corporate fluff
-- Tools work without signup
-- Privacy-first — no tracking, no analytics cookies
-- Fast — static pages, edge-deployed
-- Real examples — every tool page has a business case story
+We deliver **cognition as code** — mental models and mindset encoded as executable logic:
+
+1. **Evaluation frameworks** — "what to observe to find the problem's root cause." The structure of attention, not the data itself.
+2. **Risk detection models** — systems-thinking-based inference that converts observation patterns into probability. Turns ignored gut feeling into "system says 82% chance of resource failure in 3 weeks."
+3. **Calibration plugins** — field-tested adjustments that make standard mathematical models match reality. PERT says duration X; the plugin knows this approval process adds 3 days, this review phase has a 20% rejection rate.
+
+### Plugin Architecture
+
+Each logic module exposes a `PluginInterface` that accepts calibration data:
+
+```
+core.py          → Pure math (OSS, MIT)
+calibration.py   → Plugin interface for field adjustments (OSS, MIT)
+plugins/         → Proprietary calibration data and models (closed, B2B licensed)
+```
+
+### What Stays Open vs. Closed
+
+| Layer | License | Rationale |
+|-------|---------|-----------|
+| Mathematical formulas (PERT, TCO, NPV, etc.) | MIT | Trust engine, community adoption, auditability |
+| FastAPI endpoints, CLI tools, schemas | MIT | Adoption surface, composability proof |
+| Plugin interface definitions | MIT | Enables ecosystem, lowers integration barrier |
+| Agent orchestration (Cloudflare Workers) | Source-available or MIT | Platform showcase, transparency |
+| Calibration coefficients and field models | Proprietary (B2B) | Core consulting IP, exit value |
+| Risk pattern recognition models | Proprietary (B2B) | Systems thinking encoded, highest-value asset |
+| Client data | Zone 1 encrypted | Never accessible, even by us |
+
+---
+
+## Go-to-Market: Sprint Plan
+
+Philosophy and principles are stable. Strategy and design can be pivoted and tweaked during PoC phases.
+
+### Sprint 1 — March 2026: PERT + EVM Foundations
+
+Logic-focused. Build the math. Make it bulletproof. AI decomposition designed but not shipped.
+
+- [ ] PERT module: standalone PoC → FastAPI endpoint → tests (mutation-tested)
+- [ ] EVM calculations (SV, SPI, CV, CPI): standalone PoC → FastAPI endpoint
+- [ ] EVM Baseline module: capture approved plan reference point
+- [ ] Distil all DevSecOps insights from current SIer project into blog drafts
+- [ ] Blog post #1: TCO case study (publish)
+- [ ] Blog post #3 draft: "Why your project estimates are always wrong"
+- [ ] AI decomposition: design prompt schema, output format, evaluation criteria (no shipping)
+- [ ] Update CLAUDE.md with architecture context from strategy discussion
+
+### Sprint 2 — April 2026: Baserow Relational Schema + Integration
+
+Define the relational data model. Connect logic modules to Baserow.
+
+- [ ] Define Baserow relational schema: Projects, Work Items (WBS), People, Risks, Finance, Decisions
+- [ ] Build API integration: push PERT estimates into Work Items
+- [ ] Build EVM integration: compute metrics from baseline vs. actuals in Baserow
+- [ ] Link Finance records to TCO/NPV modules
+- [ ] Design D1 schema (mirrors Baserow core + integration/analytics tables)
+- [ ] PERT interactive page on pmo.run
+- [ ] Blog posts #2 and #3 (publish)
+- [ ] LinkedIn posts begin (1-2/week, value-first)
+
+### Sprint 3 — May 2026: AI Decomposition + Cloudflare Agent PoC
+
+AI enters on a solid foundation. The agent decomposes, estimates, stores, and pauses for review.
+
+- [ ] AI decomposition feature: LLM decomposes into work packages → PERT estimates per package → structured WBS
+- [ ] Cloudflare Agent PoC: Agent + Workflow + TCO/PERT as tools + waitForApproval
+- [ ] Agent writes to D1 and Baserow simultaneously
+- [ ] Blog post #8: "PMO tools on Cloudflare Agents: a PoC"
+- [ ] Blog posts #4, #5 (publish)
+- [ ] First consulting outreach from content base (JA, warm contacts)
+- [ ] Submit to Hacker News (Show HN: Open source PMO decision tools)
+- [ ] dev.to cross-post (EN)
+
+### Sprint 4 — June 2026: GitHub Automation
+
+GitHub becomes the developer input. Baserow stays the manager output. Agent bridges abstraction levels.
+
+- [ ] GitHub webhook listener: parse commits, PRs, issue transitions
+- [ ] Agent bridge: link GitHub issues to Baserow Work Items via D1 junction table
+- [ ] Compute activity analytics from GitHub events → store in D1
+- [ ] Roll up activity data to work package level → push aggregates to Baserow
+- [ ] Bidirectional sync: manager priority changes → GitHub labels
+- [ ] Process Events logging: every sync event captured in D1
+- [ ] Blog post #9: "Connecting Baserow to automated cost analysis"
+- [ ] Begin encryption PoC (Web Crypto API in Svelte, key pair generation)
+
+### Sprint 5 — Q3-Q4 2026: Coherent Agent + ROI
+
+The agent orchestrates all modules. ROI synthesises everything. Encryption goes live.
+
+- [ ] TypeScript logic modules on Cloudflare Workers
+- [ ] Agent with D1 metadata + R2 encrypted storage
+- [ ] ROI module: capstone that synthesises TCO, NPV, EVM data
+- [ ] Three-zone privacy implementation: key management, envelope encryption, team sharing, digital signatures
+- [ ] AI Gateway billing dashboard
+- [ ] Freemium tier launch
+- [ ] Evaluate: demand signals for Phase 3?
 
 ---
 
@@ -247,8 +700,9 @@ Revenue comes from consulting. Tools and content are free. The website and repo 
 **Service model:** AI + human working together to analyse, calculate, advise, prototype, and deliver.
 
 **Key deliverables this phase:**
-- PERT module (standalone → FastAPI → interactive page)
-- Cloudflare Agent PoC spike (TCO as tool + Workflow approval gate)
+- PERT + EVM modules (standalone → FastAPI → interactive page)
+- Baserow relational schema with logic module integration
+- Cloudflare Agent PoC spike (TCO/PERT as tools + Workflow approval gate)
 - 5+ blog posts (bilingual, from R&D and consulting experience)
 - First direct consulting clients (JA market)
 
@@ -257,21 +711,73 @@ Revenue comes from consulting. Tools and content are free. The website and repo 
 ### Phase 2: PMO Agent MVP + Freemium SaaS (Q3-Q4 2026)
 
 Free tools remain free. Agent goes live. Paid tier adds:
-- Saved scenarios and PDF report export
+- Saved scenarios and PDF report export (Zone 1 encrypted, team sharing)
 - Team sharing with role-based access
-- Encrypted storage (E2EE)
+- Zone 1 encrypted storage for sensitive documents
 - Baserow integration for WBS/timeline management
+- GitHub bidirectional sync with activity analytics
 - AI Gateway billing and analytics dashboard
 - API rate increases
 
-### Phase 3: Platform + E2EE + Ecosystem (2027)
+### Phase 3: Platform + Full Privacy + Ecosystem (2027)
 
-- Full E2EE implementation (Web Crypto API, Proton pattern)
+- Full three-zone privacy with client-side generation option
 - Vectorize for RAG over PMO knowledge base
 - MCP servers for third-party integrations
 - AI PMO Assistant (natural language queries over project data)
-- Enterprise custom plans (private cloud storage option)
-- Process mining dashboard (anonymised decision analytics)
+- Enterprise custom plans (dedicated infrastructure option)
+- Process mining dashboard (anonymised decision analytics from D1)
+
+---
+
+## Real-World Problem: DevSecOps in PMO
+
+From direct consulting experience — the pattern every enterprise PMO team suffers:
+
+**Symptoms:**
+- Notion/Confluence/Wiki manually edited and slowly rotting
+- ClickUp/Jira tickets non-maintained, disconnected from reality
+- GitLab/GitHub Issues used as a poor backlog with no estimation discipline
+- WBS in spreadsheets: estimation-result gaps never tracked or learned from
+- 3-4 disaster recoveries per month from stale documentation
+- 70% of work is manual coordination between stakeholders
+- 属人化 (person-dependency) from inconsistent task granularity across tools
+
+**Our solution stack maps directly:**
+
+| Pain | Our Module | Layer |
+|------|-----------|-------|
+| Estimation gaps | PERT (three-point estimation) | Logic |
+| No learning from past estimates | Bayesian updating (from D1 estimation_log) | Logic |
+| Manual WBS management | Baserow integration (WBS work packages) | Integration |
+| Disconnected tooling | GitHub ←→ Baserow sync via agent | Integration |
+| No decision analytics | AI Gateway + process mining (D1 activity_analytics) | Analytics |
+| Data security concerns | Three-zone privacy model | Privacy |
+| Documentation decay | Our own repo as the example | Meta |
+| 属人化 | Agent-computed activity analytics (nobody maintains activities) | Agent |
+
+---
+
+## Strategic Positioning
+
+### Appeal to Cloudflare
+
+First PMO-domain Agent on their platform. Showcases: Agents SDK, Workflows, AI Gateway, D1, R2, Browser Rendering. Target: Developer Blog co-authorship and "Powered by Cloudflare" showcase.
+
+### Appeal to Anthropic
+
+CLAUDE.md-driven development workflow. PMO prompt library on GitHub. Domain-specific Claude integration for business decision-making. Target: best-practice showcase for "how Claude powers enterprise decisions."
+
+### Competitive Moat
+
+- **Domain logic:** PMO-specific math no generic AI provides
+- **Human-in-the-loop:** Governance workflows, not just chat
+- **Transparent privacy:** Three-zone model with honest boundaries
+- **Dual language:** JA consulting + EN community
+- **Open source trust:** Credibility via radical transparency
+- **Composable modules:** Partial adoption lowers barrier, builds embedded presence
+- **Relational data model:** Baserow + D1 solves "nothing is connected" by design
+- **Simplicity:** Activities computed, not managed. Developers and managers stay in their tools.
 
 ---
 
@@ -283,8 +789,11 @@ Free tools remain free. Agent goes live. Paid tier adds:
 | Interactive components | Svelte | Lighter, aligns with Astro islands |
 | i18n approach | Astro content collections | Scales better for bilingual content |
 | Auth (Phase 2) | Cloudflare Access | Integrates with Agent/Workers stack |
-| Storage | D1 (metadata) + R2 (encrypted blobs) | Proton pattern: plaintext index + encrypted body |
-| Encryption | AES-256-GCM via Web Crypto API | Same API in browser, Workers, and Node.js |
+| Operational data | D1 (structured metadata) | Zone 3: infrastructure-secured, agent-queryable |
+| Encrypted storage | R2 (blobs) | Zone 1: zero-knowledge, envelope encryption |
+| Encryption | RSA-OAEP + AES-256-GCM via Web Crypto API | Asymmetric key pairs, envelope pattern |
+| Operational UI | Baserow (View layer) | Relational visual database, WBS work packages only |
+| Dev tool sync | GitHub webhooks | Agent bridge: activity analytics computed, not managed |
 | Python vs TypeScript | Both | Python for community, TypeScript for product |
 
 ---
@@ -319,7 +828,7 @@ More real problems → More content → More trust
 | 4 | "Why your project docs rot — and a system-level fix" | なぜプロジェクトのドキュメントは腐るのか | DevSecOps insight |
 | 5 | "Reference class forecasting for SMEs" | 中小企業のための参照クラス予測 | Base-rate tool |
 | 6 | "The time value of money, explained with Python" | Pythonで理解するお金の時間的価値 | NPV module |
-| 7 | "Privacy-first project data: E2EE with Web Crypto API" | プライバシー優先のプロジェクトデータ管理 | Encryption PoC |
+| 7 | "Transparent privacy for PMO data: a three-zone model" | PMOデータの透明なプライバシーモデル | Privacy architecture |
 | 8 | "PMO tools on Cloudflare Agents: a PoC" | Cloudflare Agentsで動くPMOツール | Agent architecture |
 | 9 | "Connecting Baserow to automated cost analysis" | Baserowで自動コスト分析を構築する | Integration PoC |
 | 10 | "How AI + human PMO services actually work" | AI×人間のPMOサービスとは何か | Service marketing |
@@ -328,158 +837,40 @@ More real problems → More content → More trust
 
 ---
 
-## Real-World Problem: DevSecOps in PMO
+## Website: pmo.run
 
-From direct consulting experience — the pattern every enterprise PMO team suffers:
+### Tech Stack
 
-**Symptoms:**
-- Notion/Confluence/Wiki manually edited and slowly rotting
-- ClickUp/Jira tickets non-maintained, disconnected from reality
-- GitLab/GitHub Issues used as a poor backlog with no estimation discipline
-- WBS in spreadsheets: estimation-result gaps never tracked or learned from
+- **Framework:** Astro (static + islands)
+- **Interactive components:** Svelte (lighter, aligns with Astro)
+- **Styling:** Tailwind CSS
+- **Hosting:** Cloudflare Pages
+- **i18n:** Astro built-in (EN/JA)
+- **API backend:** Cloudflare Workers (Agent) + FastAPI (Python community)
 
-**Our solution stack maps directly:**
-
-| Pain | Our Module | Level |
-|------|-----------|-------|
-| Estimation gaps | PERT (three-point estimation) | Logic |
-| No learning from past estimates | Bayesian updating | Logic |
-| Manual WBS management | Baserow integration (timeline, status) | Integration |
-| Disconnected tooling | Agent orchestration (Workflows) | Agent |
-| No decision analytics | AI Gateway + process mining | Analytics |
-| Data security concerns | E2EE (Proton pattern) | Privacy |
-| Documentation decay | Our own repo as the example | Meta |
-
-**Key insight:** We don't just build tools for this problem — we live it, document it, and solve it in public. The logic repo's own documentation, issue management, and CI/CD pipeline is the proof that the system works.
-
----
-
-## Strategic Positioning
-
-### Appeal to Cloudflare
-
-First PMO-domain Agent on their platform. Showcases: Agents SDK, Workflows, AI Gateway, D1, R2, E2EE, Browser Rendering. Target: Developer Blog co-authorship and "Powered by Cloudflare" showcase.
-
-### Appeal to Anthropic
-
-CLAUDE.md-driven development workflow. PMO prompt library on GitHub. Domain-specific Claude integration for business decision-making. Target: best-practice showcase for "how Claude powers enterprise decisions."
-
-### Competitive Moat
-
-- **Domain logic:** PMO-specific math no generic AI provides
-- **Human-in-the-loop:** Governance workflows, not just chat
-- **E2EE by default:** Zero-knowledge, enterprise-ready
-- **Dual language:** JA consulting + EN community
-- **Open source trust:** Credibility via radical transparency
-- **Composable modules:** Partial adoption lowers barrier, builds embedded presence
-
----
-
-## IP Strategy: Open Core + Proprietary Plugins
-
-### Principle
-
-Logic and code are public. Data and calibration models are protected. The math stays open — what stays proprietary is the *reasoning that tells the math which variables matter*.
-
-### Three-Layer IP Architecture
+### Site Structure
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  OSS LAYER (trust + adoption)                           │
-│  MIT licensed. Pure math: PERT, TCO, NPV, Bayesian.     │
-│  FastAPI endpoints, CLI tools, Python imports.           │
-│  Anyone can use, audit, fork, self-host.                │
-├─────────────────────────────────────────────────────────┤
-│  PRODUCT LAYER (platform + workflows)                   │
-│  Agent orchestration, E2EE, Baserow integration.        │
-│  Cloudflare Workers, Workflows, AI Gateway.             │
-│  Freemium → paid SaaS.                                  │
-├─────────────────────────────────────────────────────────┤
-│  PROPRIETARY PLUGIN LAYER (IP + exit value)             │
-│  Field-calibrated adjustment coefficients.              │
-│  Risk pattern recognition models.                       │
-│  Observation frameworks ("what to measure").             │
-│  Industry-specific delay/risk profiles.                 │
-│  Client's own data (E2EE protected, never visible).     │
-└─────────────────────────────────────────────────────────┘
+pmo.run/
+├── /[lang]/                → Landing page
+│   ├── /en/                → "PMO tools + services powered by AI"
+│   └── /ja/                → "AIとプロフェッショナルによるPMOサービス"
+├── /[lang]/tools/
+│   ├── /tools/tco          → Interactive TCO calculator
+│   ├── /tools/pert         → PERT estimator
+│   └── /tools/breakeven    → Break-even analyzer
+├── /[lang]/blog/           → R&D notes, case studies (bilingual)
+├── /[lang]/docs/           → API documentation
+└── /[lang]/contact/        → Consulting inquiry form
 ```
 
-### What We Sell Is Not Calculations
+### Design Principles
 
-We deliver **cognition as code** — mental models and mindset encoded as executable logic:
-
-1. **Evaluation frameworks** — "what to observe to find the problem's root cause." The structure of attention, not the data itself.
-2. **Risk detection models** — systems-thinking-based inference that converts observation patterns into probability. Turns ignored gut feeling into "system says 82% chance of resource failure in 3 weeks."
-3. **Calibration plugins** — field-tested adjustments that make standard mathematical models match reality. PERT says duration X; the plugin knows this approval process adds 3 days, this review phase has a 20% rejection rate.
-
-### Plugin Architecture
-
-Each logic module exposes a `PluginInterface` that accepts calibration data:
-
-```
-core.py          → Pure math (OSS, MIT)
-calibration.py   → Plugin interface for field adjustments (OSS, MIT)
-plugins/         → Proprietary calibration data and models (closed, B2B licensed)
-```
-
-A consulting firm buys access to the plugin layer, loads their own 10 years of project data, and gets a proprietary "AI-powered PMO engine" that only they have — built on our auditable open foundation.
-
-### Why This Architecture Maximises Exit Value
-
-- **Clear asset separation:** OSS continues as community trust engine. Proprietary plugins are the acquisition target with defined IP boundaries.
-- **Buyer appeal:** Consulting firms want to turn veteran PMO knowledge ("tacit knowledge") into organisational assets. Our plugin framework is the container for that transformation.
-- **Low acquirer dependency:** The plugin-creation process is documented (CLAUDE.md, development logs, this strategy). A buyer isn't locked into retaining the founder long-term.
-- **E2EE protects everyone:** The buyer's client data stays encrypted. Our open code proves no backdoors. Trust architecture itself is IP.
-
-### What Stays Open vs. Closed
-
-| Layer | License | Rationale |
-|-------|---------|-----------|
-| Mathematical formulas (PERT, TCO, NPV, etc.) | MIT | Trust engine, community adoption, auditability |
-| FastAPI endpoints, CLI tools, schemas | MIT | Adoption surface, composability proof |
-| Plugin interface definitions | MIT | Enables ecosystem, lowers integration barrier |
-| Agent orchestration (Cloudflare Workers) | Source-available or MIT | Platform showcase, transparency |
-| Calibration coefficients and field models | Proprietary (B2B) | Core consulting IP, exit value |
-| Risk pattern recognition models | Proprietary (B2B) | Systems thinking encoded, highest-value asset |
-| Client data | E2EE, zero-knowledge | Never accessible, even by us |
-
----
-
-## Go-to-Market: Sprint Plan
-
-### March 2026: Distil & Ship (before SIer engagement ends March 31)
-
-- [ ] Distil all DevSecOps insights from current project into blog drafts
-- [ ] PERT module: standalone PoC → FastAPI endpoint
-- [ ] Blog post #1: TCO case study (publish)
-- [ ] Blog post #4 draft: "Why your project docs rot" (from live experience)
-- [ ] Update CLAUDE.md with agent architecture context
-
-### April 2026: Agent PoC Spike
-
-- [ ] Cloudflare Agent PoC: 1 Agent + 1 Workflow + TCO as tool + waitForApproval
-- [ ] Blog post about the PoC spike (EN — targets Cloudflare/developer audience)
-- [ ] PERT interactive page on pmo.run
-- [ ] Blog posts #2 and #3 (publish)
-- [ ] LinkedIn posts begin (1-2/week, value-first)
-
-### May-June 2026: Content Engine + Consulting Outreach
-
-- [ ] Agent PoC validated → begin TypeScript port of TCO module
-- [ ] Blog posts #5-#7 (publish)
-- [ ] Submit to Hacker News (Show HN: Open source PMO decision tools)
-- [ ] dev.to cross-post (EN)
-- [ ] First consulting outreach from content base (JA, warm contacts)
-- [ ] Begin encryption PoC (Web Crypto API in Svelte)
-- [ ] Evaluate: demand signals for Phase 2?
-
-### Q3-Q4 2026: Agent MVP
-
-- [ ] TypeScript logic modules on Cloudflare Workers
-- [ ] Agent with D1 metadata + R2 encrypted storage
-- [ ] Baserow integration prototype
-- [ ] AI Gateway billing dashboard
-- [ ] Freemium tier launch
+- Nerdy but simple — no corporate fluff
+- Tools work without signup
+- Privacy by design — no tracking, no analytics cookies
+- Fast — static pages, edge-deployed
+- Real examples — every tool page has a business case story
 
 ---
 

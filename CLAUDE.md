@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Currently features a TCO (Total Cost of Ownership) calculator; NPV, IRR, PERT, and other modules are planned.
+Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Currently features a TCO (Total Cost of Ownership) calculator with PERT, EVM, and other modules planned.
 
 The logic repo is the open source foundation of pmo.run — a PMO service combining AI and human expertise. Full strategy, architecture, and roadmap: [`docs/PMO_RUN_STRATEGY.md`](docs/PMO_RUN_STRATEGY.md).
 
@@ -55,6 +55,16 @@ Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
 
 `examples/standalone/` contains self-contained library versions of modules (pure Python, optional pandas/matplotlib).
 
+### Module Families
+
+Modules are organised into three families that correspond to PMO decision questions:
+
+- **Finance** (is it worth it?): TCO → NPV → IRR → ROI
+- **Performance** (are we on track?): PERT → Baseline → EVM (SV, SPI, CV, CPI) → Bayesian
+- **Value Delivery** (are we delivering?): Flow Metrics → Benefits Realisation
+
+All families feed into the agent's decision traceability layer. When building a new module, identify which family it belongs to and how it connects to adjacent modules.
+
 ### Plugin Architecture
 
 Modules support an optional calibration layer for field-tested adjustments:
@@ -66,6 +76,29 @@ Modules support an optional calibration layer for field-tested adjustments:
 The boundary is clear: **logic and code are public, calibration data and reasoning models are proprietary.** When developing new modules, always ensure `core.py` works standalone without any plugin. The plugin layer enhances precision, never gates functionality.
 
 `plugins/` directories are gitignored in this repo. Proprietary calibration data is managed separately and never committed to the public repository.
+
+### Product Architecture Context
+
+This repo is one layer of a larger system. Understanding the full picture helps when making design decisions:
+
+- **This repo (logic):** Pure math modules + FastAPI endpoints. Python. MIT licensed. Community-facing.
+- **Cloudflare Agent (future):** TypeScript port of these modules. Agents SDK, Workers, D1/R2. Product-facing.
+- **Baserow:** Relational visual database. Operational UI for managers. Work Items represent WBS work packages only (never activities/tasks). Views: timeline, Kanban, dashboard.
+- **D1:** Structured metadata store. Mirrors Baserow core tables plus analytics tables (activity_analytics, process_events, estimation_log) that Baserow never sees.
+- **R2:** Encrypted blob storage (Zone 1, zero-knowledge). Client uploads, generated reports, audit archives.
+- **GitHub webhooks:** Developer activity feeds into D1 via agent. Activity-level analytics are computed by the agent from GitHub events — never manually maintained.
+
+The agent bridges Baserow (manager world) and GitHub (developer world), translating between abstraction levels. Managers plan at work package level. Developers work at issue level. The agent computes activity analytics from observed events.
+
+### Privacy: Three-Zone Model
+
+When handling data in module design, be aware of the three zones:
+
+- **Zone 1 (R2):** Zero-knowledge encrypted. Client uploads, generated reports. We can't read it.
+- **Zone 2 (Workers memory):** Transient computation. Plaintext exists briefly during report generation, then encrypted.
+- **Zone 3 (D1):** Operational metadata. Agent-queryable. Infrastructure-secured, not E2EE.
+
+Never claim "E2EE" without specifying which zone. See strategy doc for full encryption architecture.
 
 ## Module Development Flow
 

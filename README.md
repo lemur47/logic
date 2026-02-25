@@ -5,27 +5,43 @@ Turning abstract ideas into executable functions.
 
 > Ship decisions, not spreadsheets.
 
-A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Open source decision-making tools for the global PM/PMO community — every experiment, every formula, every line of code becomes a public deliverable.
+A modular toolkit built with FastAPI and SQLAlchemy. Open source decision-making tools for the global PM/PMO community — every experiment, every formula, every line of code becomes a public deliverable.
 
 ## Philosophy
 
 - **Executable:** Ideas are just hypotheses until they're code.
 - **Composable:** Functions designed to be imported or piped.
 - **Lean:** External dependencies are a last resort.
-- **Privacy-first:** Your secrets stay local. Always.
+- **Simple:** Fewer managed entities, more computed insights.
+- **Privacy by design:** Explicit data zones with transparent boundaries.
 
 ## Modules
 
 Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → Interactive UI**
 
-| Module | Category | Status | Description |
-|--------|----------|--------|-------------|
-| TCO | Finance | ✅ Live | Total Cost of Ownership with NPV adjustment |
-| PERT | P3M/P3G | 🔨 Next | Three-point estimation (optimistic/likely/pessimistic) |
-| Base-rate | P3M/P3G | 📋 Planned | Reference class forecasting, reduce subjective bias |
-| Bayesian | P3M/P3G | 📋 Planned | Bayesian updating for base-rate learning |
-| NPV | Finance | 📋 Planned | Net Present Value analysis |
-| IRR | Finance | 📋 Planned | Internal Rate of Return |
+**Finance** — "What will it cost and is it worth it?"
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| TCO | ✅ Live | Total Cost of Ownership with NPV adjustment |
+| NPV | 📋 Planned | Net Present Value analysis |
+| IRR | 📋 Planned | Internal Rate of Return |
+| ROI | 📋 Planned | Return on Investment |
+
+**Performance** — "How long will it take and are we on track?"
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| PERT | 🔨 Next | Three-point estimation (optimistic/likely/pessimistic) |
+| EVM | 📋 Planned | Earned Value Management (SV, SPI, CV, CPI) |
+| Base-rate | 📋 Planned | Reference class forecasting |
+| Bayesian | 📋 Planned | Bayesian updating for estimation learning |
+
+**Value Delivery** — "Are we delivering value?"
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| Flow Metrics | 📋 Planned | Cycle time, throughput, WIP analysis |
 
 ## Quick Start
 
@@ -78,7 +94,7 @@ Full commands, code style, and conventions are in [`CLAUDE.md`](CLAUDE.md).
 ## Docs
 
 - [`CLAUDE.md`](CLAUDE.md) — Commands, architecture details, code style conventions
-- [`docs/PMO_RUN_STRATEGY.md`](docs/PMO_RUN_STRATEGY.md) — Mission, roadmap, agent architecture, monetisation
+- [`docs/PMO_RUN_STRATEGY.md`](docs/PMO_RUN_STRATEGY.md) — Mission, roadmap, agent architecture, privacy model, monetisation
 
 ## License
 
