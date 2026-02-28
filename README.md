@@ -32,8 +32,8 @@ Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → I
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| PERT | 🔨 Next | Three-point estimation (optimistic/likely/pessimistic) |
-| EVM | 📋 Planned | Earned Value Management (SV, SPI, CV, CPI) |
+| PERT | ✅ Live | Three-point estimation with reality adjustments |
+| EVM | ✅ Live | Earned Value Management (SV, SPI, CV, CPI, EAC, TCPI) |
 | Base-rate | 📋 Planned | Reference class forecasting |
 | Bayesian | 📋 Planned | Bayesian updating for estimation learning |
 
@@ -53,9 +53,9 @@ uv run uvicorn app.main:app --reload   # API at http://127.0.0.1:8000
 
 ## API Endpoints
 
+### TCO
+
 ```
-GET    /                       API info
-GET    /health                 Health check
 POST   /tco/calculate          Calculate TCO (stateless)
 POST   /tco/compare            Compare options, ranked by annual cost
 POST   /tco/breakeven          Break-even analysis between two options
@@ -65,6 +65,26 @@ GET    /tco/scenarios/{id}     Get a scenario
 PATCH  /tco/scenarios/{id}     Update a scenario (auto-recalculates)
 DELETE /tco/scenarios/{id}     Delete a scenario
 GET    /tco/scenarios/stats    Aggregate statistics
+```
+
+### PERT
+
+```
+POST   /pert/task              Single-task PERT estimate (with optional insight tags)
+POST   /pert/project           Multi-task project estimation
+```
+
+### EVM
+
+```
+POST   /evm/calculate                     Calculate EVM metrics (stateless)
+POST   /evm/health                        Health signal from SPI/CPI (stateless)
+POST   /evm/baselines                     Create a project baseline
+GET    /evm/baselines                     List baselines (paginated, searchable)
+GET    /evm/baselines/{id}                Get a baseline
+DELETE /evm/baselines/{id}                Delete a baseline
+POST   /evm/baselines/{id}/evaluate       Evaluate progress against baseline
+GET    /evm/baselines/{id}/snapshots      List evaluation snapshots
 ```
 
 ## Architecture
@@ -77,7 +97,13 @@ Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
 - **`models.py`** — SQLAlchemy ORM models.
 - **`crud.py`** — Database operations. Calls `core.py` to compute values before persisting.
 
-`examples/standalone/` contains self-contained library versions of modules (pure Python, optional pandas/matplotlib).
+`examples/standalone/` contains self-contained library versions of modules (pure Python, optional pandas/matplotlib):
+
+```bash
+python examples/standalone/tco/tco.py
+python examples/standalone/pert/pert.py
+python examples/standalone/evm/evm.py
+```
 
 ## Development
 

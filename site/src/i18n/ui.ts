@@ -27,18 +27,18 @@ export const ui = {
     "tools.breakeven.desc": "Find the Point Where Revenue Meets Costs.",
     "landing.hero": "Ship Decisions, Not Spreadsheets.",
     "landing.sub":
-      "Free, open-source tools for TCO analysis and cost comparison. No account required. Your data never leaves your browser.",
+      "Free, open-source tools for cost analysis, project estimation, and performance tracking. No account required. Your data never leaves your browser.",
     "landing.cta": "Estimate with PERT — Free",
     "landing.features.title": "Built for Real Decisions",
-    "landing.features.tco.title": "TCO Analysis",
-    "landing.features.tco.desc":
-      "Compare total cost of ownership across options with NPV adjustment, maintenance factors, and replacement cycles.",
-    "landing.features.compare.title": "Side-by-Side Comparison",
-    "landing.features.compare.desc":
-      "Rank multiple options by annual cost. See which choice actually saves money over 3, 5, or 10 years.",
-    "landing.features.breakeven.title": "Break-Even Point",
-    "landing.features.breakeven.desc":
-      "Find exactly when a higher upfront investment pays off compared to the cheaper alternative.",
+    "landing.features.cost.title": "Cost Analysis",
+    "landing.features.cost.desc":
+      "Total cost of ownership, side-by-side comparison, and break-even point. Know what things really cost before you commit.",
+    "landing.features.estimation.title": "Project Estimation",
+    "landing.features.estimation.desc":
+      "Three-point estimation with reality adjustments for communication overhead, stakeholder complexity, and hidden dependencies.",
+    "landing.features.tracking.title": "Performance Tracking",
+    "landing.features.tracking.desc":
+      "Earned value metrics — SPI, CPI, EAC — to answer one question: are we on track? Baselines, snapshots, and health signals.",
     "landing.trust.opensource": "Open Source",
     "landing.trust.privacy": "Privacy-First",
     "landing.trust.noaccount": "No Account Required",
@@ -108,6 +108,9 @@ export const ui = {
     "pert.calc.rangeComparison": "Range Comparison",
     "pert.calc.validation.order": "Must satisfy O \u2264 M \u2264 P",
     "pert.calc.validation.nonNegative": "Cannot be negative",
+    "tools.evm": "EVM Tracker",
+    "tools.evm.desc":
+      "Earned Value Management — track schedule and cost performance against your project baseline.",
     "blog.cta.pert": "Try the PERT Estimator",
     "blog.cta.pert.desc": "See how reality adjustments change your estimates.",
     "blog.cta.tco": "Try the TCO Calculator",
@@ -132,18 +135,18 @@ export const ui = {
     "tools.breakeven.desc": "収益がコストを上回るポイントを見つける。",
     "landing.hero": "スプレッドシートではなく、意思決定の質を高めよう。",
     "landing.sub":
-      "TCO分析とコスト比較のためのオープンソースツール。アカウント不要、データは収集されません。",
+      "コスト分析、プロジェクト見積もり、パフォーマンス追跡のためのオープンソースツール。アカウント不要、データは収集されません。",
     "landing.cta": "PERTで見積もる（無料）",
     "landing.features.title": "実践的な意思決定ツール",
-    "landing.features.tco.title": "TCO分析",
-    "landing.features.tco.desc":
-      "NPV調整、メンテナンス係数、リプレースサイクルを考慮し、選択肢ごとの総所有コストを比較。",
-    "landing.features.compare.title": "並列比較",
-    "landing.features.compare.desc":
-      "複数の選択肢を年間コスト順にランキング。3年、5年、10年で本当に節約できるのはどれか。",
-    "landing.features.breakeven.title": "損益分岐点",
-    "landing.features.breakeven.desc":
-      "初期投資が高い選択肢が、安価な代替案と比べて何年で元が取れるかを正確に算出。",
+    "landing.features.cost.title": "コスト分析",
+    "landing.features.cost.desc":
+      "総所有コスト、並列比較、損益分岐点。意思決定の前に、本当のコストを把握する。",
+    "landing.features.estimation.title": "プロジェクト見積もり",
+    "landing.features.estimation.desc":
+      "コミュニケーション負荷、ステークホルダーの複雑さ、隠れた依存関係を考慮した三点見積もり。",
+    "landing.features.tracking.title": "パフォーマンス追跡",
+    "landing.features.tracking.desc":
+      "アーンドバリュー指標（SPI, CPI, EAC）で「予定通りか？」に答える。ベースライン、スナップショット、ヘルスシグナル。",
     "landing.trust.opensource": "オープンソース",
     "landing.trust.privacy": "プライバシー優先",
     "landing.trust.noaccount": "アカウント不要",
@@ -213,6 +216,9 @@ export const ui = {
     "pert.calc.rangeComparison": "区間比較",
     "pert.calc.validation.order": "O ≦ M ≦ P を満たしてください",
     "pert.calc.validation.nonNegative": "負の値は入力できません",
+    "tools.evm": "EVMトラッカー",
+    "tools.evm.desc":
+      "アーンドバリューマネジメント — プロジェクトのスケジュールとコストのパフォーマンスをベースラインに対して追跡。",
     "blog.cta.pert": "PERTツールを試す",
     "blog.cta.pert.desc": "現実の調整がどう見積もりを変えるか、試してみてください。",
     "blog.cta.tco": "TCO計算ツールを試す",
