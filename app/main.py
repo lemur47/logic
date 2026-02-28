@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
 
 # Import feature routers
+from .evm.router import router as evm_router
 from .pert.router import router as pert_router
 from .tco.router import router as tco_router
 
@@ -37,6 +38,7 @@ Small tools for real problems, direct contribution to the world.
 
 - **TCO** - Total Cost of Ownership calculator
 - **PERT** - Reality-adjusted project estimation
+- **EVM** - Earned Value Management performance tracking
         """,
     version="0.1.0",
     lifespan=lifespan,
@@ -61,7 +63,7 @@ async def root():
     return {
         "name": "Logic API",
         "version": "0.1.0",
-        "features": ["tco", "pert"],
+        "features": ["tco", "pert", "evm"],
         "docs": "/docs",
     }
 
@@ -78,3 +80,4 @@ async def health():
 
 app.include_router(tco_router, prefix="/tco", tags=["TCO"])
 app.include_router(pert_router, prefix="/pert", tags=["PERT"])
+app.include_router(evm_router, prefix="/evm", tags=["EVM"])
