@@ -16,15 +16,32 @@ logicリポジトリは、純粋なPython関数とFastAPIエンドポイント�
 |------|------|
 | `calculate_tco()` | NPV調整付きの総コストと年間コストを計算 |
 | `compare_options()` | 年間コストで複数の選択肢をランク付け |
-| `breakeven_analysis()` | 高い初期コストがいつ回収されるかを分析 |
+| `calculate_breakeven()` | 高い初期コストがいつ回収されるかを分析 |
+
+### PERT（三点見積もり）— 公開中
+
+| 関数 | 説明 |
+|------|------|
+| `calculate_task()` | インサイトタグ対応の単一タスクPERT見積もり |
+| `calculate_project()` | 分散集約によるマルチタスクプロジェクト見積もり |
+
+### EVM（アーンドバリューマネジメント）— 公開中
+
+| 関数 | 説明 |
+|------|------|
+| `evm_metrics()` | スケジュールとコストのパフォーマンス（SV, SPI, CV, CPI, EAC, TCPI） |
+| `health_signal()` | メトリクスをアクション可能なヘルスステータスに変換 |
+| `create_baseline()` | ワークパッケージからプロジェクトベースラインを作成 |
+| `evaluate_progress()` | ベースラインに対する実績進捗を評価 |
 
 ### 近日公開
 
 | モジュール | カテゴリ | 説明 |
 |-----------|---------|------|
-| PERT | 見積もり | 三点見積もり（楽観 / 最頻 / 悲観） |
 | Base-rate | 予測 | 主観的バイアスを減らす参照クラス予測 |
 | NPV | 財務 | 正味現在価値分析 |
+| Bayesian | 予測 | 実績データからの見積もり学習 |
+| IRR | 財務 | 内部収益率 |
 
 ## セルフホスト（今すぐ利用可能）
 
@@ -38,7 +55,7 @@ uv run uvicorn app.main:app --reload
 
 APIは `http://127.0.0.1:8000` で利用可能。エンドポイントの詳細は `/docs`（Swagger UI）で確認できます。
 
-### エンドポイント（セルフホスト）
+### TCOエンドポイント
 
 | メソッド | パス | 説明 |
 |---------|------|------|
@@ -47,7 +64,36 @@ APIは `http://127.0.0.1:8000` で利用可能。エンドポイントの詳細�
 | `POST` | `/tco/breakeven` | 2つの選択肢の損益分岐点分析 |
 | `POST` | `/tco/scenarios` | シナリオの保存 |
 | `GET` | `/tco/scenarios` | シナリオ一覧（ページネーション、検索対応） |
+| `GET` | `/tco/scenarios/{id}` | シナリオの取得 |
+| `PATCH` | `/tco/scenarios/{id}` | シナリオの更新（自動再計算） |
+| `DELETE` | `/tco/scenarios/{id}` | シナリオの削除 |
 | `GET` | `/tco/scenarios/stats` | 統計情報 |
+
+### PERTエンドポイント
+
+| メソッド | パス | 説明 |
+|---------|------|------|
+| `POST` | `/pert/task` | 単一タスクPERT見積もり（インサイトタグ対応） |
+| `POST` | `/pert/project` | マルチタスクプロジェクト見積もり |
+
+### EVMエンドポイント
+
+| メソッド | パス | 説明 |
+|---------|------|------|
+| `POST` | `/evm/calculate` | EVMメトリクス計算（ステートレス） |
+| `POST` | `/evm/health` | SPI/CPIからヘルスシグナル（ステートレス） |
+| `POST` | `/evm/baselines` | プロジェクトベースラインの作成 |
+| `GET` | `/evm/baselines` | ベースライン一覧（ページネーション、検索対応） |
+| `GET` | `/evm/baselines/{id}` | ベースラインの取得（ワークパッケージ含む） |
+| `DELETE` | `/evm/baselines/{id}` | ベースラインの削除 |
+| `POST` | `/evm/baselines/{id}/evaluate` | ベースラインに対する進捗評価 |
+| `GET` | `/evm/baselines/{id}/snapshots` | 評価スナップショット一覧 |
+
+### その他のエンドポイント
+
+| メソッド | パス | 説明 |
+|---------|------|------|
+| `GET` | `/` | API情報 |
 | `GET` | `/health` | ヘルスチェック |
 
 ### Pythonインポート
@@ -64,6 +110,20 @@ result = calculate_tco(
     annual_maintenance=5000,
 )
 print(f"年間コスト: {result['annual_cost']:,.0f}")
+```
+
+```python
+from app.pert.core import calculate_task
+
+result = calculate_task(optimistic=5, most_likely=8, pessimistic=15)
+print(f"期待値: {result['textbook']['expected']:.1f} 日")
+```
+
+```python
+from app.evm.core import evm_metrics
+
+result = evm_metrics(pv=100000, ev=85000, ac=95000, bac=200000)
+print(f"SPI={result['spi']:.2f}  CPI={result['cpi']:.2f}")
 ```
 
 ## ホスティングAPI

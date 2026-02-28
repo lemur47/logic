@@ -16,15 +16,32 @@ The logic repo provides composable decision-making modules as pure Python functi
 |----------|-------------|
 | `calculate_tco()` | Compute total and annual cost with NPV adjustment |
 | `compare_options()` | Rank multiple options by annual cost |
-| `breakeven_analysis()` | Find when a higher upfront cost pays off |
+| `calculate_breakeven()` | Find when a higher upfront cost pays off |
+
+### PERT (Three-Point Estimation) — Live
+
+| Function | Description |
+|----------|-------------|
+| `calculate_task()` | Single-task PERT with optional insight tags |
+| `calculate_project()` | Multi-task project estimation with variance aggregation |
+
+### EVM (Earned Value Management) — Live
+
+| Function | Description |
+|----------|-------------|
+| `evm_metrics()` | Schedule and cost performance (SV, SPI, CV, CPI, EAC, TCPI) |
+| `health_signal()` | Interpret metrics into actionable health status |
+| `create_baseline()` | Create frozen project baseline from work packages |
+| `evaluate_progress()` | Evaluate actual progress against baseline |
 
 ### Coming Soon
 
 | Module | Category | Description |
 |--------|----------|-------------|
-| PERT | Estimation | Three-point estimation (optimistic / likely / pessimistic) |
 | Base-rate | Forecasting | Reference class forecasting to reduce subjective bias |
 | NPV | Finance | Net Present Value analysis |
+| Bayesian | Forecasting | Estimation learning from actuals |
+| IRR | Finance | Internal Rate of Return |
 
 ## Self-Host (Available Now)
 
@@ -38,7 +55,7 @@ uv run uvicorn app.main:app --reload
 
 API available at `http://127.0.0.1:8000`. Full endpoint docs at `/docs` (Swagger UI).
 
-### Endpoints (Self-Hosted)
+### TCO Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -47,7 +64,36 @@ API available at `http://127.0.0.1:8000`. Full endpoint docs at `/docs` (Swagger
 | `POST` | `/tco/breakeven` | Break-even analysis between two options |
 | `POST` | `/tco/scenarios` | Save a scenario |
 | `GET` | `/tco/scenarios` | List scenarios (paginated, searchable) |
+| `GET` | `/tco/scenarios/{id}` | Get a scenario |
+| `PATCH` | `/tco/scenarios/{id}` | Update a scenario (auto-recalculates) |
+| `DELETE` | `/tco/scenarios/{id}` | Delete a scenario |
 | `GET` | `/tco/scenarios/stats` | Aggregate statistics |
+
+### PERT Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/pert/task` | Single-task PERT estimate (with optional insight tags) |
+| `POST` | `/pert/project` | Multi-task project estimation |
+
+### EVM Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/evm/calculate` | Calculate EVM metrics (stateless) |
+| `POST` | `/evm/health` | Health signal from SPI/CPI (stateless) |
+| `POST` | `/evm/baselines` | Create a project baseline |
+| `GET` | `/evm/baselines` | List baselines (paginated, searchable) |
+| `GET` | `/evm/baselines/{id}` | Get a baseline with work packages |
+| `DELETE` | `/evm/baselines/{id}` | Delete a baseline |
+| `POST` | `/evm/baselines/{id}/evaluate` | Evaluate progress against baseline |
+| `GET` | `/evm/baselines/{id}/snapshots` | List evaluation snapshots |
+
+### Other Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/` | API info |
 | `GET` | `/health` | Health check |
 
 ### Python Import
@@ -64,6 +110,20 @@ result = calculate_tco(
     annual_maintenance=5000,
 )
 print(f"Annual cost: {result['annual_cost']:,.0f}")
+```
+
+```python
+from app.pert.core import calculate_task
+
+result = calculate_task(optimistic=5, most_likely=8, pessimistic=15)
+print(f"Expected: {result['textbook']['expected']:.1f} days")
+```
+
+```python
+from app.evm.core import evm_metrics
+
+result = evm_metrics(pv=100000, ev=85000, ac=95000, bac=200000)
+print(f"SPI={result['spi']:.2f}  CPI={result['cpi']:.2f}")
 ```
 
 ## Hosted API
