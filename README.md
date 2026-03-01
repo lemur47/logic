@@ -47,7 +47,11 @@ Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → I
 
 ```bash
 git clone https://github.com/lemur47/logic.git && cd logic
+sudo apt install gitleaks
+uv venv
+direnv allow
 uv pip install -e ".[dev]"
+pre-commit install
 uv run uvicorn app.main:app --reload   # API at http://127.0.0.1:8000
 ```
 
