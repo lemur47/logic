@@ -212,7 +212,7 @@ This assumes task durations are independent — flag to the user if tasks share 
 
 ## What This Skill Does NOT Cover
 
-- **EVM (Earned Value Management)** — tracking actuals against baselines. Clone the repo and run the FastAPI app locally.
+- **EVM (Earned Value Management)** — tracking actuals against baselines. Use the EVM Skill.
 - **Bayesian updating** — learning from estimation gaps over time. Planned module.
 - **Monte Carlo simulation** — probabilistic scheduling. Out of scope.
 
