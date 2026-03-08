@@ -121,6 +121,17 @@ pre-commit run --all-files      # Run all pre-commit hooks
 
 Full commands, code style, and conventions are in [`CLAUDE.md`](CLAUDE.md).
 
+## Claude Skills
+
+Same logic, conversational interface. Add a `SKILL.md` to a [Claude Project](https://claude.ai) and start estimating — no deployment needed.
+
+| Skill | Description |
+|-------|-------------|
+| [PERT](skills/pert/SKILL.md) | Three-point estimation with reality adjustments |
+| [EVM](skills/evm/SKILL.md) | Earned Value Management for project health tracking |
+
+See [`skills/README.md`](skills/README.md) for details.
+
 ## Docs
 
 - [`CLAUDE.md`](CLAUDE.md) — Commands, architecture details, code style conventions
