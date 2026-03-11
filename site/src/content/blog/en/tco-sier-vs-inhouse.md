@@ -12,7 +12,7 @@ Two recent books tackle this question from complementary angles. *Software First
 
 Both are worth reading. But neither answers one specific question: **"How much more does one cost than the other — and what happens when things go wrong?"**
 
-Strategy tells you "why." Organization design tells you "how." But "how much, with what risk" requires math. This post runs the numbers using real unit economics from the Japanese systems integration (SI) market — and the structural cost patterns apply everywhere outsourced development happens.
+Strategy tells you "why." Organization design tells you "how." But "how much, with what risk" requires maths. This post runs the numbers using real unit economics from the Japanese systems integration (SI) market — and the structural cost patterns apply everywhere outsourced development happens.
 
 ## The Unit Economics
 
@@ -60,7 +60,7 @@ So far, nothing surprising. Anyone with a spreadsheet can get here. **The real s
 
 ## The Costs Nobody Calculates — Schedule Overruns
 
-Field data from multiple SI projects (anonymized and aggregated):
+Field data from multiple SI projects (anonymised and aggregated):
 
 | Metric | Observed Range |
 |--------|---------------|

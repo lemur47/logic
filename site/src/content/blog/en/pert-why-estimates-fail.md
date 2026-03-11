@@ -1,6 +1,6 @@
 ---
 title: "Why Your Project Estimates Are Always Wrong"
-description: "PERT has been around since the 1950s. It's still not enough. Here's what's missing — and the math to fix it."
+description: "PERT has been around since the 1950s. It's still not enough. Here's what's missing — and the maths to fix it."
 pubDate: 2026-02-22
 tags: ["pert", "estimation", "project-management"]
 ---
@@ -9,7 +9,7 @@ tags: ["pert", "estimation", "project-management"]
 
 Three months later, the task is still in progress. The original estimate wasn't stupid — it was incomplete. And the gap between "should take" and "actually took" is where most project failures hide.
 
-This post explains why, gives you the math to prove it, and offers a free tool to stop it from happening.
+This post explains why, gives you the maths to prove it, and offers a free tool to stop it from happening.
 
 ## The Textbook Answer
 
