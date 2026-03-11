@@ -108,7 +108,7 @@ Every new module follows this pipeline:
 2. **FastAPI integration** in `app/{module}/` — following the layered pattern above
 3. **Plugin interface** in `app/{module}/calibration.py` — optional, defines calibration points
 4. **Tests** in `tests/{module}/` — comprehensive, including edge cases
-5. **Content** — blog post explaining the problem, math, and solution (see strategy doc)
+5. **Content** — blog post explaining the problem, maths, and solution (see strategy doc)
 
 ## Code Style
 
@@ -118,6 +118,10 @@ Every new module follows this pipeline:
 - Pyright basic mode on `app/` only
 - SQLite for development (`logic.db`, gitignored)
 - Pre-commit hooks: gitleaks, bandit, ruff, pyright, pytest, standard hygiene checks
+
+## Key Conventions
+
+- British English in all docs, comments and content (e.g. "analyse", "colour", "maths")
 
 ## Git workflow
 
