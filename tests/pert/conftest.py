@@ -40,6 +40,21 @@ def project_input():
 
 
 @pytest.fixture
+def scenario_payload():
+    """Valid PERT scenario creation payload."""
+    return {
+        "name": "Test Scenario",
+        "description": "A test scenario",
+        "tags": ["test", "demo"],
+        "tasks": [
+            {"name": "Design", "optimistic": 3, "most_likely": 5, "pessimistic": 10},
+            {"name": "Build", "optimistic": 10, "most_likely": 15, "pessimistic": 30},
+            {"name": "Test", "optimistic": 2, "most_likely": 4, "pessimistic": 8},
+        ],
+    }
+
+
+@pytest.fixture
 def project_input_with_tags():
     """Multi-task project input where some tasks have tags."""
     return {
