@@ -8,10 +8,26 @@
 .env.*
 !.env.example
 .envrc
-*.key
-*.pem
 secrets/
 credentials/
+.claude/
+
+# Cryptographic material
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Auth tokens and secrets
+*.secret
+*.token
+.token
+.auth
+*_token.json
+*_credentials.json
+service-account*.json
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Python
@@ -30,15 +46,30 @@ uv.lock
 dist/
 build/
 .eggs/
+*.whl
+
+# Serialized objects (can contain arbitrary data)
+*.pickle
+*.pkl
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Testing & Coverage
 # ═══════════════════════════════════════════════════════════════════════════════
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
+coverage.json
 .tox/
 .nox/
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Linters & Type Checkers
+# ═══════════════════════════════════════════════════════════════════════════════
+.ruff_cache/
+.mypy_cache/
+.pyright/
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # IDEs & Editors
@@ -49,6 +80,11 @@ htmlcov/
 *.swo
 *~
 .zed/
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Jupyter
+# ═══════════════════════════════════════════════════════════════════════════════
+.ipynb_checkpoints/
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Database (local dev)
@@ -65,6 +101,23 @@ wrangler.toml
 .wrangler/
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Infrastructure as Code
+# ═══════════════════════════════════════════════════════════════════════════════
+*.tfstate
+*.tfstate.backup
+.terraform/
+*.tfvars
+!*.tfvars.example
+pulumi.*.yaml
+Pulumi.*.yaml
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Docker
+# ═══════════════════════════════════════════════════════════════════════════════
+docker-compose.override.yml
+.docker/
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # OS Generated
 # ═══════════════════════════════════════════════════════════════════════════════
 .DS_Store
@@ -76,6 +129,15 @@ Thumbs.db
 *.log
 tmp/
 temp/
+*.bak
+*.orig
+*.rej
+
+# Archives (may bundle sensitive content or large binaries)
+*.tar.gz
+*.zip
+*.7z
+*.rar
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Astro site (site/)
