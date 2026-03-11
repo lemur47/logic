@@ -76,6 +76,11 @@ GET    /tco/scenarios/stats    Aggregate statistics
 ```
 POST   /pert/task              Single-task PERT estimate (with optional insight tags)
 POST   /pert/project           Multi-task project estimation
+POST   /pert/scenarios         Save a scenario
+GET    /pert/scenarios         List scenarios (paginated, searchable)
+GET    /pert/scenarios/{id}    Get a scenario
+PATCH  /pert/scenarios/{id}    Update a scenario (auto-recalculates)
+DELETE /pert/scenarios/{id}    Delete a scenario
 ```
 
 ### EVM
