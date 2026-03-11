@@ -4,13 +4,19 @@ PERT API Router.
 All PERT endpoints are defined here and mounted to /pert in main.py.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
-from . import calculate_project, calculate_task
+from ..database import get_db
+from . import calculate_project, calculate_task, crud
 from .core import DEFAULT_TAGS
 from .schemas import (
     ProjectEstimation,
     ProjectInput,
+    ScenarioCreate,
+    ScenarioList,
+    ScenarioResponse,
+    ScenarioUpdate,
     TaskEstimation,
     TaskInput,
 )
@@ -78,3 +84,63 @@ async def estimate_project(project_input: ProjectInput):
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+# =============================================================================
+# Scenario Persistence
+# =============================================================================
+
+
+@router.post("/scenarios", response_model=ScenarioResponse, status_code=201)
+async def create_scenario(scenario: ScenarioCreate, db: Session = Depends(get_db)):
+    """Save a new PERT scenario."""
+    try:
+        return crud.create_scenario(db, scenario)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.get("/scenarios", response_model=ScenarioList)
+async def list_scenarios(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    search: str | None = Query(None),
+    db: Session = Depends(get_db),
+):
+    """List all saved scenarios with pagination."""
+    scenarios, total = crud.get_scenarios(db, page=page, per_page=per_page, search=search)
+    return ScenarioList(
+        items=[ScenarioResponse.model_validate(s) for s in scenarios],
+        total=total,
+        page=page,
+        per_page=per_page,
+    )
+
+
+@router.get("/scenarios/{scenario_id}", response_model=ScenarioResponse)
+async def get_scenario(scenario_id: int, db: Session = Depends(get_db)):
+    """Get a specific scenario by ID."""
+    scenario = crud.get_scenario(db, scenario_id)
+    if not scenario:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    return scenario
+
+
+@router.patch("/scenarios/{scenario_id}", response_model=ScenarioResponse)
+async def update_scenario(
+    scenario_id: int,
+    scenario_update: ScenarioUpdate,
+    db: Session = Depends(get_db),
+):
+    """Update a scenario. PERT estimates are automatically recalculated."""
+    scenario = crud.update_scenario(db, scenario_id, scenario_update)
+    if not scenario:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    return scenario
+
+
+@router.delete("/scenarios/{scenario_id}", status_code=204)
+async def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
+    """Delete a scenario."""
+    if not crud.delete_scenario(db, scenario_id):
+        raise HTTPException(status_code=404, detail="Scenario not found")
