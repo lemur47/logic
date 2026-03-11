@@ -6,7 +6,8 @@ import { parseEntryLocale } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("blog", (entry) => !entry.data.draft);
+  const showDrafts = import.meta.env.DEV || import.meta.env.PUBLIC_SHOW_DRAFTS === 'true';
+  const posts = await getCollection("blog", (entry) => showDrafts || !entry.data.draft);
   return posts.map((post) => {
     const { lang, slug } = parseEntryLocale(post.id);
     return {
