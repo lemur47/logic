@@ -3,7 +3,6 @@ title: "SIer vs 内製：本が教えてくれないコスト"
 description: "SIer委託と内製化のTCO比較。単価の差だけでなく、スケジュール超過・ツール断片化・意思決定遅延がもたらす構造的コストを、フィールドデータから数値化する。"
 pubDate: 2026-03-11
 tags: ["tco", "sier", "build-vs-buy", "cost-analysis"]
-draft: true
 ---
 
 「SIerに頼むべきか、内製すべきか」

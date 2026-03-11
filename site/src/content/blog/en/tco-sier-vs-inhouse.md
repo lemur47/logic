@@ -3,7 +3,6 @@ title: "Outsource vs In-House: The Costs Nobody Calculates"
 description: "A TCO comparison of outsourced vs in-house development using real unit economics and field data on schedule overruns, tool fragmentation, and decision latency."
 pubDate: 2026-03-11
 tags: ["tco", "sier", "build-vs-buy", "cost-analysis"]
-draft: true
 ---
 
 "Should we outsource or build in-house?"
