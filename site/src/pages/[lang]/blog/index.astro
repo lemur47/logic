@@ -11,9 +11,10 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 
+const showDrafts = import.meta.env.DEV || import.meta.env.PUBLIC_SHOW_DRAFTS === 'true';
 const allPosts = await getCollection("blog", (entry) => {
   const { lang: entryLang } = parseEntryLocale(entry.id);
-  return entryLang === lang && !entry.data.draft;
+  return entryLang === lang && (showDrafts || !entry.data.draft);
 });
 
 const posts = allPosts.sort(
