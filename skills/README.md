@@ -17,23 +17,19 @@ That's it. Claude reads the skill, follows the formulas, and shows its work.
 | Skill | Module | Parity | Description |
 |-------|--------|--------|-------------|
 | [PERT](pert/SKILL.md) | `app/pert` | Full | Three-point estimation with reality adjustments |
-| [EVM](evm/SKILL.md) | `app/evm` | Core metrics | Earned Value Management for project health tracking |
-
-## Planned Skills
-
-| Skill | Module | Notes |
-|-------|--------|-------|
-| TCO | `app/tco` | Total Cost of Ownership with NPV adjustment |
+| [EVM](evm/SKILL.md) | `app/evm` | Stateless | Earned value metrics — SPI, CPI, EAC, health signals |
+| [TCO](tco/SKILL.md) | `app/tco` | Full | Total Cost of Ownership with NPV adjustment |
 
 ## What Stays API-Only
 
-Some modules involve stateful tracking that doesn't fit conversational execution. These are available only via the FastAPI app.
+Some features involve iterative computation or stateful tracking that doesn't fit conversational execution. These are available only via the FastAPI app.
 
 | Feature | Why API-Only |
 |---------|-------------|
-| EVM baselines & snapshots | Persistent baselines, snapshot history, and cumulative tracking across sessions require a database |
+| EVM baselines & snapshots | Persistent baselines, snapshot history, and multi-evaluation tracking require database state |
+| TCO scenario persistence | Saved scenarios with CRUD and aggregate statistics |
 
-If a skill can't do it reliably, it says so and points you to the repo.
+The EVM and TCO Skills handle stateless calculations. For persistent data, use the API.
 
 ## Design Principles
 
@@ -41,7 +37,7 @@ If a skill can't do it reliably, it says so and points you to the repo.
 - **Self-contained.** Formulas, domain context, and output format — all in one file.
 - **Worked examples as guardrails.** Every skill includes pre-computed examples so Claude can self-check its math before presenting results.
 - **Honest about limits.** Skills that can't reliably handle a calculation say so explicitly.
-- **Dual input support.** Where applicable, skills accept both severity (0.0–1.0) used by the Python API and direct multipliers used by the [pmo.run](https://pmo.run) web tools.
+- **Dual input support.** Where a module has multiple input formats (e.g. PERT severity values vs direct multipliers), the skill accepts both.
 
 ## Repo Structure
 
@@ -53,6 +49,8 @@ logic/
 │   ├── pert/
 │   │   └── SKILL.md
 │   ├── evm/
+│   │   └── SKILL.md
+│   ├── tco/
 │   │   └── SKILL.md
 │   └── README.md
 ├── site/         # pmo.run website (interactive UI)

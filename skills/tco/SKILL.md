@@ -160,8 +160,8 @@ Simple TCO:
   Daily cost:         ¥2,524
 
 NPV-Adjusted (3%):
-  NPV TCO:            ¥6,078,231
-  NPV annual:         ¥868,319
+  NPV TCO:            ¥6,274,053
+  NPV annual:         ¥896,293
 ```
 
 **Comparison:**
