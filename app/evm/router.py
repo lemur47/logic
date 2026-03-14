@@ -4,12 +4,16 @@ EVM API Router.
 All EVM endpoints are defined here and mounted to /evm in main.py.
 """
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from . import crud, schemas
 from .core import HealthThresholds, evm_metrics, health_signal
+
+DbSession = Annotated[Session, Depends(get_db)]
 
 router = APIRouter()
 
@@ -59,7 +63,7 @@ async def health(input_data: schemas.HealthInput):
 
 
 @router.post("/baselines", response_model=schemas.BaselineResponse, status_code=201)
-async def create_baseline(payload: schemas.BaselineCreate, db: Session = Depends(get_db)):
+async def create_baseline(payload: schemas.BaselineCreate, db: DbSession):
     """Create a new project baseline from work packages."""
     try:
         return crud.create_baseline_record(db, payload)
@@ -69,10 +73,10 @@ async def create_baseline(payload: schemas.BaselineCreate, db: Session = Depends
 
 @router.get("/baselines", response_model=schemas.BaselineList)
 async def list_baselines(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
-    search: str | None = Query(None),
-    db: Session = Depends(get_db),
+    db: DbSession,
+    page: Annotated[int, Query(ge=1)] = 1,
+    per_page: Annotated[int, Query(ge=1, le=100)] = 20,
+    search: Annotated[str | None, Query()] = None,
 ):
     """List all baselines with pagination."""
     baselines, total = crud.get_baselines(db, page=page, per_page=per_page, search=search)
@@ -85,7 +89,7 @@ async def list_baselines(
 
 
 @router.get("/baselines/{baseline_id}", response_model=schemas.BaselineResponse)
-async def get_baseline(baseline_id: int, db: Session = Depends(get_db)):
+async def get_baseline(baseline_id: int, db: DbSession):
     """Get a specific baseline by ID."""
     baseline = crud.get_baseline(db, baseline_id)
     if not baseline:
@@ -94,7 +98,7 @@ async def get_baseline(baseline_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/baselines/{baseline_id}", status_code=204)
-async def delete_baseline(baseline_id: int, db: Session = Depends(get_db)):
+async def delete_baseline(baseline_id: int, db: DbSession):
     """Delete a baseline and all its work packages and snapshots."""
     if not crud.delete_baseline(db, baseline_id):
         raise HTTPException(status_code=404, detail="Baseline not found")
@@ -109,7 +113,7 @@ async def delete_baseline(baseline_id: int, db: Session = Depends(get_db)):
 async def evaluate(
     baseline_id: int,
     payload: schemas.EvaluateInput,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ):
     """Evaluate progress against a stored baseline. Persists a snapshot."""
     baseline = crud.get_baseline(db, baseline_id)
@@ -130,9 +134,9 @@ async def evaluate(
 @router.get("/baselines/{baseline_id}/snapshots", response_model=schemas.SnapshotList)
 async def list_snapshots(
     baseline_id: int,
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db),
+    db: DbSession,
+    page: Annotated[int, Query(ge=1)] = 1,
+    per_page: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     """List evaluation snapshots for a baseline, most recent first."""
     baseline = crud.get_baseline(db, baseline_id)

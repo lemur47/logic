@@ -1,7 +1,7 @@
 # GitHub Actions CI Workflow
-# Runs on push to main and all PRs
+# Runs on push to main, all PRs, and weekly Monday scan
 #
-# Jobs: gitleaks scan, bandit audit, ruff lint, pyright typecheck, frontend checks
+# Jobs: gitleaks scan, opengrep SAST, osv-scanner SCA, ruff lint, pyright typecheck, frontend checks
 
 name: CI
 
@@ -10,10 +10,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"  # Weekly Monday 6am UTC
 
-#concurrency:
-#  group: ${{ github.workflow }}-${{ github.ref }}
-#  cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # Secret detection with gitleaks
@@ -30,29 +32,36 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
 
-  # Python security audit with bandit
-  bandit:
+  # Static analysis with Opengrep (replaces bandit)
+  opengrep:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.14"
-          cache: "pip"
+      - name: Install Opengrep
+        run: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
 
-      - name: Install bandit
-        run: pip install bandit[toml]
+      - name: Run Opengrep
+        run: opengrep scan --config .opengrep/ --scan-unknown-extensions --error --json -o opengrep-report.json || true
 
-      - name: Run Bandit
-        run: bandit -c pyproject.toml -r . -f json -o bandit-report.json || true
-
-      - name: Upload Bandit Report
+      - name: Upload Opengrep Report
         uses: actions/upload-artifact@v4
         with:
-          name: bandit-report
-          path: bandit-report.json
+          name: opengrep-report
+          path: opengrep-report.json
+
+  # Dependency vulnerability scanning with osv-scanner
+  osv-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run osv-scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v2
+        with:
+          scan-args: |-
+            --recursive
+            .
 
   # Code quality with ruff
   lint:

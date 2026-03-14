@@ -120,7 +120,7 @@ python examples/standalone/evm/evm.py
 pytest                          # Run all tests
 ruff check . && ruff format .   # Lint and format
 pyright                         # Type check (app/ only)
-bandit -c pyproject.toml -r .   # Security audit
+opengrep scan --config .opengrep/  # Security audit (SAST)
 pre-commit run --all-files      # Run all pre-commit hooks
 ```
 

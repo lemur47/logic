@@ -1,0 +1,15 @@
+rules:
+  - id: fastapi-raw-sql-string
+    pattern: $DB.execute($QUERY + ...)
+    message: "Potential SQL injection — use parameterised queries"
+    languages: [python]
+    severity: ERROR
+
+  - id: hardcoded-discount-rate
+    patterns:
+      - pattern: discount_rate = $VALUE
+      - pattern-not: discount_rate = Column(...)
+      - pattern-not: "discount_rate: $TYPE = Field(...)"
+    message: "Discount rate should be a parameter, not hardcoded"
+    languages: [python]
+    severity: INFO
