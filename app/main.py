@@ -7,6 +7,8 @@ Each feature (tco, npv, irr, etc.) is a self-contained module.
 Run with: uv run uvicorn app.main:app --reload
 """
 
+# For CORS
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -46,7 +48,8 @@ Small tools for real problems, direct contribution to the world.
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # allow_origins=["*"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:4321").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
