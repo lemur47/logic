@@ -35,7 +35,7 @@ ruff format .            # auto-fix
 pyright
 
 # Security audit (SAST)
-opengrep scan --config .opengrep/
+opengrep scan --config auto --config .opengrep/ --scan-unknown-extensions .
 
 # Dependency vulnerability scan (SCA)
 osv-scanner scan source --recursive .

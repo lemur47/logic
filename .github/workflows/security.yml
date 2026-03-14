@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 6 * * 1"  # Weekly Monday 6am UTC
+    - cron: "0 6 * * 1" # Weekly Monday 6am UTC
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -42,7 +42,7 @@ jobs:
         run: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
 
       - name: Run Opengrep
-        run: opengrep scan --config .opengrep/ --scan-unknown-extensions --error --json -o opengrep-report.json || true
+        run: opengrep scan --config auto --config .opengrep/ --scan-unknown-extensions --error --json -o opengrep-report.json || true
 
       - name: Upload Opengrep Report
         uses: actions/upload-artifact@v4
