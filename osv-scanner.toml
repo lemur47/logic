@@ -1,0 +1,3 @@
+[[IgnoredVulns]]
+id = "GHSA-xxjr-mmjv-4gpg"
+reason = "Dev dependency only (lodash via @astrojs/check → yaml-language-server). No fix published upstream. Tracked in Decision table."

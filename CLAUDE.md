@@ -34,8 +34,11 @@ ruff format .            # auto-fix
 # Type check (app/ directory only)
 pyright
 
-# Security audit
-bandit -c pyproject.toml -r .
+# Security audit (SAST)
+opengrep scan --config .opengrep/
+
+# Dependency vulnerability scan (SCA)
+osv-scanner scan source --recursive .
 
 # Run all pre-commit hooks
 pre-commit run --all-files
@@ -114,10 +117,18 @@ Every new module follows this pipeline:
 
 - Python 3.14, managed with `uv`
 - Ruff: 100 char line length, double quotes, spaces for indentation
-- Ruff lint rules: E, F, I, N, W, B, C4, UP, SIM (with E501 and B008 ignored)
+- Ruff lint rules: E, F, FAST, I, N, W, B, C4, UP, SIM (with E501 and B008 ignored)
 - Pyright basic mode on `app/` only
 - SQLite for development (`logic.db`, gitignored)
-- Pre-commit hooks: gitleaks, bandit, ruff, pyright, pytest, standard hygiene checks
+- Pre-commit hooks: gitleaks, opengrep, osv-scanner, ruff, pyright, pytest, standard hygiene checks
+
+## System Dependencies
+
+The following tools must be installed outside of `uv`:
+
+- `gitleaks` — secret scanning (`sudo apt install gitleaks` or binary release)
+- `opengrep` — SAST scanning (binary at `~/.local/bin/opengrep`)
+- `osv-scanner` — dependency vulnerability scanning (binary at `~/.local/bin/osv-scanner`)
 
 ## Key Conventions
 

@@ -1,0 +1,16 @@
+rules:
+  - id: svelte-unsafe-html
+    pattern: "{@html $EXPR}"
+    message: "Unsanitised @html expression — XSS risk"
+    languages: [generic]
+    severity: WARNING
+    paths:
+      include:
+        - "site/src/**/*.svelte"
+
+  - id: ts-fetch-no-error-handling
+    pattern: |
+      await fetch($URL)
+    message: "fetch() without error handling"
+    languages: [typescript, javascript]
+    severity: WARNING

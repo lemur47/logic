@@ -4,6 +4,8 @@ PERT API Router.
 All PERT endpoints are defined here and mounted to /pert in main.py.
 """
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -20,6 +22,8 @@ from .schemas import (
     TaskEstimation,
     TaskInput,
 )
+
+DbSession = Annotated[Session, Depends(get_db)]
 
 router = APIRouter()
 
@@ -92,7 +96,7 @@ async def estimate_project(project_input: ProjectInput):
 
 
 @router.post("/scenarios", response_model=ScenarioResponse, status_code=201)
-async def create_scenario(scenario: ScenarioCreate, db: Session = Depends(get_db)):
+async def create_scenario(scenario: ScenarioCreate, db: DbSession):
     """Save a new PERT scenario."""
     try:
         return crud.create_scenario(db, scenario)
@@ -102,10 +106,10 @@ async def create_scenario(scenario: ScenarioCreate, db: Session = Depends(get_db
 
 @router.get("/scenarios", response_model=ScenarioList)
 async def list_scenarios(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=1, le=100),
-    search: str | None = Query(None),
-    db: Session = Depends(get_db),
+    db: DbSession,
+    page: Annotated[int, Query(ge=1)] = 1,
+    per_page: Annotated[int, Query(ge=1, le=100)] = 20,
+    search: Annotated[str | None, Query()] = None,
 ):
     """List all saved scenarios with pagination."""
     scenarios, total = crud.get_scenarios(db, page=page, per_page=per_page, search=search)
@@ -118,7 +122,7 @@ async def list_scenarios(
 
 
 @router.get("/scenarios/{scenario_id}", response_model=ScenarioResponse)
-async def get_scenario(scenario_id: int, db: Session = Depends(get_db)):
+async def get_scenario(scenario_id: int, db: DbSession):
     """Get a specific scenario by ID."""
     scenario = crud.get_scenario(db, scenario_id)
     if not scenario:
@@ -130,7 +134,7 @@ async def get_scenario(scenario_id: int, db: Session = Depends(get_db)):
 async def update_scenario(
     scenario_id: int,
     scenario_update: ScenarioUpdate,
-    db: Session = Depends(get_db),
+    db: DbSession,
 ):
     """Update a scenario. PERT estimates are automatically recalculated."""
     scenario = crud.update_scenario(db, scenario_id, scenario_update)
@@ -140,7 +144,7 @@ async def update_scenario(
 
 
 @router.delete("/scenarios/{scenario_id}", status_code=204)
-async def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
+async def delete_scenario(scenario_id: int, db: DbSession):
     """Delete a scenario."""
     if not crud.delete_scenario(db, scenario_id):
         raise HTTPException(status_code=404, detail="Scenario not found")

@@ -1,0 +1,6 @@
+rules:
+  - id: dockerfile-run-as-root
+    pattern: "USER root"
+    message: "Container should not run as root"
+    languages: [dockerfile]
+    severity: WARNING
