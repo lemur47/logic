@@ -61,6 +61,7 @@ jobs:
         with:
           scan-args: |-
             --recursive
+            --config=osv-scanner.toml
             .
 
   # Code quality with ruff
