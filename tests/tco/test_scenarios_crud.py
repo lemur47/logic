@@ -112,6 +112,40 @@ class TestUpdateScenario:
         assert resp.status_code == 200
         assert resp.json()["total_cost"] != old_total
 
+    async def test_update_metadata_only_skips_recalculation(
+        self, client: AsyncClient, scenario_payload
+    ):
+        """Updating name/description/tags should not trigger recalculation."""
+        created = await _create_scenario(client, scenario_payload)
+        original_total = created["total_cost"]
+        original_npv = created["npv_tco"]
+
+        resp = await client.patch(
+            f"/tco/scenarios/{created['id']}",
+            json={"name": "New Name", "description": "New desc", "tags": ["updated"]},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["name"] == "New Name"
+        assert data["description"] == "New desc"
+        assert data["tags"] == ["updated"]
+        assert data["total_cost"] == original_total
+        assert data["npv_tco"] == original_npv
+
+    async def test_update_mixed_fields_recalculates(self, client: AsyncClient, scenario_payload):
+        """Updating both metadata and calculation fields should recalculate."""
+        created = await _create_scenario(client, scenario_payload)
+        original_total = created["total_cost"]
+
+        resp = await client.patch(
+            f"/tco/scenarios/{created['id']}",
+            json={"name": "Renamed", "initial_price": 999999},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["name"] == "Renamed"
+        assert data["total_cost"] != original_total
+
     async def test_update_not_found(self, client: AsyncClient):
         resp = await client.patch("/tco/scenarios/99999", json={"name": "Ghost"})
         assert resp.status_code == 404
