@@ -10,6 +10,15 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from .core import calculate_tco
 
+CALCULATION_FIELDS = {
+    "initial_price",
+    "useful_life_years",
+    "residual_value",
+    "annual_maintenance",
+    "annual_operating_cost",
+    "discount_rate",
+}
+
 
 def create_scenario(db: Session, scenario: schemas.ScenarioCreate) -> models.Scenario:
     """Create a new scenario with computed TCO."""
@@ -79,17 +88,18 @@ def update_scenario(
     for field, value in update_data.items():
         setattr(db_scenario, field, value)
 
-    # Recalculate TCO
-    tco_result = calculate_tco(
-        initial_price=float(cast(float, db_scenario.initial_price)),
-        useful_life_years=int(cast(int, db_scenario.useful_life_years)),
-        residual_value=float(cast(float, db_scenario.residual_value)),
-        annual_maintenance=float(cast(float, db_scenario.annual_maintenance)),
-        annual_operating_cost=float(cast(float, db_scenario.annual_operating_cost)),
-        discount_rate=float(cast(float, db_scenario.discount_rate)),
-    )
-    for field, value in tco_result.items():
-        setattr(db_scenario, field, value)
+    # Only recalculate when calculation-affecting fields changed
+    if update_data.keys() & CALCULATION_FIELDS:
+        tco_result = calculate_tco(
+            initial_price=float(cast(float, db_scenario.initial_price)),
+            useful_life_years=int(cast(int, db_scenario.useful_life_years)),
+            residual_value=float(cast(float, db_scenario.residual_value)),
+            annual_maintenance=float(cast(float, db_scenario.annual_maintenance)),
+            annual_operating_cost=float(cast(float, db_scenario.annual_operating_cost)),
+            discount_rate=float(cast(float, db_scenario.discount_rate)),
+        )
+        for field, value in tco_result.items():
+            setattr(db_scenario, field, value)
 
     db.commit()
     db.refresh(db_scenario)
