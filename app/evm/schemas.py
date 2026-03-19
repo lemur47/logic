@@ -7,6 +7,8 @@ from math import isinf
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from ..common.schemas import PaginatedList
+
 # =============================================================================
 # Stateless Calculation Schemas
 # =============================================================================
@@ -125,13 +127,7 @@ class BaselineResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class BaselineList(BaseModel):
-    """Paginated baseline list."""
-
-    items: list[BaselineResponse]
-    total: int
-    page: int
-    per_page: int
+BaselineList = PaginatedList[BaselineResponse]
 
 
 # =============================================================================
@@ -211,10 +207,4 @@ class SnapshotResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class SnapshotList(BaseModel):
-    """Paginated snapshot list."""
-
-    items: list[SnapshotResponse]
-    total: int
-    page: int
-    per_page: int
+SnapshotList = PaginatedList[SnapshotResponse]

@@ -6,6 +6,7 @@ import math
 
 from sqlalchemy.orm import Session
 
+from ..common.crud import delete_by_id, get_by_id, paginate
 from . import models, schemas
 from .core import calculate_task
 
@@ -86,7 +87,7 @@ def create_scenario(db: Session, scenario: schemas.ScenarioCreate) -> models.Per
 
 def get_scenario(db: Session, scenario_id: int) -> models.PertScenario | None:
     """Get a single scenario by ID."""
-    return db.query(models.PertScenario).filter(models.PertScenario.id == scenario_id).first()
+    return get_by_id(db, models.PertScenario, scenario_id)
 
 
 def get_scenarios(
@@ -96,18 +97,7 @@ def get_scenarios(
     search: str | None = None,
 ) -> tuple[list[models.PertScenario], int]:
     """Get paginated list of scenarios."""
-    query = db.query(models.PertScenario)
-
-    if search:
-        query = query.filter(models.PertScenario.name.ilike(f"%{search}%"))
-
-    total = query.count()
-    offset = (page - 1) * per_page
-    scenarios = (
-        query.order_by(models.PertScenario.updated_at.desc()).offset(offset).limit(per_page).all()
-    )
-
-    return scenarios, total
+    return paginate(db, models.PertScenario, page=page, per_page=per_page, search=search)
 
 
 def update_scenario(
@@ -140,10 +130,4 @@ def update_scenario(
 
 def delete_scenario(db: Session, scenario_id: int) -> bool:
     """Delete a scenario."""
-    db_scenario = get_scenario(db, scenario_id)
-    if not db_scenario:
-        return False
-
-    db.delete(db_scenario)
-    db.commit()
-    return True
+    return delete_by_id(db, models.PertScenario, scenario_id)
