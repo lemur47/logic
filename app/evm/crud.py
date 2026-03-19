@@ -6,6 +6,7 @@ from typing import cast
 
 from sqlalchemy.orm import Session, joinedload
 
+from ..common.crud import delete_by_id, get_by_id, paginate
 from . import models, schemas
 from .core import (
     Baseline,
@@ -53,11 +54,8 @@ def create_baseline_record(db: Session, payload: schemas.BaselineCreate) -> mode
 
 def get_baseline(db: Session, baseline_id: int) -> models.EvmBaseline | None:
     """Get a single baseline by ID with eager-loaded work packages."""
-    return (
-        db.query(models.EvmBaseline)
-        .options(joinedload(models.EvmBaseline.work_packages))
-        .filter(models.EvmBaseline.id == baseline_id)
-        .first()
+    return get_by_id(
+        db, models.EvmBaseline, baseline_id, options=[joinedload(models.EvmBaseline.work_packages)]
     )
 
 
@@ -68,33 +66,19 @@ def get_baselines(
     search: str | None = None,
 ) -> tuple[list[models.EvmBaseline], int]:
     """Get paginated list of baselines."""
-    query = db.query(models.EvmBaseline)
-
-    if search:
-        query = query.filter(models.EvmBaseline.name.ilike(f"%{search}%"))
-
-    total = query.count()
-    offset = (page - 1) * per_page
-    baselines = (
-        query.options(joinedload(models.EvmBaseline.work_packages))
-        .order_by(models.EvmBaseline.updated_at.desc())
-        .offset(offset)
-        .limit(per_page)
-        .all()
+    return paginate(
+        db,
+        models.EvmBaseline,
+        page=page,
+        per_page=per_page,
+        search=search,
+        options=[joinedload(models.EvmBaseline.work_packages)],
     )
-
-    return baselines, total
 
 
 def delete_baseline(db: Session, baseline_id: int) -> bool:
     """Delete a baseline (cascade deletes work packages and snapshots)."""
-    db_baseline = db.query(models.EvmBaseline).filter(models.EvmBaseline.id == baseline_id).first()
-    if not db_baseline:
-        return False
-
-    db.delete(db_baseline)
-    db.commit()
-    return True
+    return delete_by_id(db, models.EvmBaseline, baseline_id)
 
 
 def evaluate_and_snapshot(
@@ -169,6 +153,8 @@ def get_snapshots(
     per_page: int = 20,
 ) -> tuple[list[models.EvmSnapshot], int]:
     """Get paginated snapshots for a baseline, reverse chronological."""
+    # Snapshots use a pre-filtered query (by baseline_id) and order by created_at
+    # (append-only, no updated_at), so we use a direct query rather than paginate().
     query = db.query(models.EvmSnapshot).filter(models.EvmSnapshot.baseline_id == baseline_id)
 
     total = query.count()

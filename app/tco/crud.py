@@ -7,6 +7,7 @@ from typing import cast
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from ..common.crud import delete_by_id, get_by_id, paginate
 from . import models, schemas
 from .core import calculate_tco
 
@@ -52,7 +53,7 @@ def create_scenario(db: Session, scenario: schemas.ScenarioCreate) -> models.Sce
 
 def get_scenario(db: Session, scenario_id: int) -> models.Scenario | None:
     """Get a single scenario by ID."""
-    return db.query(models.Scenario).filter(models.Scenario.id == scenario_id).first()
+    return get_by_id(db, models.Scenario, scenario_id)
 
 
 def get_scenarios(
@@ -62,18 +63,7 @@ def get_scenarios(
     search: str | None = None,
 ) -> tuple[list[models.Scenario], int]:
     """Get paginated list of scenarios."""
-    query = db.query(models.Scenario)
-
-    if search:
-        query = query.filter(models.Scenario.name.ilike(f"%{search}%"))
-
-    total = query.count()
-    offset = (page - 1) * per_page
-    scenarios = (
-        query.order_by(models.Scenario.updated_at.desc()).offset(offset).limit(per_page).all()
-    )
-
-    return scenarios, total
+    return paginate(db, models.Scenario, page=page, per_page=per_page, search=search)
 
 
 def update_scenario(
@@ -108,13 +98,7 @@ def update_scenario(
 
 def delete_scenario(db: Session, scenario_id: int) -> bool:
     """Delete a scenario."""
-    db_scenario = get_scenario(db, scenario_id)
-    if not db_scenario:
-        return False
-
-    db.delete(db_scenario)
-    db.commit()
-    return True
+    return delete_by_id(db, models.Scenario, scenario_id)
 
 
 def get_scenario_stats(db: Session) -> dict:

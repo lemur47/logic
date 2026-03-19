@@ -6,13 +6,10 @@ All TCO endpoints are defined here and mounted to /tco in main.py.
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Query
 
-from ..database import get_db
+from ..common.dependencies import DbSession
 from . import calculate_breakeven, calculate_tco, compare_options, crud, schemas
-
-DbSession = Annotated[Session, Depends(get_db)]
 
 router = APIRouter()
 

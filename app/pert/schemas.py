@@ -6,6 +6,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..common.schemas import PaginatedList
+
 # =============================================================================
 # Input Schemas
 # =============================================================================
@@ -197,10 +199,4 @@ class ScenarioResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ScenarioList(BaseModel):
-    """Paginated scenario list."""
-
-    items: list[ScenarioResponse]
-    total: int
-    page: int
-    per_page: int
+ScenarioList = PaginatedList[ScenarioResponse]

@@ -6,14 +6,11 @@ All EVM endpoints are defined here and mounted to /evm in main.py.
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Query
 
-from ..database import get_db
+from ..common.dependencies import DbSession
 from . import crud, schemas
 from .core import HealthThresholds, evm_metrics, health_signal
-
-DbSession = Annotated[Session, Depends(get_db)]
 
 router = APIRouter()
 
