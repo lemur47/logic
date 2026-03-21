@@ -10,7 +10,14 @@ from fastapi import APIRouter, HTTPException, Query
 
 from ..common.dependencies import DbSession
 from . import crud, schemas
-from .core import Observation, Posterior, Prior, adjust_estimate, update_belief
+from .core import (
+    Observation,
+    Posterior,
+    Prior,
+    _confidence_label,
+    adjust_estimate,
+    update_belief,
+)
 
 router = APIRouter()
 
@@ -172,8 +179,8 @@ async def adjust_from_context(
     if not db_context:
         raise HTTPException(status_code=404, detail="Context not found")
 
-    belief = _belief_from_context(db_context)
     posterior = crud.compute_belief(db_context)
+    belief = _belief_from_posterior(db_context, posterior)
     result = adjust_estimate(payload.pert_expected, posterior)
 
     return schemas.ContextAdjustResponse(
@@ -202,9 +209,12 @@ def _posterior_to_result(posterior: Posterior) -> schemas.PosteriorResult:
 
 def _belief_from_context(db_context) -> schemas.BeliefResponse:
     """Compute belief response from a loaded context."""
-    from .core import _confidence_label
-
     posterior = crud.compute_belief(db_context)
+    return _belief_from_posterior(db_context, posterior)
+
+
+def _belief_from_posterior(db_context, posterior: Posterior) -> schemas.BeliefResponse:
+    """Build belief response from a pre-computed posterior."""
     return schemas.BeliefResponse(
         context_id=db_context.id,
         context_name=db_context.name,
