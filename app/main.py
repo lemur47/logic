@@ -14,9 +14,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import Base, engine
-
 # Import feature routers
+from .bayesian.router import router as bayesian_router
+from .database import Base, engine
 from .evm.router import router as evm_router
 from .pert.router import router as pert_router
 from .tco.router import router as tco_router
@@ -41,6 +41,7 @@ Small tools for real problems, direct contribution to the world.
 - **TCO** - Total Cost of Ownership calculator
 - **PERT** - Reality-adjusted project estimation
 - **EVM** - Earned Value Management performance tracking
+- **Bayesian** - Estimation calibration via Bayesian updating
         """,
     version="0.1.0",
     lifespan=lifespan,
@@ -66,7 +67,7 @@ async def root():
     return {
         "name": "Logic API",
         "version": "0.1.0",
-        "features": ["tco", "pert", "evm"],
+        "features": ["tco", "pert", "evm", "bayesian"],
         "docs": "/docs",
     }
 
@@ -84,3 +85,4 @@ async def health():
 app.include_router(tco_router, prefix="/tco", tags=["TCO"])
 app.include_router(pert_router, prefix="/pert", tags=["PERT"])
 app.include_router(evm_router, prefix="/evm", tags=["EVM"])
+app.include_router(bayesian_router, prefix="/bayesian", tags=["Bayesian"])
