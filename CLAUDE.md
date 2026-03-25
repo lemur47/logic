@@ -133,6 +133,7 @@ The following tools must be installed outside of `uv`:
 ## Key Conventions
 
 - British English in all docs, comments and content (e.g. "analyse", "colour", "maths")
+- APA 7th title case to all H1 and H2 headings
 
 ## Git workflow
 
