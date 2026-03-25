@@ -130,6 +130,23 @@ SIer業界で長年問題視されてきた属人化の本質は、結晶化の�
 
 コードは公開されている。補正データはプロプライエタリだ。結晶化プロセスが堀である。
 
+## 試してみる
+
+4つのモジュールすべてがオープンソースで無料で使える：
+
+```bash
+git clone https://github.com/lemur47/logic.git && cd logic
+python examples/standalone/pert/pert.py
+```
+
+各モジュールは依存ゼロのスタンドアロンPythonスクリプトとしても、logic APIの一部としても動作する。TCO、PERT、EVM、ベイズモジュールはすべてMITライセンスだ。
+
+## 次のステップ
+
+次の結晶化サイクルはすでに動き始めている。モンテカルロシミュレーションが、ベイズ補正済みの不確実性をプロジェクトスケジュール全体に伝播させる——単一値の見積もりを確率分布に変換する。その後、フローメトリクスとベネフィットリアライゼーションがバリューデリバリーファミリーを完成させる。
+
+フォローまたはコントリビュート：[github.com/lemur47/logic](https://github.com/lemur47/logic)。
+
 ---
 
 *この記事で紹介したロジックモジュールは [github.com/lemur47/logic](https://github.com/lemur47/logic) でオープンソース公開中。Nurture-First Developmentフレームワークは [Zhang (2026)](https://arxiv.org/abs/2603.10808) に基づく。PMOの階層的役割モデルは [Monteiro (2026)](https://www.emerald.com/bpmj/article-abstract/doi/10.1108/BPMJ-09-2025-1573/1340718/Opening-the-black-box-of-disaster-recovery-in-SMEs?redirectedFrom=fulltext), Business Process Management Journal。デュアルトラックのベイズ/LLMアーキテクチャは [Kazinnik & Sinclair (2026)](https://digitaleconomy.stanford.edu/publication/fomc-in-silico-a-multi-agent-system-for-monetary-policy-decision-modeling/), Stanford Digital Economy Lab。LLMのベイズ更新における限界は [Qiu et al. (2026)](https://www.nature.com/articles/s41467-025-67998-6), Nature Communications。*

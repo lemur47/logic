@@ -104,6 +104,23 @@ But the real competitive advantage is neither the code nor the data. It's the cr
 
 The code is public. The calibration data is proprietary. The crystallisation process is the moat.
 
+## Try It
+
+All four modules are open source and free to use:
+
+```bash
+git clone https://github.com/lemur47/logic.git && cd logic
+python examples/standalone/pert/pert.py
+```
+
+Each module works as a standalone Python script with zero dependencies, or as part of the logic API. The TCO, PERT, EVM, and Bayesian modules are all MIT-licensed.
+
+## What's Next
+
+The next crystallisation cycle is already in motion. Monte Carlo simulation will propagate Bayesian-calibrated uncertainty across entire project schedules — turning single-point estimates into probability distributions. After that, flow metrics and benefits realisation will complete the value delivery family.
+
+If you want to follow along or contribute: [github.com/lemur47/logic](https://github.com/lemur47/logic).
+
 ---
 
 *The logic modules described in this post are open source at [github.com/lemur47/logic](https://github.com/lemur47/logic). The Nurture-First Development framework is from [Zhang (2026)](https://arxiv.org/abs/2603.10808). The PMO layered mandate model is from [Monteiro (2026)](https://www.emerald.com/bpmj/article-abstract/doi/10.1108/BPMJ-09-2025-1573/1340718/Opening-the-black-box-of-disaster-recovery-in-SMEs?redirectedFrom=fulltext), Business Process Management Journal. The dual-track Bayesian/LLM architecture is from [Kazinnik & Sinclair (2026)](https://digitaleconomy.stanford.edu/publication/fomc-in-silico-a-multi-agent-system-for-monetary-policy-decision-modeling/), Stanford Digital Economy Lab. The LLM belief updating limitation is from [Qiu et al. (2026)](https://www.nature.com/articles/s41467-025-67998-6), Nature Communications.*
