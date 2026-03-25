@@ -1,5 +1,5 @@
 ---
-title: "Why LLMs Can't Learn From Your Estimation Errors"
+title: "Why LLMs Can't Learn from Your Estimation Errors"
 description: "LLMs plateau after a single observation when updating beliefs. For PMOs that need to learn from estimation history, you need deterministic Bayesian maths underneath — not just chat."
 pubDate: 2026-03-24
 tags: ["bayesian", "estimation", "llm", "pert", "project-management"]
@@ -11,7 +11,7 @@ You'll get a plausible answer. It might even be close. But ask it again after fi
 
 This is not a prompt engineering problem. It's a mathematical limitation. And if your PMO is using AI-assisted estimation, it matters.
 
-## The estimation problem
+## The Estimation Problem
 
 Every PMO has a spreadsheet somewhere with estimated vs actual durations. Most ignore it. The ones that don't usually compute an average and call it a "lessons learned."
 
@@ -26,7 +26,7 @@ What you actually want is a system that:
 
 That's Bayesian updating. And it's been solved mathematics since the 18th century.
 
-## How Bayesian calibration works
+## How Bayesian Calibration Works
 
 The idea: every completed task produces a *delay factor* — the ratio of actual duration to estimated duration. A task estimated at 10 days that takes 13 has a delay factor of 1.3.
 
@@ -68,7 +68,7 @@ def update_belief(prior, observations, observation_noise=0.15):
 
 Six lines of maths. No neural network. No training data. No GPU.
 
-## A worked example: SIer auth tasks
+## A Worked Example: SIer Auth Tasks
 
 Suppose your team has completed six authentication tasks. Each took longer than estimated:
 
@@ -102,7 +102,7 @@ Now apply this to a new estimate. PERT says a new auth task will take 12 days:
 
 Compare this with infrastructure tasks from the same team, which have a delay factor of 1.027. Same PERT formula, same team, but auth tasks need 2.8 more days per 10-day estimate. That's the calibration insight that flat PERT cannot provide.
 
-## Why LLMs can't do this
+## Why LLMs Can't Do This
 
 [In 2026, Qiu et al. published a study in Nature Communications](https://www.nature.com/articles/s41467-025-67998-6) examining whether large language models can perform probabilistic reasoning — specifically, sequential Bayesian belief updating.
 
@@ -114,7 +114,7 @@ The researchers found that a "Bayesian teaching" approach — fine-tuning LLMs o
 
 [A 2026 Stanford working paper on FOMC policy simulation](https://digitaleconomy.stanford.edu/publication/fomc-in-silico-a-multi-agent-system-for-monetary-policy-decision-modeling/) reinforces this from a different angle. Their dual-track framework runs an LLM-based deliberation track alongside a separate Monte Carlo/Bayesian track — using the exact same conjugate normal-normal update formulas as our module. The LLM handles natural language deliberation (what the policy should be and why). The Bayesian track handles the maths (what the numbers say). Neither tries to do the other's job.
 
-## The two-tier architecture
+## The Two-Tier Architecture
 
 The pattern that emerges from both papers — and from our own engineering — is a clean separation:
 
@@ -143,7 +143,7 @@ What should the project manager do?
 
 The LLM never touches the update formula. It reads the result.
 
-## Where this leads
+## Where This Leads
 
 We've open-sourced the Bayesian estimation calibration module as part of our [logic toolkit](https://github.com/lemur47/logic). It's the fourth module in the Performance family: PERT estimates the duration, Bayesian calibration learns how wrong PERT is, and (coming next) Monte Carlo simulation propagates that uncertainty across an entire project schedule.
 
