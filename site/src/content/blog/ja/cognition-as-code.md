@@ -19,7 +19,7 @@ tags: ["cognition-as-code", "nfd", "bayesian", "pmo", "ai-agents", "sier"]
 
 ## AI導入の現在地
 
-2026年の[Blue Light PMO Summit](https://houseofpmo.com/blue-light-report/)（英国の公共サービス向けPMOカンファレンス）で、繰り返し聞かれた言葉がある。
+2026年の[Blue Light PMO Summit](https://houseofpmo.com/blue-light-report/)（イギリスの公共サービス向けPMOカンファレンス）で、繰り返し聞かれた言葉がある。
 
 「AIが来ることは分かっている。使い方が分からない。」
 

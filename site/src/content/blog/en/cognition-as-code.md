@@ -1,5 +1,5 @@
 ---
-title: "Cognition as Code: Co-Evolving With AI Agents"
+title: "Cognition as Code: Co-Evolving with AI Agents"
 description: "Most organisations add AI to linear processes. A different approach: co-evolve with AI through a crystallisation cycle that turns tacit expertise into executable code. The moat isn't the code — it's the process that produces it."
 pubDate: 2026-03-25
 tags: ["cognition-as-code", "nfd", "bayesian", "pmo", "ai-agents", "conways-law"]
@@ -29,7 +29,7 @@ Our own team structure is a deliberate Conway's Law choice. A CEO with 13 years 
 
 This isn't metaphor. It's architecture.
 
-## Three paradigms of AI development
+## Three Paradigms of AI Development
 
 A 2026 preprint by Zhang identifies three paradigms for building AI agents, each reflecting a different assumption about where knowledge lives:
 
@@ -47,7 +47,7 @@ The paper maps this to a three-layer cognitive architecture, ordered by how freq
 
 What makes this framework useful is the crystallisation cycle itself: field observation → prototype → formalised artefact → operational deployment → new observation. Each cycle doesn't just add a layer — it reshapes the layers beneath it.
 
-## What crystallisation looks like in practice
+## What Crystallisation Looks Like in Practice
 
 Theory needs a worked example. Here's ours.
 
@@ -69,7 +69,7 @@ Four modules. Three months. Each one reshaped the ones before it. That's not lin
 
 ![Knowledge crystallisation cycle — field observation flows through PoC, FastAPI, Skill/blog, and community signal, then back to observation](/blog/cognition-as-code/knowledge_crystallisation_cycle.svg)
 
-## The two-tier proof
+## The Two-Tier Proof
 
 The Bayesian module also demonstrated an architectural principle that appears independently in multiple research contexts: the separation of deterministic maths from LLM interpretation.
 
@@ -79,7 +79,7 @@ The architecture is clear: maths at the core, LLM at the interpretation boundary
 
 This separation isn't a design preference. It's a necessity. LLMs cannot accumulate precision across sequential observations. They generate text that resembles Bayesian reasoning, but the actual mathematical precision accumulation doesn't happen inside a forward pass. For any system that needs to *learn* from data over time — estimation calibration, risk pattern detection, performance trending — the maths must be separate and exact.
 
-## Why this matters: linear vs non-linear growth
+## Why This Matters: Linear vs Non-Linear Growth
 
 A 2026 study in the Business Process Management Journal documented how one European PMO evolved its mandate over 16 years, through five stages: IT support → governance → strategic integration → enterprise authority with AI → corporate maturity. Each stage adds a mandate layer. None removes one.
 
@@ -94,7 +94,7 @@ The difference between linear maturity and spiral crystallisation:
 
 In linear models, each layer is independent. In spiral models, each cycle reshapes all prior layers. Our refactoring sprint (extracting `app/common/`) was the system recognising its own duplication and self-correcting — a higher-order crystallisation that the linear model has no mechanism for.
 
-## The moat
+## The Moat
 
 Open-source maths builds trust. Anyone can audit our PERT formula, verify our Bayesian update, check our EVM calculations. The code is MIT-licensed.
 
