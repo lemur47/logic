@@ -2,7 +2,7 @@
 title: "AIエージェントと共に進化する — Cognition as Code"
 description: "多くの組織はAIを既存プロセスに追加する。別のアプローチ：暗黙知を実行可能なコードに変換する結晶化サイクルで、AIと共に進化する。真の競争優位は、コードでもデータでもなく、それを生み出すプロセスにある。"
 pubDate: 2026-03-25
-tags: ["cognition-as-code", "nfd", "bayesian", "pmo", "ai-agents", "sier"]
+tags: ["cognition-as-code", "nfd", "bayesian", "pert", "pmo", "ai-agents", "sier"]
 ---
 
 あるSIer案件で、ベテランPMがこう言った。
@@ -129,23 +129,6 @@ SIer業界で長年問題視されてきた属人化の本質は、結晶化の�
 ベテランPMの「認証は1.3倍」を、σ=0.061のベイズ事後分布に変換したプロセス。16年の線形進化を4ヶ月の螺旋成長に圧縮したプロセス。
 
 コードは公開されている。補正データはプロプライエタリだ。結晶化プロセスが堀である。
-
-## 試してみる
-
-4つのモジュールすべてがオープンソースで無料で使える：
-
-```bash
-git clone https://github.com/lemur47/logic.git && cd logic
-python examples/standalone/pert/pert.py
-```
-
-各モジュールは依存ゼロのスタンドアロンPythonスクリプトとしても、logic APIの一部としても動作する。TCO、PERT、EVM、ベイズモジュールはすべてMITライセンスだ。
-
-## 次のステップ
-
-次の結晶化サイクルはすでに動き始めている。モンテカルロシミュレーションが、ベイズ補正済みの不確実性をプロジェクトスケジュール全体に伝播させる——単一値の見積もりを確率分布に変換する。その後、フローメトリクスとベネフィットリアライゼーションがバリューデリバリーファミリーを完成させる。
-
-フォローまたはコントリビュート：[github.com/lemur47/logic](https://github.com/lemur47/logic)。
 
 ---
 

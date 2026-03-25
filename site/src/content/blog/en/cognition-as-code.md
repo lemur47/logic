@@ -2,7 +2,7 @@
 title: "Cognition as Code: Co-Evolving with AI Agents"
 description: "Most organisations add AI to linear processes. A different approach: co-evolve with AI through a crystallisation cycle that turns tacit expertise into executable code. The moat isn't the code — it's the process that produces it."
 pubDate: 2026-03-25
-tags: ["cognition-as-code", "nfd", "bayesian", "pmo", "ai-agents", "conways-law"]
+tags: ["cognition-as-code", "nfd", "bayesian", "pert", "pmo", "ai-agents", "conways-law"]
 ---
 
 "We know AI is coming, but we don't know how to use it."
@@ -103,23 +103,6 @@ Field-calibrated data — "auth tasks in SIer projects take 1.31x the PERT estim
 But the real competitive advantage is neither the code nor the data. It's the crystallisation process itself — the methodology by which tacit PMO expertise becomes executable code through human-AI co-evolution. The process that turned a veteran PM's "auth always takes longer" into a Bayesian posterior with σ=0.061. The process that compressed 16 years of linear PMO evolution into four months of spiral growth.
 
 The code is public. The calibration data is proprietary. The crystallisation process is the moat.
-
-## Try It
-
-All four modules are open source and free to use:
-
-```bash
-git clone https://github.com/lemur47/logic.git && cd logic
-python examples/standalone/pert/pert.py
-```
-
-Each module works as a standalone Python script with zero dependencies, or as part of the logic API. The TCO, PERT, EVM, and Bayesian modules are all MIT-licensed.
-
-## What's Next
-
-The next crystallisation cycle is already in motion. Monte Carlo simulation will propagate Bayesian-calibrated uncertainty across entire project schedules — turning single-point estimates into probability distributions. After that, flow metrics and benefits realisation will complete the value delivery family.
-
-If you want to follow along or contribute: [github.com/lemur47/logic](https://github.com/lemur47/logic).
 
 ---
 
