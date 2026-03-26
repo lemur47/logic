@@ -3,7 +3,7 @@
 **Domain:** pmo.run
 **Repo:** github.com/lemur47/logic
 **Phase:** Awareness & Prototype → Agent PoC
-**Last updated:** 2026-02-25
+**Last updated:** 2026-03-26
 
 ---
 
@@ -79,7 +79,7 @@ This is not a growth hack. It's the ethical foundation of the business.
 ├─────────────────────────────────────────────────────────┤
 │  LOGIC LAYER                                            │
 │  Finance: TCO | NPV | IRR | ROI                         │
-│  Performance: PERT | EVM (SV, SPI, CV, CPI) | Baseline  │
+│  Performance: PERT | EVM | Baseline | Bayesian           │
 │  Value Delivery: Flow Metrics | Benefits Realisation     │
 │  Python (community) + TypeScript (product)              │
 ├─────────────────────────────────────────────────────────┤
@@ -293,11 +293,12 @@ Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → I
 
 | Module | Status | Description |
 |--------|--------|-------------|
-| PERT | 🔨 Next | Three-point estimation (optimistic/likely/pessimistic) |
-| EVM Baseline | 📋 Planned | Approved plan reference point for EVM tracking |
-| EVM Metrics | 📋 Planned | SV, SPI, CV, CPI — schedule and cost performance |
+| PERT | ✅ Live | Three-point estimation (optimistic/likely/pessimistic) |
+| EVM Baseline | ✅ Live | Approved plan reference point for EVM tracking |
+| EVM Metrics | ✅ Live | SV, SPI, CV, CPI — schedule and cost performance |
+| Bayesian | ✅ Live | Bayesian estimation calibration from actuals |
+| Monte Carlo | 📋 Planned | Probabilistic schedule and cost simulation |
 | Base-rate | 📋 Planned | Reference class forecasting, reduce subjective bias |
-| Bayesian | 📋 Planned | Bayesian updating for estimation learning from actuals |
 
 **Family 3: Value Delivery** — "Are we delivering value?" (VDO/VMO)
 
@@ -333,15 +334,13 @@ Every logic module is available as:
 
 The API is not a separate product — it's an inherent property of composable logic.
 
-### TCO Endpoints (Live)
+### Live Endpoints
 
 ```
-POST /tco/calculate       → Stateless TCO calculation
-POST /tco/compare         → Compare options, ranked by annual cost
-POST /tco/breakeven       → Break-even analysis between two options
-POST /tco/scenarios       → Save scenario (CRUD)
-GET  /tco/scenarios       → List scenarios (paginated, searchable)
-GET  /tco/scenarios/stats → Aggregate statistics
+TCO  (9 endpoints): calculate, compare, breakeven, scenario CRUD + stats
+PERT (7 endpoints): task, project, scenario CRUD
+EVM  (8 endpoints): calculate, health, baseline CRUD, evaluate, snapshots
+Bayesian (10 endpoints): calculate, adjust, context CRUD, observations, belief
 ```
 
 ---
@@ -626,69 +625,33 @@ plugins/         → Proprietary calibration data and models (closed, B2B licens
 
 Philosophy and principles are stable. Strategy and design can be pivoted and tweaked during PoC phases.
 
-### Sprint 1 — March 2026: PERT + EVM Foundations
+### Sprint 1 (March 2026) — PERT + EVM Foundations ✅
 
-Logic-focused. Build the math. Make it bulletproof. AI decomposition designed but not shipped.
+Shipped PERT module (standalone PoC + FastAPI, 7 endpoints), EVM calculations and baseline module (8 endpoints), full test suite with mutation testing, CI/CD pipeline with gitleaks/opengrep/osv-scanner/ruff/pyright. Published TCO case study blog post (EN/JA).
 
-- [ ] PERT module: standalone PoC → FastAPI endpoint → tests (mutation-tested)
-- [ ] EVM calculations (SV, SPI, CV, CPI): standalone PoC → FastAPI endpoint
-- [ ] EVM Baseline module: capture approved plan reference point
-- [ ] Distil all DevSecOps insights from current SIer project into blog drafts
-- [ ] Blog post #1: TCO case study (publish)
-- [ ] Blog post #3 draft: "Why your project estimates are always wrong"
-- [ ] AI decomposition: design prompt schema, output format, evaluation criteria (no shipping)
-- [ ] Update CLAUDE.md with architecture context from strategy discussion
+### Sprint 2 (March 2026) — Site + Content ✅
 
-### Sprint 2 — April 2026: Baserow Relational Schema + Integration
+Launched pmo.run Astro site with EN/JA i18n. Published SIer-focused blog posts (JA). Interactive PERT tool page. Claude Skills for PERT and EVM.
 
-Define the relational data model. Connect logic modules to Baserow.
+### Sprint 3 (March 2026) — EVM Baselines + Docs ✅
 
-- [ ] Define Baserow relational schema: Projects, Work Items (WBS), People, Risks, Finance, Decisions
-- [ ] Build API integration: push PERT estimates into Work Items
-- [ ] Build EVM integration: compute metrics from baseline vs. actuals in Baserow
-- [ ] Link Finance records to TCO/NPV modules
-- [ ] Design D1 schema (mirrors Baserow core + integration/analytics tables)
-- [ ] PERT interactive page on pmo.run
-- [ ] Blog posts #2 and #3 (publish)
-- [ ] LinkedIn posts begin (1-2/week, value-first)
+EVM baseline evaluate/snapshot endpoints. API documentation site. Pre-commit security hooks hardened. PERT scenario persistence (CRUD).
 
-### Sprint 3 — May 2026: AI Decomposition + Cloudflare Agent PoC
+### Sprint 4 (March 2026) — Bayesian + Research ✅
 
-AI enters on a solid foundation. The agent decomposes, estimates, stores, and pauses for review.
+Bayesian estimation calibration module (standalone PoC + 10 FastAPI endpoints). Five research decisions anchored. "Cognition as Code" blog post (EN/JA). BlogCta component.
 
-- [ ] AI decomposition feature: LLM decomposes into work packages → PERT estimates per package → structured WBS
-- [ ] Cloudflare Agent PoC: Agent + Workflow + TCO/PERT as tools + waitForApproval
-- [ ] Agent writes to D1 and Baserow simultaneously
-- [ ] Blog post #8: "PMO tools on Cloudflare Agents: a PoC"
-- [ ] Blog posts #4, #5 (publish)
-- [ ] First consulting outreach from content base (JA, warm contacts)
-- [ ] Submit to Hacker News (Show HN: Open source PMO decision tools)
-- [ ] dev.to cross-post (EN)
+### Sprint 5 (March 2026) — Hardening + Content ✅
 
-### Sprint 4 — June 2026: GitHub Automation
+319 tests passing. Bayesian CRUD with context/observation persistence. Plugin architecture defined (core → calibration → plugins). Strategy doc and architecture finalised. Test count: 319.
 
-GitHub becomes the developer input. Baserow stays the manager output. Agent bridges abstraction levels.
+### Sprint 6 (Current) — Docs Refresh + CI
 
-- [ ] GitHub webhook listener: parse commits, PRs, issue transitions
-- [ ] Agent bridge: link GitHub issues to Baserow Work Items via D1 junction table
-- [ ] Compute activity analytics from GitHub events → store in D1
-- [ ] Roll up activity data to work package level → push aggregates to Baserow
-- [ ] Bidirectional sync: manager priority changes → GitHub labels
-- [ ] Process Events logging: every sync event captured in D1
-- [ ] Blog post #9: "Connecting Baserow to automated cost analysis"
-- [ ] Begin encryption PoC (Web Crypto API in Svelte, key pair generation)
-
-### Sprint 5 — Q3-Q4 2026: Coherent Agent + ROI
-
-The agent orchestrates all modules. ROI synthesises everything. Encryption goes live.
-
-- [ ] TypeScript logic modules on Cloudflare Workers
-- [ ] Agent with D1 metadata + R2 encrypted storage
-- [ ] ROI module: capstone that synthesises TCO, NPV, EVM data
-- [ ] Three-zone privacy implementation: key management, envelope encryption, team sharing, digital signatures
-- [ ] AI Gateway billing dashboard
-- [ ] Freemium tier launch
-- [ ] Evaluate: demand signals for Phase 3?
+- [ ] API docs: add Bayesian endpoints to api-overview (WI#166)
+- [ ] Housekeeping: refresh README, strategy doc, CLAUDE.md (WI#167)
+- [ ] GitHub Actions: migrate to Node.js 22+ (WI#136)
+- [ ] Blog: layered mandate series (EN/JA) (WI#134, WI#135)
+- [ ] Monte Carlo module development (WI#169)
 
 ---
 

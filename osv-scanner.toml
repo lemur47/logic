@@ -1,3 +1,7 @@
 [[IgnoredVulns]]
 id = "GHSA-xxjr-mmjv-4gpg"
 reason = "Dev dependency only (lodash via @astrojs/check → yaml-language-server). No fix published upstream. Tracked in Decision table."
+
+[[IgnoredVulns]]
+id = "GHSA-48c2-rrv3-qjmp"
+reason = "yaml@2.7.1 stack overflow — transitive dev dep pinned by yaml-language-server. Fix requires upstream update."

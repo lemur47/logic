@@ -34,13 +34,20 @@ logicリポジトリは、純粋なPython関数とFastAPIエンドポイント�
 | `create_baseline()` | ワークパッケージからプロジェクトベースラインを作成 |
 | `evaluate_progress()` | ベースラインに対する実績進捗を評価 |
 
+### Bayesian（見積もりキャリブレーション）— 公開中
+
+| 関数 | 説明 |
+|------|------|
+| `update_belief()` | 事前信念と見積もり対実績ペアから事後分布を計算 |
+| `adjust_estimate()` | 学習した遅延係数をPERT見積もりに適用 |
+
 ### 近日公開
 
 | モジュール | カテゴリ | 説明 |
 |-----------|---------|------|
+| Monte Carlo | シミュレーション | 確率的スケジュール・コストシミュレーション |
 | Base-rate | 予測 | 主観的バイアスを減らす参照クラス予測 |
 | NPV | 財務 | 正味現在価値分析 |
-| Bayesian | 予測 | 実績データからの見積もり学習 |
 | IRR | 財務 | 内部収益率 |
 
 ## セルフホスト（今すぐ利用可能）
@@ -89,6 +96,21 @@ APIは `http://127.0.0.1:8000` で利用可能。エンドポイントの詳細�
 | `POST` | `/evm/baselines/{id}/evaluate` | ベースラインに対する進捗評価 |
 | `GET` | `/evm/baselines/{id}/snapshots` | 評価スナップショット一覧 |
 
+### Bayesianエンドポイント
+
+| メソッド | パス | 説明 |
+|---------|------|------|
+| `POST` | `/bayesian/calculate` | 事前分布と観測データから事後分布を計算（ステートレス） |
+| `POST` | `/bayesian/adjust` | PERT見積もりに遅延係数を適用（ステートレス） |
+| `POST` | `/bayesian/contexts` | 見積もりコンテキストの作成 |
+| `GET` | `/bayesian/contexts` | コンテキスト一覧（ページネーション、検索対応） |
+| `GET` | `/bayesian/contexts/{id}` | コンテキストの取得（現在の信念含む） |
+| `DELETE` | `/bayesian/contexts/{id}` | コンテキストと観測データの削除 |
+| `POST` | `/bayesian/contexts/{id}/observations` | コンテキストに観測データを追加 |
+| `GET` | `/bayesian/contexts/{id}/observations` | 観測データ一覧（ページネーション） |
+| `GET` | `/bayesian/contexts/{id}/belief` | 現在の事後信念を取得 |
+| `POST` | `/bayesian/contexts/{id}/adjust` | コンテキストの信念でPERT見積もりを調整 |
+
 ### その他のエンドポイント
 
 | メソッド | パス | 説明 |
@@ -124,6 +146,16 @@ from app.evm.core import evm_metrics
 
 result = evm_metrics(pv=100000, ev=85000, ac=95000, bac=200000)
 print(f"SPI={result['spi']:.2f}  CPI={result['cpi']:.2f}")
+```
+
+```python
+from app.bayesian.core import Prior, Observation, update_belief, adjust_estimate
+
+prior = Prior(mean=1.0, variance=0.1)
+observations = [Observation(estimated=5, actual=7), Observation(estimated=10, actual=13)]
+posterior = update_belief(prior, observations)
+result = adjust_estimate(pert_expected=8.0, posterior=posterior)
+print(f"調整後: {result['adjusted_expected']:.1f} 日")
 ```
 
 ## ホスティングAPI

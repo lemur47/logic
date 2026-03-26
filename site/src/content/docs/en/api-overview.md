@@ -34,13 +34,20 @@ The logic repo provides composable decision-making modules as pure Python functi
 | `create_baseline()` | Create frozen project baseline from work packages |
 | `evaluate_progress()` | Evaluate actual progress against baseline |
 
+### Bayesian (Estimation Calibration) — Live
+
+| Function | Description |
+|----------|-------------|
+| `update_belief()` | Compute posterior from prior belief and observed estimate-vs-actual pairs |
+| `adjust_estimate()` | Apply a learned delay factor to a PERT estimate |
+
 ### Coming Soon
 
 | Module | Category | Description |
 |--------|----------|-------------|
+| Monte Carlo | Simulation | Probabilistic schedule and cost simulation |
 | Base-rate | Forecasting | Reference class forecasting to reduce subjective bias |
 | NPV | Finance | Net Present Value analysis |
-| Bayesian | Forecasting | Estimation learning from actuals |
 | IRR | Finance | Internal Rate of Return |
 
 ## Self-Host (Available Now)
@@ -89,6 +96,21 @@ API available at `http://127.0.0.1:8000`. Full endpoint docs at `/docs` (Swagger
 | `POST` | `/evm/baselines/{id}/evaluate` | Evaluate progress against baseline |
 | `GET` | `/evm/baselines/{id}/snapshots` | List evaluation snapshots |
 
+### Bayesian Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/bayesian/calculate` | Compute posterior from prior and observations (stateless) |
+| `POST` | `/bayesian/adjust` | Apply delay factor to a PERT estimate (stateless) |
+| `POST` | `/bayesian/contexts` | Create an estimation context |
+| `GET` | `/bayesian/contexts` | List contexts (paginated, searchable) |
+| `GET` | `/bayesian/contexts/{id}` | Get a context with current belief |
+| `DELETE` | `/bayesian/contexts/{id}` | Delete a context and its observations |
+| `POST` | `/bayesian/contexts/{id}/observations` | Add observations to a context |
+| `GET` | `/bayesian/contexts/{id}/observations` | List observations (paginated) |
+| `GET` | `/bayesian/contexts/{id}/belief` | Get current posterior belief |
+| `POST` | `/bayesian/contexts/{id}/adjust` | Adjust a PERT estimate using context belief |
+
 ### Other Endpoints
 
 | Method | Path | Description |
@@ -124,6 +146,16 @@ from app.evm.core import evm_metrics
 
 result = evm_metrics(pv=100000, ev=85000, ac=95000, bac=200000)
 print(f"SPI={result['spi']:.2f}  CPI={result['cpi']:.2f}")
+```
+
+```python
+from app.bayesian.core import Prior, Observation, update_belief, adjust_estimate
+
+prior = Prior(mean=1.0, variance=0.1)
+observations = [Observation(estimated=5, actual=7), Observation(estimated=10, actual=13)]
+posterior = update_belief(prior, observations)
+result = adjust_estimate(pert_expected=8.0, posterior=posterior)
+print(f"Adjusted: {result['adjusted_expected']:.1f} days")
 ```
 
 ## Hosted API
