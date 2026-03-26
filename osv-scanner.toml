@@ -3,17 +3,5 @@ id = "GHSA-xxjr-mmjv-4gpg"
 reason = "Dev dependency only (lodash via @astrojs/check → yaml-language-server). No fix published upstream. Tracked in Decision table."
 
 [[IgnoredVulns]]
-id = "GHSA-3v7f-55p6-f55p"
-reason = "picomatch transitive dep — fix requires upstream Astro update. Tracked for next npm audit sweep."
-
-[[IgnoredVulns]]
-id = "GHSA-c2c7-rcm5-vvqj"
-reason = "picomatch ReDoS — transitive dep, fix requires upstream Astro update. Tracked for next npm audit sweep."
-
-[[IgnoredVulns]]
-id = "GHSA-v3rj-xjv7-4jmq"
-reason = "smol-toml DoS — dev dependency only (Astro toolchain). Tracked for next npm audit sweep."
-
-[[IgnoredVulns]]
 id = "GHSA-48c2-rrv3-qjmp"
-reason = "yaml stack overflow — dev/build dependency only. Tracked for next npm audit sweep."
+reason = "yaml@2.7.1 stack overflow — transitive dev dep pinned by yaml-language-server. Fix requires upstream update."
