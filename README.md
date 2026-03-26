@@ -34,8 +34,8 @@ Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → I
 |--------|--------|-------------|
 | PERT | ✅ Live | Three-point estimation with reality adjustments |
 | EVM | ✅ Live | Earned Value Management (SV, SPI, CV, CPI, EAC, TCPI) |
+| Bayesian | ✅ Live | Bayesian estimation calibration from actuals |
 | Base-rate | 📋 Planned | Reference class forecasting |
-| Bayesian | 📋 Planned | Bayesian updating for estimation learning |
 
 **Value Delivery** — "Are we delivering value?"
 
@@ -96,6 +96,21 @@ POST   /evm/baselines/{id}/evaluate       Evaluate progress against baseline
 GET    /evm/baselines/{id}/snapshots      List evaluation snapshots
 ```
 
+### Bayesian
+
+```
+POST   /bayesian/calculate                      Compute posterior (stateless)
+POST   /bayesian/adjust                         Apply delay factor to PERT estimate (stateless)
+POST   /bayesian/contexts                       Create an estimation context
+GET    /bayesian/contexts                       List contexts (paginated, searchable)
+GET    /bayesian/contexts/{id}                  Get a context
+DELETE /bayesian/contexts/{id}                  Delete a context
+POST   /bayesian/contexts/{id}/observations     Add observations
+GET    /bayesian/contexts/{id}/observations     List observations
+GET    /bayesian/contexts/{id}/belief           Get current posterior belief
+POST   /bayesian/contexts/{id}/adjust           Adjust PERT estimate using context belief
+```
+
 ## Architecture
 
 Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
@@ -112,6 +127,7 @@ Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
 python examples/standalone/tco/tco.py
 python examples/standalone/pert/pert.py
 python examples/standalone/evm/evm.py
+python examples/standalone/bayesian/bayesian.py
 ```
 
 ## Development

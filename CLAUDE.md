@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Currently features a TCO (Total Cost of Ownership) calculator with PERT, EVM, and other modules planned.
+Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Four live modules: TCO, PERT, EVM, and Bayesian estimation calibration.
 
 The logic repo is the open source foundation of pmo.run — a PMO service combining AI and human expertise. Full strategy, architecture, and roadmap: [`docs/PMO_RUN_STRATEGY.md`](docs/PMO_RUN_STRATEGY.md).
 
@@ -138,3 +138,49 @@ The following tools must be installed outside of `uv`:
 ## Git workflow
 
 - **GitHub Flow** — always create a `feature/*` branch, push, and open a PR. Never commit directly to `main`.
+
+## Work Item Protocol
+
+Work Items in Baserow (table 878764) are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
+
+### Brief Types
+
+- **`Type: implementation`** — Execute autonomously from the brief. The objective, scope, constraints, and acceptance criteria are fully specified. Ship it, report back.
+- **`Type: exploration`** — Conversational work. The brief provides context and direction, but the value comes from back-and-forth with the CEO. Engage interactively, propose options, iterate.
+
+### Before Starting Work
+
+1. Read the Work Item Notes from Baserow via the MCP connector.
+2. Check the `Type:` field in the `[CTO BRIEF]` section.
+3. Check `Depends-on:` — if a dependency WI is not yet Done, flag it and stop.
+4. Check `Status:` — only start work on items that are `In Progress`. Items in `Backlog` have not been approved by the CEO yet.
+
+### After Completing Work
+
+Append an `[AGENT REPORT]` section to the WI Notes field:
+
+```
+[AGENT REPORT]
+PR: #nn
+Branch: feature/xxx
+Tests: nnn passing (nn new + nnn existing)
+Files changed: list key files
+Decisions: any architectural choices made during implementation
+Issues: anything that surfaced or needs CTO review
+```
+
+Then set the WI Status to `Review` (5588483).
+
+### Status Protocol
+
+- `Backlog` → CTO brief written, queued. CEO has not approved. **Do not start.**
+- `In Progress` → CEO approved and triggered. **Safe to execute.**
+- `Review` → Agent finished, report written, PR open. **CEO reviews and merges.**
+- `Done` → PR merged. CTO reads the report in the next session.
+
+### What NOT To Do
+
+- Do not start work on `Backlog` items without CEO approval.
+- Do not modify the `[CTO BRIEF]` section — append to `[AGENT REPORT]` only.
+- Do not create new Work Items — flag the need in your report; the CTO creates WIs during sprint planning.
+- Do not combine unrelated WIs into one PR unless the brief explicitly says to.
