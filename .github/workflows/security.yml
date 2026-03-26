@@ -21,6 +21,8 @@ jobs:
   # Secret detection with gitleaks
   gitleaks:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -49,6 +51,7 @@ jobs:
         with:
           name: opengrep-report
           path: opengrep-report.json
+          if-no-files-found: ignore
 
   # Dependency vulnerability scanning with osv-scanner
   osv-scan:
