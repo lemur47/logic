@@ -1,33 +1,24 @@
 # Monte Carlo Schedule Simulation
 
-Monte Carlo simulation generates a probability distribution over total project
-duration by sampling thousands of schedules. Each task's duration is drawn from
-a **beta-PERT distribution** — the same three-point estimates (optimistic, most
-likely, pessimistic) used by textbook PERT.
+**Probability distributions over project duration in pure Python.**
 
-## Why Monte Carlo Over PERT?
+Because "expected value" is not a commitment.
 
-Textbook PERT gives you a single expected value and assumes the project duration
-follows a normal distribution. This breaks down when:
+## The Problem
 
-- **Tasks have skewed estimates** — a task with O=4, M=7, P=16 has a long tail
-  that PERT's Gaussian approximation underestimates.
-- **Paths converge** — when parallel tasks merge at a dependency, the project
-  takes the *longest* path. PERT sums variances assuming independence; Monte
-  Carlo captures the merge effect directly.
-- **You need actionable percentiles** — "P85 = 45 days" is a commitment you
-  can defend. "Expected = 41 days" is not.
+"PERT says 41 days. Let's commit to that."
 
-## Usage
+Six weeks later, the project is at day 48. Nobody is surprised — except the stakeholder who trusted the single-point estimate.
 
-```bash
-python montecarlo.py
-```
+Textbook PERT gives you an expected value and a Gaussian confidence band. That breaks down when:
 
-**Dependencies:** `numpy`, `scipy`. `matplotlib` optional for histogram
-visualisation.
+- **Tasks have skewed estimates** — a task with O=4, M=7, P=16 has a long tail that PERT's Gaussian approximation underestimates
+- **Paths converge** — when parallel tasks merge at a dependency, the project takes the *longest* path. PERT sums variances assuming independence; Monte Carlo captures the merge effect directly
+- **You need actionable percentiles** — "P85 = 45 days" is a commitment you can defend. "Expected = 41 days" is not
 
-## API
+Monte Carlo replaces the single point with a full distribution. Run 10,000 simulated schedules, get percentiles, critical path frequencies, and target-date probabilities.
+
+## Quick Start
 
 ```python
 from montecarlo import Task, simulate_schedule, probability_of_completion
@@ -42,18 +33,121 @@ tasks = [
 # Run simulation
 result = simulate_schedule(tasks, n_simulations=10_000, seed=42)
 
-# Read percentiles
-print(result.percentiles)  # {'P50': ..., 'P75': ..., 'P85': ..., 'P95': ...}
+print(result.percentiles)
+# {'P50': ..., 'P75': ..., 'P85': ..., 'P95': ...}
 
-# Probability of hitting a deadline
 prob = probability_of_completion(result, target_duration=50.0)
 print(f"Probability of finishing within 50 days: {prob:.1%}")
-
-# Critical path frequency
-print(result.critical_path_frequency)  # {'Design': 1.0, 'Build': 1.0, 'Test': 1.0}
 ```
 
-## Worked Example: PERT vs Monte Carlo
+## API
+
+### `simulate_schedule()` — The Core
+
+```python
+from montecarlo import Task, simulate_schedule
+
+tasks = [
+    Task("Design", 4, 7, 12),
+    Task("Build", 8, 14, 25, depends_on=("Design",)),
+    Task("Test", 4, 7, 14, depends_on=("Build",)),
+]
+
+result = simulate_schedule(tasks, n_simulations=10_000, seed=42)
+
+# Returns SimulationResult with:
+# - result.durations         # numpy array of project durations
+# - result.percentiles       # {'P50': ..., 'P75': ..., 'P85': ..., 'P95': ...}
+# - result.histogram         # {'bin_edges': [...], 'counts': [...]}
+# - result.critical_path_frequency  # {'Design': 1.0, 'Build': 0.85, ...}
+```
+
+**Dependencies:** `numpy`, `scipy`
+
+### `probability_of_completion()` — Target Date Query
+
+```python
+from montecarlo import probability_of_completion
+
+prob = probability_of_completion(result, target_duration=50.0)
+print(f"Probability of finishing within 50 days: {prob:.1%}")
+```
+
+**Dependencies:** `numpy`
+
+### `compare_with_pert()` — Side-by-Side
+
+```python
+from montecarlo import compare_with_pert
+
+comparison = compare_with_pert(tasks)
+print(comparison["pert"]["expected"])       # PERT expected total
+print(comparison["montecarlo"]["mean"])     # MC mean
+print(comparison["montecarlo"]["percentiles"])  # P50, P75, P85, P95
+```
+
+**Dependencies:** `numpy`, `scipy`
+
+### `visualise_distribution()` — Histogram Chart
+
+```python
+from montecarlo import visualise_distribution
+
+fig = visualise_distribution(result, target_duration=50.0, save_path="histogram.png")
+```
+
+Histogram with percentile lines (P50, P75, P85, P95) and optional target deadline overlay.
+
+**Dependencies:** `matplotlib`
+
+## Real-World Applications
+
+### Sprint Commitment
+
+```python
+sprint_tasks = [
+    Task("Auth refactor", 3, 5, 12),
+    Task("Dashboard UI", 4, 7, 14, depends_on=("Auth refactor",)),
+    Task("API integration", 2, 4, 10, depends_on=("Auth refactor",)),
+    Task("Testing", 3, 5, 8, depends_on=("Dashboard UI", "API integration")),
+]
+
+result = simulate_schedule(sprint_tasks, seed=42)
+# Commit to P85, not the expected value
+print(f"Commit to: {result.percentiles['P85']:.0f} days")
+```
+
+### Vendor Timeline Validation
+
+When a vendor says "6–8 weeks":
+
+```python
+vendor_tasks = [
+    Task("Phase 1", 4, 6, 8),
+    Task("Phase 2", 3, 5, 10, depends_on=("Phase 1",)),
+    Task("Delivery", 2, 3, 6, depends_on=("Phase 2",)),
+]
+
+result = simulate_schedule(vendor_tasks, seed=42)
+prob = probability_of_completion(result, target_duration=56.0)  # 8 weeks in days
+# Now you know the real probability of their "8 weeks" promise
+```
+
+### Risk Comparison
+
+```python
+# Symmetric tasks: predictable
+symmetric = [Task("A", 4, 7, 10), Task("B", 3, 6, 9)]
+
+# Skewed tasks: same mode, much wider tail
+skewed = [Task("A", 4, 7, 16), Task("B", 3, 6, 15)]
+
+sym_result = simulate_schedule(symmetric, seed=42)
+skew_result = simulate_schedule(skewed, seed=42)
+# Compare P95 — the skewed tasks carry far more schedule risk
+```
+
+## Worked Example
 
 A six-task software project with dependencies:
 
@@ -116,22 +210,47 @@ is information that deterministic critical path analysis cannot provide.
 If the stakeholder asks "can we ship in 45 days?", the answer is "82% likely —
 commit to 50 days for 98% confidence."
 
-## Test Scenarios
+## The Mental Model
 
-The script includes three self-verifying test scenarios:
+### Why Single-Point Estimates Fail
 
-1. **Beta-PERT distribution sampling** — verifies that 100,000 samples from
-   PERT(O=2, M=5, P=14) produce a mean within 0.1 of the theoretical 6.0, and
-   all samples stay within [O, P].
+PERT's formula — `(O + 4M + P) / 6` — is solid maths on a flawed assumption: that project duration follows a normal distribution.
 
-2. **Sequential schedule** — three independent tasks with no dependencies.
-   Verifies MC mean matches PERT expected total (13.17) within 0.2, and all
-   tasks show 100% critical path frequency.
+In practice:
 
-3. **Dependency network** — A and B feed into C. Verifies C is always critical,
-   both A and B appear on the critical path, and their frequencies sum to ~1.0
-   (exactly one of A or B is critical in each simulation).
+1. **Skewed tails are invisible** — A task with O=4, M=7, P=16 has a right tail that the Gaussian approximation clips. Monte Carlo samples from the actual beta-PERT distribution, preserving the skew.
+2. **Path convergence eats your buffer** — When parallel tasks merge, the project takes the *longest* path. With 10,000 simulations, you see exactly how often each path dominates.
+3. **Percentiles beat expected values** — Nobody ships at the expected value. P85 tells you "85% of simulated schedules finished by this date." That is a defensible commitment.
+
+### Critical Path Frequency
+
+Deterministic CPM identifies *one* critical path. Monte Carlo shows that the critical path *changes across simulations* as task durations vary. A task that is critical 15% of the time still needs attention — it is a latent risk that deterministic analysis misses entirely.
+
+## Dependencies
+
+| Function | Requires |
+|----------|----------|
+| `simulate_schedule()` | numpy, scipy |
+| `probability_of_completion()` | numpy |
+| `compare_with_pert()` | numpy, scipy |
+| `visualise_distribution()` | matplotlib |
+
+## Testing
+
+```bash
+# Run built-in examples
+python montecarlo.py
+
+# Run test suite
+pytest test_montecarlo.py -v
+```
 
 ## Licence
 
-MIT
+MIT — Use it however you want.
+
+---
+
+**Philosophy:** Make uncertainty visible, then commit with confidence.
+
+*"Prediction is very difficult, especially about the future."* — Niels Bohr
