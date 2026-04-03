@@ -103,7 +103,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pyright
-          pip install fastapi uvicorn sqlalchemy
+          pip install fastapi uvicorn sqlalchemy numpy scipy
 
       - name: Run Pyright
         run: pyright
