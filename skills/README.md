@@ -19,6 +19,7 @@ That's it. Claude reads the skill, follows the formulas, and shows its work.
 | [PERT](pert/SKILL.md) | `app/pert` | Full | Three-point estimation with reality adjustments |
 | [EVM](evm/SKILL.md) | `app/evm` | Stateless | Earned value metrics — SPI, CPI, EAC, health signals |
 | [TCO](tco/SKILL.md) | `app/tco` | Full | Total Cost of Ownership with NPV adjustment |
+| [Monte Carlo](montecarlo/SKILL.md) | `app/montecarlo` | Stateless | Schedule simulation with probability distributions |
 
 ## What Stays API-Only
 
@@ -28,8 +29,9 @@ Some features involve iterative computation or stateful tracking that doesn't fi
 |---------|-------------|
 | EVM baselines & snapshots | Persistent baselines, snapshot history, and multi-evaluation tracking require database state |
 | TCO scenario persistence | Saved scenarios with CRUD and aggregate statistics |
+| Monte Carlo scenario persistence | Saved simulation scenarios with cached results and aggregate statistics |
 
-The EVM and TCO Skills handle stateless calculations. For persistent data, use the API.
+The EVM, TCO, and Monte Carlo Skills handle stateless calculations. For persistent data, use the API.
 
 ## Design Principles
 
@@ -51,6 +53,8 @@ logic/
 │   ├── evm/
 │   │   └── SKILL.md
 │   ├── tco/
+│   │   └── SKILL.md
+│   ├── montecarlo/
 │   │   └── SKILL.md
 │   └── README.md
 ├── site/         # pmo.run website (interactive UI)
