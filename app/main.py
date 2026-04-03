@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .bayesian.router import router as bayesian_router
 from .database import Base, engine
 from .evm.router import router as evm_router
+from .montecarlo.router import router as montecarlo_router
 from .pert.router import router as pert_router
 from .tco.router import router as tco_router
 
@@ -42,6 +43,7 @@ Small tools for real problems, direct contribution to the world.
 - **PERT** - Reality-adjusted project estimation
 - **EVM** - Earned Value Management performance tracking
 - **Bayesian** - Estimation calibration via Bayesian updating
+- **Monte Carlo** - Schedule simulation with probability distributions
         """,
     version="0.1.0",
     lifespan=lifespan,
@@ -67,7 +69,7 @@ async def root():
     return {
         "name": "Logic API",
         "version": "0.1.0",
-        "features": ["tco", "pert", "evm", "bayesian"],
+        "features": ["tco", "pert", "evm", "bayesian", "montecarlo"],
         "docs": "/docs",
     }
 
@@ -86,3 +88,4 @@ app.include_router(tco_router, prefix="/tco", tags=["TCO"])
 app.include_router(pert_router, prefix="/pert", tags=["PERT"])
 app.include_router(evm_router, prefix="/evm", tags=["EVM"])
 app.include_router(bayesian_router, prefix="/bayesian", tags=["Bayesian"])
+app.include_router(montecarlo_router, prefix="/montecarlo", tags=["Monte Carlo"])

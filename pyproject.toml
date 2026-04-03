@@ -13,6 +13,8 @@ keywords = ["tco", "calculator", "fastapi", "tools"]
 
 dependencies = [
     "fastapi[standard]>=0.128.0",
+    "numpy>=2.2.0",
+    "scipy>=1.15.0",
     "sqlalchemy>=2.0.46",
     "uvicorn>=0.40.0",
 ]
