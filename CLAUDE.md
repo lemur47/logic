@@ -141,7 +141,7 @@ The following tools must be installed outside of `uv`:
 
 ## Work Item Protocol
 
-Work Items in Airtable (base `appXMOyKhw1NDTH2h`, table `tbleEX79YjmmvV32K`) are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
+Work Items in the Airtable PMO Database are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
 
 ### Brief Types
 
@@ -171,7 +171,7 @@ Decisions: any architectural choices made during implementation
 Issues: anything that surfaced or needs CTO review
 ```
 
-Then set the WI Status to `Review` (`sel7P6rxn5ReVh4F0`).
+Then set the WI Status to `Review`.
 
 ### Status Protocol
 
