@@ -173,6 +173,16 @@ Issues: anything that surfaced or needs CTO review
 
 Then set the WI Status to `Review`.
 
+### Blog WI Acceptance Check
+
+For blog Work Items specifically, before flipping Status to `Review`, verify every inline image reference resolves to a file in the repo:
+
+1. Grep the committed markdown for `![...](...)` references.
+2. For each referenced path (e.g. `/blog/foo.png` → `site/public/blog/foo.png`), confirm the file exists.
+3. If any are missing, stop and request the assets from the CEO rather than shipping incomplete.
+
+Treat this as part of the WI's acceptance criteria even when not explicitly listed in the `[CTO BRIEF]`.
+
 ### Status Protocol
 
 - `Backlog` → CTO brief written, queued. CEO has not approved. **Do not start.**
