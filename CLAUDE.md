@@ -141,7 +141,7 @@ The following tools must be installed outside of `uv`:
 
 ## Work Item Protocol
 
-Work Items in Baserow (table 878764) are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
+Work Items in Airtable (base `appXMOyKhw1NDTH2h`, table `tbleEX79YjmmvV32K`) are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
 
 ### Brief Types
 
@@ -152,7 +152,7 @@ Valid Type values: `Implementation` and `Exploration`. No other values are permi
 
 ### Before Starting Work
 
-1. Read the Work Item Notes from Baserow via the MCP connector.
+1. Read the Work Item Notes from Airtable via the MCP connector.
 2. Check the `Type:` field in the `[CTO BRIEF]` section.
 3. Check `Depends-on:` — if a dependency WI is not yet Done, flag it and stop.
 4. Check `Status:` — only start work on items that are `In Progress`. Items in `Backlog` have not been approved by the CEO yet.
@@ -171,7 +171,7 @@ Decisions: any architectural choices made during implementation
 Issues: anything that surfaced or needs CTO review
 ```
 
-Then set the WI Status to `Review` (5588483).
+Then set the WI Status to `Review` (`sel7P6rxn5ReVh4F0`).
 
 ### Status Protocol
 
