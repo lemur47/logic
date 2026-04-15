@@ -141,16 +141,18 @@ The following tools must be installed outside of `uv`:
 
 ## Work Item Protocol
 
-Work Items in Baserow (table 878764) are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
+Work Items in the Airtable PMO Database are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
 
 ### Brief Types
 
 - **`Type: implementation`** — Execute autonomously from the brief. The objective, scope, constraints, and acceptance criteria are fully specified. Ship it, report back.
 - **`Type: exploration`** — Conversational work. The brief provides context and direction, but the value comes from back-and-forth with the CEO. Engage interactively, propose options, iterate.
 
+Valid Type values: `Implementation` and `Exploration`. No other values are permitted.
+
 ### Before Starting Work
 
-1. Read the Work Item Notes from Baserow via the MCP connector.
+1. Read the Work Item Notes from Airtable via the MCP connector.
 2. Check the `Type:` field in the `[CTO BRIEF]` section.
 3. Check `Depends-on:` — if a dependency WI is not yet Done, flag it and stop.
 4. Check `Status:` — only start work on items that are `In Progress`. Items in `Backlog` have not been approved by the CEO yet.
@@ -161,7 +163,7 @@ Append an `[AGENT REPORT]` section to the WI Notes field:
 
 ```
 [AGENT REPORT]
-PR: #nn
+PR: https://github.com/lemur47/logic/pull/nn
 Branch: feature/xxx
 Tests: nnn passing (nn new + nnn existing)
 Files changed: list key files
@@ -169,7 +171,7 @@ Decisions: any architectural choices made during implementation
 Issues: anything that surfaced or needs CTO review
 ```
 
-Then set the WI Status to `Review` (5588483).
+Then set the WI Status to `Review`.
 
 ### Status Protocol
 
@@ -184,3 +186,17 @@ Then set the WI Status to `Review` (5588483).
 - Do not modify the `[CTO BRIEF]` section — append to `[AGENT REPORT]` only.
 - Do not create new Work Items — flag the need in your report; the CTO creates WIs during sprint planning.
 - Do not combine unrelated WIs into one PR unless the brief explicitly says to.
+
+## Tool Execution Permission Rules
+
+When requesting permission to execute a tool or command, present the following security risks as percentages (%):
+
+- Credential leakage — passwords, secret keys, or API tokens exposed externally
+- Data exfiltration — data sent to external servers or third-party endpoints
+- Malicious code execution — untrusted code running autonomously
+- Environment mutation — PC settings, system config, or dotfiles overwritten
+
+If any risk exceeds 20%, explain the specific vector and proposed mitigation before proceeding.
+If any risk exceeds 50%, stop and wait for explicit CEO approval.
+
+This applies to: shell commands, npm/pip installs, file writes outside the repo, network requests to non-allowlisted domains, and any MCP tool invocation that modifies external state.
