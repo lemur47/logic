@@ -41,11 +41,18 @@ The logic repo provides composable decision-making modules as pure Python functi
 | `update_belief()` | Compute posterior from prior belief and observed estimate-vs-actual pairs |
 | `adjust_estimate()` | Apply a learned delay factor to a PERT estimate |
 
+### Monte Carlo (Schedule Simulation) — Live
+
+| Function | Description |
+|----------|-------------|
+| `simulate_schedule()` | Run Monte Carlo simulation on a schedule of dependent tasks |
+| `probability_of_completion()` | Probability of completing within a target duration |
+| `compare_with_pert()` | Compare textbook PERT aggregation with Monte Carlo results |
+
 ### Coming Soon
 
 | Module | Category | Description |
 |--------|----------|-------------|
-| Monte Carlo | Simulation | Probabilistic schedule and cost simulation |
 | Base-rate | Forecasting | Reference class forecasting to reduce subjective bias |
 | NPV | Finance | Net Present Value analysis |
 | IRR | Finance | Internal Rate of Return |
@@ -111,6 +118,19 @@ API available at `http://127.0.0.1:8000`. Full endpoint docs at `/docs` (Swagger
 | `GET` | `/bayesian/contexts/{id}/belief` | Get current posterior belief |
 | `POST` | `/bayesian/contexts/{id}/adjust` | Adjust a PERT estimate using context belief |
 
+### Monte Carlo Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/montecarlo/simulate` | Run Monte Carlo schedule simulation (stateless) |
+| `POST` | `/montecarlo/simulate/target` | Probability of completing within a target duration (stateless) |
+| `POST` | `/montecarlo/scenarios` | Save a scenario with simulation results |
+| `GET` | `/montecarlo/scenarios` | List scenarios (paginated, searchable) |
+| `GET` | `/montecarlo/scenarios/{id}` | Get a scenario with cached results |
+| `PATCH` | `/montecarlo/scenarios/{id}` | Update a scenario (auto-resimulates) |
+| `DELETE` | `/montecarlo/scenarios/{id}` | Delete a scenario |
+| `GET` | `/montecarlo/scenarios/stats` | Aggregate statistics |
+
 ### Other Endpoints
 
 | Method | Path | Description |
@@ -156,6 +176,18 @@ observations = [Observation(estimated=5, actual=7), Observation(estimated=10, ac
 posterior = update_belief(prior, observations)
 result = adjust_estimate(pert_expected=8.0, posterior=posterior)
 print(f"Adjusted: {result['adjusted_expected']:.1f} days")
+```
+
+```python
+from app.montecarlo.core import Task, simulate_schedule
+
+tasks = [
+    Task(name="Design", optimistic=3, most_likely=5, pessimistic=10),
+    Task(name="Build", optimistic=8, most_likely=12, pessimistic=20, depends_on=("Design",)),
+    Task(name="Test", optimistic=2, most_likely=4, pessimistic=8, depends_on=("Build",)),
+]
+result = simulate_schedule(tasks, n_simulations=10_000, seed=42)
+print(f"P85: {result.percentiles['P85']:.1f} days")
 ```
 
 ## Hosted API

@@ -41,11 +41,18 @@ logicリポジトリは、純粋なPython関数とFastAPIエンドポイント�
 | `update_belief()` | 事前信念と見積もり対実績ペアから事後分布を計算 |
 | `adjust_estimate()` | 学習した遅延係数をPERT見積もりに適用 |
 
+### Monte Carlo（スケジュールシミュレーション）— 公開中
+
+| 関数 | 説明 |
+|------|------|
+| `simulate_schedule()` | 依存関係のあるタスクスケジュールのモンテカルロシミュレーションを実行 |
+| `probability_of_completion()` | 目標期間内に完了する確率を計算 |
+| `compare_with_pert()` | 教科書PERTの集約値とモンテカルロ結果を比較 |
+
 ### 近日公開
 
 | モジュール | カテゴリ | 説明 |
 |-----------|---------|------|
-| Monte Carlo | シミュレーション | 確率的スケジュール・コストシミュレーション |
 | Base-rate | 予測 | 主観的バイアスを減らす参照クラス予測 |
 | NPV | 財務 | 正味現在価値分析 |
 | IRR | 財務 | 内部収益率 |
@@ -111,6 +118,19 @@ APIは `http://127.0.0.1:8000` で利用可能。エンドポイントの詳細�
 | `GET` | `/bayesian/contexts/{id}/belief` | 現在の事後信念を取得 |
 | `POST` | `/bayesian/contexts/{id}/adjust` | コンテキストの信念でPERT見積もりを調整 |
 
+### Monte Carloエンドポイント
+
+| メソッド | パス | 説明 |
+|---------|------|------|
+| `POST` | `/montecarlo/simulate` | モンテカルロスケジュールシミュレーションを実行（ステートレス） |
+| `POST` | `/montecarlo/simulate/target` | 目標期間内の完了確率を計算（ステートレス） |
+| `POST` | `/montecarlo/scenarios` | シミュレーション結果付きシナリオの保存 |
+| `GET` | `/montecarlo/scenarios` | シナリオ一覧（ページネーション、検索対応） |
+| `GET` | `/montecarlo/scenarios/{id}` | シナリオの取得（キャッシュ結果含む） |
+| `PATCH` | `/montecarlo/scenarios/{id}` | シナリオの更新（自動再シミュレーション） |
+| `DELETE` | `/montecarlo/scenarios/{id}` | シナリオの削除 |
+| `GET` | `/montecarlo/scenarios/stats` | 統計情報 |
+
 ### その他のエンドポイント
 
 | メソッド | パス | 説明 |
@@ -156,6 +176,18 @@ observations = [Observation(estimated=5, actual=7), Observation(estimated=10, ac
 posterior = update_belief(prior, observations)
 result = adjust_estimate(pert_expected=8.0, posterior=posterior)
 print(f"調整後: {result['adjusted_expected']:.1f} 日")
+```
+
+```python
+from app.montecarlo.core import Task, simulate_schedule
+
+tasks = [
+    Task(name="Design", optimistic=3, most_likely=5, pessimistic=10),
+    Task(name="Build", optimistic=8, most_likely=12, pessimistic=20, depends_on=("Design",)),
+    Task(name="Test", optimistic=2, most_likely=4, pessimistic=8, depends_on=("Build",)),
+]
+result = simulate_schedule(tasks, n_simulations=10_000, seed=42)
+print(f"P85: {result.percentiles['P85']:.1f} 日")
 ```
 
 ## ホスティングAPI
