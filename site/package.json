@@ -8,15 +8,15 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/svelte": "^7.0.0",
+    "@astrojs/svelte": "^8.0.5",
     "@tailwindcss/typography": "^0.5.0",
     "@tailwindcss/vite": "^4.0.0",
-    "astro": "^5.7.0",
-    "svelte": "^5.0.0",
+    "astro": "^6.1.9",
+    "svelte": "^5.43.6",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.6"
+    "@astrojs/check": "0.9.8"
   }
 }
