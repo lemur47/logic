@@ -11,6 +11,7 @@
 secrets/
 credentials/
 .claude/
+CLAUDE-internal.md
 
 # Cryptographic material
 *.key
