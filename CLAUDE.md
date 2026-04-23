@@ -2,9 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Boot note.** If `CLAUDE-internal.md` exists at the project root, read it before starting work. It holds operational notes (Work Item Protocol, sprint conventions, Airtable reference) that change independently of this file. It is gitignored, so it may be absent in fresh clones — that's fine, proceed without it.
+
 ## Project Overview
 
-Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Four live modules: TCO, PERT, EVM, and Bayesian estimation calibration.
+Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Five live modules: TCO, PERT, Monte Carlo, EVM, and Bayesian estimation calibration.
 
 The logic repo is the open source foundation of pmo.run — a PMO service combining AI and human expertise. Full strategy, architecture, and roadmap: [`docs/PMO_RUN_STRATEGY.md`](docs/PMO_RUN_STRATEGY.md).
 
@@ -22,6 +24,9 @@ pytest
 
 # Run a single test file
 pytest tests/test_foo.py
+
+# Run standalone module tests (each module ships its own pytest suite)
+pytest examples/standalone/{module}/
 
 # Run standalone example
 python examples/standalone/tco/tco.py
@@ -63,7 +68,7 @@ Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
 Modules are organised into three families that correspond to PMO decision questions:
 
 - **Finance** (is it worth it?): TCO → NPV → IRR → ROI
-- **Performance** (are we on track?): PERT → Baseline → EVM (SV, SPI, CV, CPI) → Bayesian
+- **Performance** (are we on track?): PERT → Monte Carlo → Baseline → EVM (SV, SPI, CV, CPI) → Bayesian
 - **Value Delivery** (are we delivering?): Flow Metrics → Benefits Realisation
 
 All families feed into the agent's decision traceability layer. When building a new module, identify which family it belongs to and how it connects to adjacent modules.
@@ -133,69 +138,12 @@ The following tools must be installed outside of `uv`:
 ## Key Conventions
 
 - British English in all docs, comments and content (e.g. "analyse", "colour", "maths")
-- APA 7th title case to all H1 and H2 headings
+- APA 7th title case for H1 and H2 headings
+- Every inline image reference in published markdown (`![...](path)`) must resolve to a real file in the repo. Grep and verify before shipping content.
 
 ## Git workflow
 
 - **GitHub Flow** — always create a `feature/*` branch, push, and open a PR. Never commit directly to `main`.
-
-## Work Item Protocol
-
-Work Items in the Airtable PMO Database are the primary communication channel between the CTO (claude.ai) and the DevSecOps team (Claude Code). The Notes field contains structured briefs — read them before starting any task.
-
-### Brief Types
-
-- **`Type: implementation`** — Execute autonomously from the brief. The objective, scope, constraints, and acceptance criteria are fully specified. Ship it, report back.
-- **`Type: exploration`** — Conversational work. The brief provides context and direction, but the value comes from back-and-forth with the CEO. Engage interactively, propose options, iterate.
-
-Valid Type values: `Implementation` and `Exploration`. No other values are permitted.
-
-### Before Starting Work
-
-1. Read the Work Item Notes from Airtable via the MCP connector.
-2. Check the `Type:` field in the `[CTO BRIEF]` section.
-3. Check `Depends-on:` — if a dependency WI is not yet Done, flag it and stop.
-4. Check `Status:` — only start work on items that are `In Progress`. Items in `Backlog` have not been approved by the CEO yet.
-
-### After Completing Work
-
-Append an `[AGENT REPORT]` section to the WI Notes field:
-
-```
-[AGENT REPORT]
-PR: https://github.com/lemur47/logic/pull/nn
-Branch: feature/xxx
-Tests: nnn passing (nn new + nnn existing)
-Files changed: list key files
-Decisions: any architectural choices made during implementation
-Issues: anything that surfaced or needs CTO review
-```
-
-Then set the WI Status to `Review`.
-
-### Blog WI Acceptance Check
-
-For blog Work Items specifically, before flipping Status to `Review`, verify every inline image reference resolves to a file in the repo:
-
-1. Grep the committed markdown for `![...](...)` references.
-2. For each referenced path (e.g. `/blog/foo.png` → `site/public/blog/foo.png`), confirm the file exists.
-3. If any are missing, stop and request the assets from the CEO rather than shipping incomplete.
-
-Treat this as part of the WI's acceptance criteria even when not explicitly listed in the `[CTO BRIEF]`.
-
-### Status Protocol
-
-- `Backlog` → CTO brief written, queued. CEO has not approved. **Do not start.**
-- `In Progress` → CEO approved and triggered. **Safe to execute.**
-- `Review` → Agent finished, report written, PR open. **CEO reviews and merges.**
-- `Done` → PR merged. CTO reads the report in the next session.
-
-### What NOT To Do
-
-- Do not start work on `Backlog` items without CEO approval.
-- Do not modify the `[CTO BRIEF]` section — append to `[AGENT REPORT]` only.
-- Do not create new Work Items — flag the need in your report; the CTO creates WIs during sprint planning.
-- Do not combine unrelated WIs into one PR unless the brief explicitly says to.
 
 ## Tool Execution Permission Rules
 
