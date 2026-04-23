@@ -187,6 +187,10 @@ def update_belief(
     Returns:
         Posterior distribution after processing all observations.
     """
+    if observation_noise <= 0:
+        msg = f"Observation noise must be positive, got {observation_noise}"
+        raise ValueError(msg)
+
     if not observations:
         return Posterior(
             mean=prior.mean,
