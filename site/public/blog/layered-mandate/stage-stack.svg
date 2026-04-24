@@ -1,0 +1,59 @@
+<svg width="100%" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrow-down" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M1 1L5 9L9 1" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Stage 4 — top (2024): Enterprise Authority + AI -->
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="120" y="30" width="440" height="64" rx="8" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);stroke-width:0.5px"/>
+  <text x="340" y="52" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);font-size:14px;font-weight:500">Stage 4 · Enterprise-level strategic authority · AI incorporation</text>
+  <text x="340" y="72" text-anchor="middle" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:12px;font-weight:400">Innovation mandate, HR governance for PMs, AI programme oversight</text>
+</g>
+<text x="60" y="66" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);font-size:14px;font-weight:500;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">2024</text>
+
+<!-- Stage 3 (2021): Strategic Integration -->
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="120" y="104" width="440" height="64" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px"/>
+  <text x="340" y="126" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-size:14px;font-weight:500">Stage 3 · Strategic integration · Board-level reporting</text>
+  <text x="340" y="146" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);font-size:12px;font-weight:400">Portfolio prioritisation, PMIS, risk + benefits, lessons learned</text>
+</g>
+<text x="60" y="140" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);font-size:14px;font-weight:500;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">2021</text>
+
+<!-- Stage 2 (2017): Governance Expansion -->
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="120" y="178" width="440" height="64" rx="8" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);stroke-width:0.5px"/>
+  <text x="340" y="200" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159, 225, 203);font-size:14px;font-weight:500">Stage 2 · Governance expansion and standardisation</text>
+  <text x="340" y="220" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93, 202, 165);font-size:12px;font-weight:400">Methodology, initial portfolio oversight, vendor governance</text>
+</g>
+<text x="60" y="214" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);font-size:14px;font-weight:500;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">2017</text>
+
+<!-- Stage 1 (2009): IT Support -->
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="120" y="252" width="440" height="64" rx="8" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);stroke-width:0.5px"/>
+  <text x="340" y="274" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);font-size:14px;font-weight:500">Stage 1 · Initial PMO structure within IT</text>
+  <text x="340" y="294" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);font-size:12px;font-weight:400">Status reporting, coordination, documentation archive</text>
+</g>
+<text x="60" y="288" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);font-size:14px;font-weight:500;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">2009</text>
+
+<!-- Right-side bracket: "functions retained" -->
+<line x1="575" y1="62" x2="595" y2="62" stroke="rgba(222, 220, 209, 0.4)" stroke-width="0.5"/>
+<line x1="575" y1="284" x2="595" y2="284" stroke="rgba(222, 220, 209, 0.4)" stroke-width="0.5"/>
+<line x1="595" y1="62" x2="595" y2="284" stroke="rgba(222, 220, 209, 0.4)" stroke-width="0.5"/>
+<text x="603" y="160" dominant-baseline="central" style="fill:rgba(222, 220, 209, 0.85);font-size:12px;font-weight:400;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <tspan x="603" dy="0">Each new layer</tspan>
+  <tspan x="603" dy="16">retains the prior.</tspan>
+  <tspan x="603" dy="16">Nothing retires.</tspan>
+</text>
+
+<!-- The 2021 pivot annotation -->
+<line x1="20" y1="170" x2="52" y2="170" stroke="rgba(222, 220, 209, 0.55)" stroke-width="0.75" stroke-dasharray="3,3"/>
+<text x="20" y="350" style="fill:rgba(222, 220, 209, 0.85);font-size:11px;font-weight:400;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <tspan x="20" dy="0">Decisive shift (2021): PMO relocated out of IT to direct board reporting.</tspan>
+  <tspan x="20" dy="16">Authority expanded with the structural move, not a new methodology.</tspan>
+</text>
+
+<!-- Source footer -->
+<text x="340" y="392" text-anchor="middle" style="fill:rgba(222, 220, 209, 0.55);font-size:10px;font-weight:400;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">Source: Monteiro (2026), Business Process Management Journal. Stage labels paraphrased.</text>
+</svg>
