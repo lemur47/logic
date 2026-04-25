@@ -33,6 +33,7 @@ Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → I
 | Module | Status | Description |
 |--------|--------|-------------|
 | PERT | ✅ Live | Three-point estimation with reality adjustments |
+| Monte Carlo | ✅ Live | Probabilistic schedule simulation (P50/P80/P95) |
 | EVM | ✅ Live | Earned Value Management (SV, SPI, CV, CPI, EAC, TCPI) |
 | Bayesian | ✅ Live | Bayesian estimation calibration from actuals |
 | Base-rate | 📋 Planned | Reference class forecasting |
@@ -83,6 +84,19 @@ PATCH  /pert/scenarios/{id}    Update a scenario (auto-recalculates)
 DELETE /pert/scenarios/{id}    Delete a scenario
 ```
 
+### Monte Carlo
+
+```
+POST   /montecarlo/simulate               Probabilistic schedule simulation (stateless)
+POST   /montecarlo/simulate/target        Probability of completion within a target (stateless)
+POST   /montecarlo/scenarios              Save a scenario
+GET    /montecarlo/scenarios              List scenarios (paginated, searchable)
+GET    /montecarlo/scenarios/stats        Aggregate statistics
+GET    /montecarlo/scenarios/{id}         Get a scenario
+PATCH  /montecarlo/scenarios/{id}         Update a scenario (auto-resimulates)
+DELETE /montecarlo/scenarios/{id}         Delete a scenario
+```
+
 ### EVM
 
 ```
@@ -126,6 +140,7 @@ Each feature module (e.g., `app/tco/`) follows a consistent layered pattern:
 ```bash
 python examples/standalone/tco/tco.py
 python examples/standalone/pert/pert.py
+python examples/standalone/montecarlo/montecarlo.py
 python examples/standalone/evm/evm.py
 python examples/standalone/bayesian/bayesian.py
 ```
@@ -148,7 +163,9 @@ Same logic, conversational interface. Add a `SKILL.md` to a [Claude Project](htt
 
 | Skill | Description |
 |-------|-------------|
+| [TCO](skills/tco/SKILL.md) | Total Cost of Ownership with NPV adjustment |
 | [PERT](skills/pert/SKILL.md) | Three-point estimation with reality adjustments |
+| [Monte Carlo](skills/montecarlo/SKILL.md) | Probabilistic schedule simulation (P50/P80/P95) |
 | [EVM](skills/evm/SKILL.md) | Earned Value Management for project health tracking |
 
 See [`skills/README.md`](skills/README.md) for details.
