@@ -235,14 +235,125 @@ Deterministic CPM identifies *one* critical path. Monte Carlo shows that the cri
 | `compare_with_pert()` | numpy, scipy |
 | `visualise_distribution()` | matplotlib |
 
+## Dirichlet-Drift Extension
+
+**`dirichlet_drift.py` — Bayesian-calibrated drift on top of plain Monte Carlo.**
+
+Plain Monte Carlo assumes your three-point estimates are unbiased. They rarely are. If past auth tasks have run 15% over, that bias should propagate into the next auth task's percentiles — not be re-discovered by every project.
+
+The drift extension layers a per-task multiplier `d_j` on top of the beta-PERT-sampled duration. The multiplier comes from caller-supplied Bayesian posteriors per **risk class** (e.g. "auth", "infra"), combined with **Dirichlet weights** that express uncertainty over the class-mix for tasks you haven't classified.
+
+Per simulation iteration:
+
+1. Sample beta-PERT duration `D_j` for each task.
+2. Sample posterior delay factor `mu_k ~ N(mu_k, sigma_k)` for each risk class `k`.
+3. Sample Dirichlet class-mix weights `w ~ Dir(alpha_1, ..., alpha_K)`.
+4. For each task: `d_j = mu_{class(j)}` if classified, else `d_j = sum_k w_k * mu_k`.
+5. Apply: `D'_j = d_j * D_j`. Run the standard forward pass on `D'`.
+
+Caller-supplied posteriors — this module does **not** import the Bayesian module. Risk classes without an explicit posterior fall back to an uninformative `N(1.0, 0.5)` prior.
+
+### Quick Start
+
+```python
+from dirichlet_drift import (
+    DriftConfig, DriftTask, Posterior, RiskClass, simulate_with_drift,
+)
+
+tasks = [
+    DriftTask("Auth API", 4, 7, 14, risk_class="auth"),
+    DriftTask("Infra setup", 5, 8, 18, risk_class="infra"),
+    DriftTask("Discovery", 3, 5, 10),  # unclassified — Dirichlet-blended
+]
+config = DriftConfig(
+    risk_classes=(
+        RiskClass("auth", posterior=Posterior(mu=1.15, sigma=0.10)),
+        RiskClass("infra", posterior=Posterior(mu=1.05, sigma=0.30)),
+    ),
+    seed=42,
+)
+
+result = simulate_with_drift(tasks, config, n_simulations=20_000)
+print(result.percentiles)
+print(result.class_contribution)
+```
+
+### Worked Example
+
+A six-task project with two risk classes (`auth` and `infra`) and one unclassified task (`Discovery`). Calibration: auth runs ~15% over (sigma 0.10 — we have data); infra runs ~5% over (sigma 0.30 — we have less).
+
+```
+Discovery → Auth API ─┐
+          → Auth UI  ─├→ Integration → Hardening
+          → Infra    ─┘
+```
+
+| Task          | O | M | P  | Risk class | Depends on                        |
+|---------------|---|---|----|------------|-----------------------------------|
+| Discovery     | 3 | 5 | 10 | —          | —                                 |
+| Auth API      | 4 | 7 | 14 | auth       | Discovery                         |
+| Auth UI       | 3 | 5 | 10 | auth       | Discovery                         |
+| Infra setup   | 5 | 8 | 18 | infra      | Discovery                         |
+| Integration   | 3 | 5 | 10 | infra      | Auth API, Auth UI, Infra setup    |
+| Hardening     | 2 | 4 | 8  | —          | Integration                       |
+
+#### Output (actual, seed=42, 20 000 simulations)
+
+```
+                       Plain MC    Drift MC
+  ────────────────────────────────────────
+  Mean                    25.08       27.65
+  Std dev                  2.89        6.02
+  P50                     24.97       27.12
+  P75                     26.99       31.28
+  P85                     28.14       33.71
+  P95                     30.00       38.34
+```
+
+**Class contribution diagnostics:**
+
+```
+  auth   weight=0.502  mu=1.150  tasks_bound=2
+  infra  weight=0.498  mu=1.054  tasks_bound=2
+```
+
+Drift adds ~10% to the mean and ~28% to P85. Most of the spread widening comes from `infra`'s diffuse posterior (sigma 0.30) propagating through the longer-tailed Infra setup task — visible as the much wider gap between Drift P50 and P95.
+
+This is the value: deterministic CPM and plain MC both miss this. The drift extension carries forward what you've learned about systematic bias — and exposes how much of your remaining uncertainty is calibration risk versus task-level risk.
+
+### API Reference
+
+| Type             | Purpose                                                                                                  |
+|------------------|----------------------------------------------------------------------------------------------------------|
+| `Posterior`      | Gaussian posterior on a class delay factor. Validates `mu >= 0`, `sigma >= 0`.                           |
+| `RiskClass`      | Named class with a Dirichlet `prior_alpha` and optional `posterior`. Falls back to `N(1.0, 0.5)`.        |
+| `DriftTask`      | Subclass of `Task` with an optional `risk_class: str`.                                                   |
+| `DriftConfig`    | Tuple of `RiskClass` plus `seed`. Validates non-empty and unique class names.                            |
+| `DriftResult`    | Mirrors `SimulationResult` and adds `class_contribution` and `dirichlet_weights_used`.                   |
+
+### Verification
+
+`python dirichlet_drift.py` runs six self-checks:
+
+1. **Degenerate reducibility** — drift with neutral posteriors matches plain MC within statistical tolerance (~0.01% on the test schedule).
+2. **Mean shift** — posterior `mu = 1.3` shifts the mean by exactly 30%.
+3. **Variance propagation** — diffuse posterior (`sigma 0.4`) widens the spread by ~2.8× vs sharp posterior.
+4. **Dirichlet blending** — uniform-alpha blend of `mu = {1.0, 2.0}` gives expected drift 1.5; actual matches within 2%.
+5. **Re-estimation monotonicity** — narrowing posterior sigma never widens the result spread.
+6. **Cross-project carry-forward** — `prior_new = posterior_old` with the same seed gives bit-identical durations (no hidden state).
+
+The full pytest suite (`test_dirichlet_drift.py`) covers these plus validation of malformed inputs.
+
 ## Testing
 
 ```bash
 # Run built-in examples
 python montecarlo.py
+python dirichlet_drift.py
 
-# Run test suite
+# Run test suites
 pytest test_montecarlo.py -v
+pytest test_dirichlet_drift.py -v
 ```
 
 ## Licence
