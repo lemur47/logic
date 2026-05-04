@@ -1,0 +1,88 @@
+<svg width="100%" viewBox="0 0 680 490" xmlns="http://www.w3.org/2000/svg">
+<title>Drift correction workflow diagram</title>
+<desc>Two inputs — team experience and delivery history — feed into category drift factors, which flow into schedule simulation, producing a confident finish date. New actuals loop back into delivery history.</desc>
+
+<style>
+  :root { --p: #1a1a1a; --s: #6b6b6b; --t: #9a9a9a; --bg2: #f5f5f5; --b: rgba(0,0,0,0.15); }
+  @media (prefers-color-scheme: dark) { :root { --p: #e8e8e8; --s: #a0a0a0; --t: #707070; --bg2: #2a2a2a; --b: rgba(255,255,255,0.15); } }
+  text.th { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 500; }
+  text.ts { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; font-weight: 400; fill: var(--s); }
+  text.t  { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 400; fill: var(--p); }
+  .arr { stroke: var(--t); stroke-width: 1.5; }
+  .leader { stroke: var(--t); stroke-width: 0.5; stroke-dasharray: 4 3; }
+
+  /* Light mode fills */
+  .coral-box { fill: #FAECE7; stroke: #993C1D; }
+  .coral-box-title { fill: #712B13; }
+  .coral-box-sub { fill: #993C1D; }
+  .blue-box { fill: #E6F1FB; stroke: #185FA5; }
+  .blue-box-title { fill: #0C447C; }
+  .blue-box-sub { fill: #185FA5; }
+  .teal-box { fill: #E1F5EE; stroke: #0F6E56; }
+  .teal-box-title { fill: #085041; }
+  .teal-box-sub { fill: #0F6E56; }
+  .purple-box { fill: #EEEDFE; stroke: #534AB7; }
+  .purple-box-title { fill: #3C3489; }
+  .purple-box-sub { fill: #534AB7; }
+
+  @media (prefers-color-scheme: dark) {
+    .coral-box { fill: #712B13; stroke: #F0997B; }
+    .coral-box-title { fill: #FAECE7; }
+    .coral-box-sub { fill: #F0997B; }
+    .blue-box { fill: #0C447C; stroke: #85B7EB; }
+    .blue-box-title { fill: #E6F1FB; }
+    .blue-box-sub { fill: #85B7EB; }
+    .teal-box { fill: #085041; stroke: #5DCAA5; }
+    .teal-box-title { fill: #E1F5EE; }
+    .teal-box-sub { fill: #5DCAA5; }
+    .purple-box { fill: #3C3489; stroke: #AFA9EC; }
+    .purple-box-title { fill: #EEEDFE; }
+    .purple-box-sub { fill: #AFA9EC; }
+  }
+</style>
+
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Row 1: Two inputs -->
+<rect class="coral-box" x="60" y="50" width="220" height="56" rx="8" stroke-width="0.5"/>
+<text class="th coral-box-title" x="170" y="70" text-anchor="middle" dominant-baseline="central">Team experience</text>
+<text class="ts coral-box-sub" x="170" y="90" text-anchor="middle" dominant-baseline="central">What people know</text>
+
+<rect class="blue-box" x="400" y="50" width="220" height="56" rx="8" stroke-width="0.5"/>
+<text class="th blue-box-title" x="510" y="70" text-anchor="middle" dominant-baseline="central">Delivery history</text>
+<text class="ts blue-box-sub" x="510" y="90" text-anchor="middle" dominant-baseline="central">Estimate vs actual</text>
+
+<!-- Converging arrows to Row 2 -->
+<line x1="195" y1="106" x2="290" y2="170" class="arr" marker-end="url(#arrow)"/>
+<line x1="485" y1="106" x2="390" y2="170" class="arr" marker-end="url(#arrow)"/>
+
+<!-- Row 2: Drift factors -->
+<rect class="teal-box" x="210" y="170" width="260" height="56" rx="8" stroke-width="0.5"/>
+<text class="th teal-box-title" x="340" y="190" text-anchor="middle" dominant-baseline="central">Category drift factors</text>
+<text class="ts teal-box-sub" x="340" y="210" text-anchor="middle" dominant-baseline="central">Bias per task type ± uncertainty</text>
+
+<!-- Arrow to Row 3 -->
+<line x1="340" y1="226" x2="340" y2="280" class="arr" marker-end="url(#arrow)"/>
+
+<!-- Row 3: Simulation -->
+<rect class="teal-box" x="210" y="280" width="260" height="56" rx="8" stroke-width="0.5"/>
+<text class="th teal-box-title" x="340" y="300" text-anchor="middle" dominant-baseline="central">Schedule simulation</text>
+<text class="ts teal-box-sub" x="340" y="320" text-anchor="middle" dominant-baseline="central">10,000 scenarios with drift</text>
+
+<!-- Arrow to Row 4 -->
+<line x1="340" y1="336" x2="340" y2="390" class="arr" marker-end="url(#arrow)"/>
+
+<!-- Row 4: Output -->
+<rect class="purple-box" x="210" y="390" width="260" height="56" rx="8" stroke-width="0.5"/>
+<text class="th purple-box-title" x="340" y="410" text-anchor="middle" dominant-baseline="central">Confident finish date</text>
+<text class="ts purple-box-sub" x="340" y="430" text-anchor="middle" dominant-baseline="central">+ where the risk lives</text>
+
+<!-- Feedback loop -->
+<path d="M470 418 L640 418 L640 78 L622 78" fill="none" class="leader" marker-end="url(#arrow)"/>
+<text class="ts" x="652" y="250" text-anchor="middle" transform="rotate(90 652 250)">New actuals feed back</text>
+
+</svg>
