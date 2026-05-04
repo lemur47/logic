@@ -173,7 +173,10 @@ See [`skills/README.md`](skills/README.md) for details.
 ## Docs
 
 - [`CLAUDE.md`](CLAUDE.md) — Commands, architecture details, code style conventions
-- [`docs/PMO_RUN_STRATEGY.md`](docs/PMO_RUN_STRATEGY.md) — Mission, roadmap, agent architecture, privacy model, monetisation
+- [`docs/STRATEGY.md`](docs/STRATEGY.md) — Mission, audiences, monetisation, IP strategy, competitive positioning
+- [`docs/DESIGN.md`](docs/DESIGN.md) — Six-layer architecture, agent design, three-zone privacy model, technical decisions
+- [`docs/SPRINT_HISTORY.md`](docs/SPRINT_HISTORY.md) — Sprint actuals
+- [`docs/CONTENT_FLYWHEEL.md`](docs/CONTENT_FLYWHEEL.md) — R&D → blog → community → consulting loop
 
 ## License
 
