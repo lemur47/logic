@@ -21,6 +21,14 @@ class TaskInput(BaseModel):
     most_likely: float = Field(..., ge=0, description="Most probable duration (M)")
     pessimistic: float = Field(..., ge=0, description="Worst-case duration (P)")
     depends_on: list[str] = Field(default_factory=list, description="Names of predecessor tasks")
+    risk_class: str | None = Field(
+        default=None,
+        max_length=255,
+        description=(
+            "Optional risk-class identifier consumed by drift simulation. "
+            "Ignored unless drift_config is also supplied."
+        ),
+    )
 
 
 class SimulationConfig(BaseModel):
@@ -30,11 +38,52 @@ class SimulationConfig(BaseModel):
     seed: int | None = Field(default=None, description="Random seed for reproducibility")
 
 
+class PosteriorInput(BaseModel):
+    """Gaussian posterior on a risk class's delay factor."""
+
+    mu: float = Field(..., ge=0, description="Posterior mean delay factor (1.0 = unbiased)")
+    sigma: float = Field(..., ge=0, description="Posterior standard deviation")
+
+
+class RiskClassInput(BaseModel):
+    """A risk class with Dirichlet concentration and optional posterior."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+    prior_alpha: float = Field(
+        default=1.0,
+        gt=0,
+        description="Dirichlet concentration parameter (default 1.0 = uniform)",
+    )
+    posterior: PosteriorInput | None = Field(
+        default=None,
+        description="Caller-supplied posterior. None falls back to N(1.0, 0.5).",
+    )
+
+
+class DriftConfigInput(BaseModel):
+    """Drift configuration: risk classes and seed for the Dirichlet draw."""
+
+    risk_classes: list[RiskClassInput] = Field(..., min_length=1)
+    seed: int | None = Field(
+        default=None,
+        description="Random seed for the drift draws. Falls back to config.seed if None.",
+    )
+
+
 class SimulateInput(BaseModel):
-    """Input for stateless Monte Carlo simulation."""
+    """Input for stateless Monte Carlo simulation.
+
+    Adding `drift_config` switches the response from `SimulationResult` to
+    `DriftResult` (which extends it with class-mix diagnostics). Legacy
+    payloads — without `drift_config` — behave exactly as before.
+    """
 
     tasks: list[TaskInput] = Field(..., min_length=1)
     config: SimulationConfig = Field(default_factory=SimulationConfig)
+    drift_config: DriftConfigInput | None = Field(
+        default=None,
+        description="Optional drift configuration. Triggers Dirichlet-drift simulation.",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -89,6 +138,25 @@ class SimulationResult(BaseModel):
     std_dev: float
     min_duration: float
     max_duration: float
+
+
+class ClassContribution(BaseModel):
+    """Per-class diagnostic for drift simulations."""
+
+    mean_weight: float
+    mean_mu: float
+    n_tasks_bound: int
+
+
+class DriftResult(SimulationResult):
+    """Output of a Dirichlet-drift Monte Carlo simulation.
+
+    Extends `SimulationResult` with class-mix diagnostics. Returned by the
+    `/simulate` endpoint when the request includes `drift_config`.
+    """
+
+    class_contribution: dict[str, ClassContribution]
+    dirichlet_weights_used: list[list[float]]
 
 
 class TargetProbabilityInput(BaseModel):
