@@ -1,17 +1,29 @@
 """Monte Carlo schedule simulation module."""
 
 from .core import (
+    DriftConfig,
+    DriftResult,
+    DriftTask,
+    Posterior,
+    RiskClass,
     Task,
     compare_with_pert,
     probability_of_completion,
     simulate_schedule,
+    simulate_with_drift,
 )
 from .router import router
 
 __all__ = [
-    "router",
+    "DriftConfig",
+    "DriftResult",
+    "DriftTask",
+    "Posterior",
+    "RiskClass",
     "Task",
-    "simulate_schedule",
-    "probability_of_completion",
     "compare_with_pert",
+    "probability_of_completion",
+    "router",
+    "simulate_schedule",
+    "simulate_with_drift",
 ]

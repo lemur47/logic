@@ -11,7 +11,16 @@ from fastapi import APIRouter, HTTPException, Query
 
 from ..common.dependencies import DbSession
 from . import crud, schemas
-from .core import Task, probability_of_completion, simulate_schedule
+from .core import (
+    DriftConfig,
+    DriftTask,
+    Posterior,
+    RiskClass,
+    Task,
+    probability_of_completion,
+    simulate_schedule,
+    simulate_with_drift,
+)
 
 router = APIRouter()
 
@@ -21,37 +30,103 @@ router = APIRouter()
 # =============================================================================
 
 
-@router.post("/simulate", response_model=schemas.SimulationResult)
+@router.post(
+    "/simulate",
+    response_model=schemas.DriftResult | schemas.SimulationResult,
+)
 async def simulate(input_data: schemas.SimulateInput):
-    """Run a Monte Carlo schedule simulation — no DB, stateless."""
+    """Run a Monte Carlo schedule simulation — no DB, stateless.
+
+    Without `drift_config`, returns a plain `SimulationResult` (legacy
+    behaviour). With `drift_config`, returns a `DriftResult` carrying the
+    class-mix diagnostics on top of the standard fields.
+    """
     try:
-        core_tasks = [
-            Task(
+        if input_data.drift_config is None:
+            core_tasks = [
+                Task(
+                    name=t.name,
+                    optimistic=t.optimistic,
+                    most_likely=t.most_likely,
+                    pessimistic=t.pessimistic,
+                    depends_on=tuple(t.depends_on),
+                )
+                for t in input_data.tasks
+            ]
+            result = simulate_schedule(
+                core_tasks,
+                n_simulations=input_data.config.num_simulations,
+                seed=input_data.config.seed,
+            )
+            return schemas.SimulationResult(
+                n_simulations=result.n_simulations,
+                percentiles=schemas.PercentileResult(**result.percentiles),
+                histogram=schemas.HistogramResult(
+                    bin_edges=result.histogram["bin_edges"],
+                    counts=[int(c) for c in result.histogram["counts"]],
+                ),
+                critical_path_frequency=result.critical_path_frequency,
+                mean=round(float(np.mean(result.durations)), 2),
+                std_dev=round(float(np.std(result.durations)), 2),
+                min_duration=round(float(np.min(result.durations)), 2),
+                max_duration=round(float(np.max(result.durations)), 2),
+            )
+
+        drift_tasks = [
+            DriftTask(
                 name=t.name,
                 optimistic=t.optimistic,
                 most_likely=t.most_likely,
                 pessimistic=t.pessimistic,
                 depends_on=tuple(t.depends_on),
+                risk_class=t.risk_class,
             )
             for t in input_data.tasks
         ]
-        result = simulate_schedule(
-            core_tasks,
-            n_simulations=input_data.config.num_simulations,
-            seed=input_data.config.seed,
+        risk_classes = tuple(
+            RiskClass(
+                name=rc.name,
+                prior_alpha=rc.prior_alpha,
+                posterior=(
+                    Posterior(mu=rc.posterior.mu, sigma=rc.posterior.sigma)
+                    if rc.posterior is not None
+                    else None
+                ),
+            )
+            for rc in input_data.drift_config.risk_classes
         )
-        return schemas.SimulationResult(
-            n_simulations=result.n_simulations,
-            percentiles=schemas.PercentileResult(**result.percentiles),
+        drift_seed = (
+            input_data.drift_config.seed
+            if input_data.drift_config.seed is not None
+            else input_data.config.seed
+        )
+        drift_cfg = DriftConfig(risk_classes=risk_classes, seed=drift_seed)
+        drift_result = simulate_with_drift(
+            drift_tasks,
+            drift_cfg,
+            n_simulations=input_data.config.num_simulations,
+        )
+        return schemas.DriftResult(
+            n_simulations=drift_result.n_simulations,
+            percentiles=schemas.PercentileResult(**drift_result.percentiles),
             histogram=schemas.HistogramResult(
-                bin_edges=result.histogram["bin_edges"],
-                counts=[int(c) for c in result.histogram["counts"]],
+                bin_edges=drift_result.histogram["bin_edges"],
+                counts=[int(c) for c in drift_result.histogram["counts"]],
             ),
-            critical_path_frequency=result.critical_path_frequency,
-            mean=round(float(np.mean(result.durations)), 2),
-            std_dev=round(float(np.std(result.durations)), 2),
-            min_duration=round(float(np.min(result.durations)), 2),
-            max_duration=round(float(np.max(result.durations)), 2),
+            critical_path_frequency=drift_result.critical_path_frequency,
+            mean=round(float(np.mean(drift_result.durations)), 2),
+            std_dev=round(float(np.std(drift_result.durations)), 2),
+            min_duration=round(float(np.min(drift_result.durations)), 2),
+            max_duration=round(float(np.max(drift_result.durations)), 2),
+            class_contribution={
+                name: schemas.ClassContribution(
+                    mean_weight=stats["mean_weight"],
+                    mean_mu=stats["mean_mu"],
+                    n_tasks_bound=int(stats["n_tasks_bound"]),
+                )
+                for name, stats in drift_result.class_contribution.items()
+            },
+            dirichlet_weights_used=drift_result.dirichlet_weights_used.tolist(),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
