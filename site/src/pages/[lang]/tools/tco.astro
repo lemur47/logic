@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
 import TcoCalculator from "../../../components/svelte/TcoCalculator.svelte";
 import { useTranslations } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
@@ -12,8 +13,9 @@ const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 ---
 
-<Base title={t("tools.tco")} wide>
-  <h1 class="text-3xl font-bold mb-4">{t("tools.tco")}</h1>
-  <p class="text-gray-600 mb-8">{t("tools.tco.desc")}</p>
-  <TcoCalculator client:load lang={lang} />
+<Base title={t("tools.tco")} bleed>
+  <section class="section section--tight">
+    <SectionHead num="02" label="tools · tco" title={t("tools.tco")} lede={t("tools.tco.desc")} />
+    <TcoCalculator client:load lang={lang} />
+  </section>
 </Base>

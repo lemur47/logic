@@ -7,14 +7,23 @@ import { getLangFromUrl, useTranslations } from "../i18n/utils";
 interface Props {
   title?: string;
   description?: string;
-  wide?: boolean;
+  /** Full-bleed page (homepage, about) — no inner padding/container. */
+  bleed?: boolean;
+  /** Narrow content frame (max-width: 760px) — for prose/MDX pages. Defaults to wide (var(--maxw)). */
+  narrow?: boolean;
 }
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const { title, description, wide } = Astro.props;
+const { title, description, bleed, narrow } = Astro.props;
 const pageTitle = title ? `${title} | ${t("site.title")}` : t("site.title");
 const pageDescription = description ?? t("site.description");
+
+const mainClass = bleed
+  ? "main main--full"
+  : narrow
+    ? "main main--narrow"
+    : "main main--wide";
 ---
 
 <!doctype html>
@@ -26,9 +35,9 @@ const pageDescription = description ?? t("site.description");
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{pageTitle}</title>
   </head>
-  <body class="min-h-screen flex flex-col bg-white text-gray-900 font-sans">
+  <body class="app-body">
     <Header />
-    <main class:list={["flex-1 w-full mx-auto px-4 py-8", wide ? "max-w-6xl" : "max-w-4xl"]}>
+    <main class={mainClass}>
       <slot />
     </main>
     <Footer />

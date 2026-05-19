@@ -11,47 +11,182 @@ export const ui = {
   en: {
     "site.title": "pmo.run",
     "site.description":
-      "Free, open-source TCO calculator and cost analysis tools for project managers and PMO teams.",
+      "Mathematically-grounded tools for AI agents working alongside Project Management Offices. Open-source kernel, premium plugins, bespoke consulting.",
     "nav.home": "Home",
     "nav.tools": "Tools",
     "nav.blog": "Blog",
     "nav.docs": "Docs",
+    "nav.about": "About",
     "nav.contact": "Contact",
     "footer.copy": "pmo.run",
     "footer.github": "GitHub",
     "footer.blog": "Blog",
     "footer.docs": "Docs",
+    "footer.blurb":
+      "Mathematically-grounded tools for AI agents working alongside Project Management Offices.",
+    "footer.section.oss": "Open Source",
+    "footer.section.paid": "Paid",
+    "footer.section.cons": "Consulting",
+    "footer.section.resources": "Resources",
+    "footer.link.skills": "Skills",
+    "footer.link.api": "API",
+    "footer.link.tools": "Tools",
+    "footer.link.plugins": "Plugins",
+    "footer.link.engagement": "Engagement model",
+    "footer.builton": "Built with Astro + Svelte on Cloudflare",
+    "footer.location": "Tokyo · Open from 2024",
+
     "tools.tco": "TCO Calculator",
     "tools.tco.desc": "Total Cost of Ownership Analysis for Informed Purchasing Decisions.",
     "tools.breakeven": "Break-Even Analysis",
     "tools.breakeven.desc": "Find the Point Where Revenue Meets Costs.",
-    "landing.hero": "Ship Decisions, Not Spreadsheets.",
-    "landing.sub":
-      "Free, open-source tools for cost analysis, project estimation, and performance tracking. No account required. Your data never leaves your browser.",
-    "landing.cta": "Estimate with PERT — Free",
-    "landing.features.title": "Built for Real Decisions",
-    "landing.features.cost.title": "Cost Analysis",
-    "landing.features.cost.desc":
-      "Total cost of ownership, side-by-side comparison, and break-even point. Know what things really cost before you commit.",
-    "landing.features.estimation.title": "Project Estimation",
-    "landing.features.estimation.desc":
-      "Three-point estimation with reality adjustments for communication overhead, stakeholder complexity, and hidden dependencies.",
-    "landing.features.tracking.title": "Performance Tracking",
-    "landing.features.tracking.desc":
-      "Earned value metrics — SPI, CPI, EAC — to answer one question: are we on track? Baselines, snapshots, and health signals.",
+
+    /* Homepage — renewal copy from design handoff */
+    "home.hero.eyebrow": "v0.4 · alpha",
+    "home.hero.meta1": "§00 / index",
+    "home.hero.meta2": "MIT + commercial",
+    "home.hero.meta3": "EN · JA",
+    "home.hero.meta4": "tokyo · remote",
+    "home.hero.line1": "Mathematical rigour,",
+    "home.hero.line2": "for PMOs and the agents that assist them.",
+    "home.hero.body":
+      "Open-source Skills, MCP servers, and APIs that let Claude and other agents reason about projects the way a senior analyst does — with PERT, Monte Carlo, Bayesian updating, TCO and the rest of the kit.",
+    "home.hero.ctaPrimary": "Read the docs",
+    "home.hero.ctaSecondary": "Install the CLI",
+    "home.hero.caption": "npm i -g pmo · 2.4MB · zero deps",
+    "home.metric.skills.label": "Skills",
+    "home.metric.skills.value": "12",
+    "home.metric.skills.sub": "Claude-native",
+    "home.metric.mcp.label": "MCP servers",
+    "home.metric.mcp.value": "6",
+    "home.metric.mcp.sub": "stdio + SSE",
+    "home.metric.apis.label": "APIs",
+    "home.metric.apis.value": "REST + gRPC",
+    "home.metric.apis.sub": "stable",
+    "home.metric.methods.label": "Methods",
+    "home.metric.methods.value": "PERT · MC · Bayes",
+    "home.metric.methods.sub": "peer-reviewed",
+
+    "home.premise.title":
+      "The administrative PMO won't survive agents. The strategic PMO will need them.",
+    "home.premise.body":
+      "We're not selling a replacement. We're shipping the toolbox the next generation of PMO work is built on — kernel open, premium plugins where data integration warrants it, consulting where the analysis is bespoke.",
+    "home.premise.quote":
+      "The model that calculates a p90 ship date for me in twelve seconds is the same model that doesn't know which task to unblock. We're fixing the second half.",
+    "home.premise.note":
+      "Most PMO software hides its maths. Agents need it exposed, with citations, deterministic seeds, and reproducible outputs — so the human signing off can trace every number.",
+    "home.premise.observed":
+      "— observed across 14 PMO engagements, 2024–2026",
+
+    "home.methods.title": "Maths-proved logic, packaged as tools.",
+    "home.methods.lede":
+      "Each method ships as a Skill (for Claude), an MCP server (for any agent), and an HTTP API. Same kernel, three surfaces.",
+    "home.methods.pert.title": "Program Evaluation & Review Technique",
+    "home.methods.pert.body":
+      "Weighted three-point estimates with critical-path detection. Surfaces float, slack, and which task to actually unblock.",
+    "home.methods.mc.title": "Schedule simulation, 10⁵ samples",
+    "home.methods.mc.body":
+      "Replaces single-point dates with distributions. p50 / p90 ship dates, sensitivity per task, and confidence intervals you can defend.",
+    "home.methods.bayes.title": "Estimates that learn from delivery",
+    "home.methods.bayes.body":
+      "Updates prior beliefs as tickets close. Replaces the \"gut feel re-baseline\" with an auditable likelihood update.",
+    "home.methods.tco.title": "Total cost of ownership, decomposed",
+    "home.methods.tco.body":
+      "License + ops + integration + training + the hidden line items. Used by SIers to defend procurement decisions.",
+    "home.methods.more":
+      "+ earned-value, throughput accounting, queueing models, risk-adjusted NPV — see /docs",
+
+    "home.install.title": "Drop-in for Claude, Cursor, or any MCP client.",
+    "home.install.lede":
+      "No platform lock. Skills load into Claude. The same kernel runs as a local MCP server, or behind your gateway as an HTTP API.",
+
+    "home.opencore.title": "Three layers. One contract.",
+    "home.opencore.lede":
+      "The reasoning kernel is permissively licensed and stays that way. Paid features and consulting sit cleanly above it — never in front of it.",
+    "home.opencore.col.layer": "Layer",
+    "home.opencore.col.contents": "What's in it",
+    "home.opencore.col.audience": "Who it's for",
+    "home.opencore.col.license": "License",
+    "home.opencore.col.pricing": "Pricing",
+    "home.opencore.row1.contents":
+      "Skills, MCP servers, APIs. PERT, Monte Carlo, Bayes, EVM, TCO, queueing.",
+    "home.opencore.row1.audience":
+      "International PMO communities, individual practitioners, contributors.",
+    "home.opencore.row2.contents":
+      "Proprietary connectors: Jira Cloud, ServiceNow, SAP, MS Project, Salesforce. Industry datasets, benchmark libraries.",
+    "home.opencore.row2.audience":
+      "Systems integrators, internal platform teams.",
+    "home.opencore.row3.contents":
+      "Bespoke analysis, model calibration, rollout, executive briefings, training programmes.",
+    "home.opencore.row3.audience":
+      "Consulting firms, large transformation programmes.",
+
+    "home.audience.title": "For PMOs evolving from administrators to strategists.",
+    "home.audience.lede":
+      "The administrative half of the PMO role — status rollups, variance reports, schedule maintenance — will be done by agents. Our work is to give those agents the same rigorous tools your best analysts use, so the human half can move upstream into strategy.",
+    "home.audience.practitioner.label": "practitioner",
+    "home.audience.practitioner.body":
+      "Stop hand-rolling Monte Carlo in Excel. Drop the skill in Claude. Get the same numbers, defensible.",
+    "home.audience.sier.label": "SIer",
+    "home.audience.sier.body":
+      "Plug into your client's Jira / ServiceNow / SAP. Ship licensed integrations under your brand if you need to.",
+    "home.audience.consulting.label": "consulting firm",
+    "home.audience.consulting.body":
+      "Use our methods kernel under your engagement. We co-deliver where the analysis warrants it.",
+
+    "home.start.title": "Read the docs, then install in two lines.",
+    "home.start.docs": "Read the docs",
+    "home.start.github": "Browse on GitHub",
+    "home.start.consult": "or: brief us on a consulting engagement →",
+
     "landing.trust.opensource": "Open Source",
     "landing.trust.privacy": "Privacy-First",
     "landing.trust.noaccount": "No Account Required",
     "landing.trust.api": "API Available",
-    "landing.secondary.text": "View source on GitHub",
-    "landing.secondary.url": "https://github.com/lemur47/logic",
+
     "blog.title": "Blog",
     "blog.empty": "No posts yet.",
     "docs.title": "Documentation",
     "docs.empty": "No docs yet.",
+    "tools.title": "Tools",
     "contact.title": "Contact",
     "contact.body": "Questions, feedback, or partnership inquiries:",
     "contact.email": "Email us",
+
+    /* About page */
+    "about.hero.eyebrow": "§00 / about",
+    "about.hero.title": "Open methods, in service of strategic PMOs.",
+    "about.hero.body":
+      "pmo.run is the open foundation of a PMO service combining AI tooling and human judgement. We publish the maths, ship the surfaces (Skills, MCP, APIs), and engage on the bespoke work where calibration matters.",
+    "about.thesis.title": "Why this exists",
+    "about.thesis.lede":
+      "Three observations that shaped the design.",
+    "about.thesis.cell1.title": "Agents need exposed maths",
+    "about.thesis.cell1.body":
+      "PMO software has hidden its calculations for thirty years. Agents need the opposite: deterministic seeds, citations, reproducible outputs, so the human signing off can trace every number.",
+    "about.thesis.cell2.title": "Open kernel, paid connectors",
+    "about.thesis.cell2.body":
+      "The reasoning kernel stays MIT — community contribution is the only honest path. The value is in the data connectors and the calibration data, not in paywalling formulas.",
+    "about.thesis.cell3.title": "Strategy is the human work",
+    "about.thesis.cell3.body":
+      "Status rollups, variance reports, schedule maintenance — agents will do all of it. Strategic PMO work — where to invest, what to stop, how to communicate trade-offs — is upstream and stays human.",
+    "about.people.title": "People",
+    "about.people.lede":
+      "A small Tokyo-based team. PMO operators, mathematicians, AI engineers. Headshots pending — we're still camera-shy.",
+    "about.contact.title": "Get in touch",
+    "about.contact.lede":
+      "Three ways to reach us.",
+    "about.contact.method1.label": "open source",
+    "about.contact.method1.body":
+      "Issues, PRs, RFCs on GitHub. Public-by-default for everything technical.",
+    "about.contact.method2.label": "consulting",
+    "about.contact.method2.body":
+      "Email us with a one-paragraph brief. We respond within two business days.",
+    "about.contact.method3.label": "partnerships",
+    "about.contact.method3.body":
+      "SIers, consulting firms, integration partners. Drop a note and we'll set up a call.",
+
+    /* TCO calculator (kept as before) */
     "tco.calc.mode.single": "Single",
     "tco.calc.mode.compare": "Compare",
     "tco.calc.initialPrice": "Initial Price",
@@ -106,7 +241,7 @@ export const ui = {
     "pert.calc.severity.mild": "Mild",
     "pert.calc.severity.severe": "Severe",
     "pert.calc.rangeComparison": "Range Comparison",
-    "pert.calc.validation.order": "Must satisfy O \u2264 M \u2264 P",
+    "pert.calc.validation.order": "Must satisfy O ≤ M ≤ P",
     "pert.calc.validation.nonNegative": "Cannot be negative",
     "tools.evm": "EVM Tracker",
     "tools.evm.desc":
@@ -119,47 +254,179 @@ export const ui = {
   ja: {
     "site.title": "pmo.run",
     "site.description":
-      "PM/PMOのための、無料・オープンソースのTCO計算ツール。",
+      "PMOと、それを支援するAIエージェントのための、数理に基づくツール群。OSSカーネル、有償プラグイン、伴走型コンサルティング。",
     "nav.home": "ホーム",
     "nav.tools": "ツール",
     "nav.blog": "ブログ",
     "nav.docs": "ドキュメント",
+    "nav.about": "私たち",
     "nav.contact": "お問い合わせ",
     "footer.copy": "pmo.run",
     "footer.github": "GitHub",
     "footer.blog": "ブログ",
     "footer.docs": "ドキュメント",
+    "footer.blurb":
+      "PMOと、それを支援するAIエージェントのための、数理に基づくツール群。",
+    "footer.section.oss": "オープンソース",
+    "footer.section.paid": "有償",
+    "footer.section.cons": "コンサルティング",
+    "footer.section.resources": "リソース",
+    "footer.link.skills": "Skills",
+    "footer.link.api": "API",
+    "footer.link.tools": "ツール",
+    "footer.link.plugins": "プラグイン",
+    "footer.link.engagement": "エンゲージメントモデル",
+    "footer.builton": "Astro + Svelte / Cloudflareで構築",
+    "footer.location": "東京 · 2024年から",
+
     "tools.tco": "TCO計算ツール",
     "tools.tco.desc": "総所有コスト分析で、購買判断を数値で裏付ける。",
     "tools.breakeven": "損益分岐点分析",
     "tools.breakeven.desc": "収益がコストを上回るポイントを見つける。",
-    "landing.hero": "スプレッドシートではなく、意思決定の質を高めよう。",
-    "landing.sub":
-      "コスト分析、プロジェクト見積もり、パフォーマンス追跡のためのオープンソースツール。アカウント不要、データは収集されません。",
-    "landing.cta": "PERTで見積もる（無料）",
-    "landing.features.title": "実践的な意思決定ツール",
-    "landing.features.cost.title": "コスト分析",
-    "landing.features.cost.desc":
-      "総所有コスト、並列比較、損益分岐点。意思決定の前に、本当のコストを把握する。",
-    "landing.features.estimation.title": "プロジェクト見積もり",
-    "landing.features.estimation.desc":
-      "コミュニケーション負荷、ステークホルダーの複雑さ、隠れた依存関係を考慮した三点見積もり。",
-    "landing.features.tracking.title": "パフォーマンス追跡",
-    "landing.features.tracking.desc":
-      "アーンドバリュー指標（SPI, CPI, EAC）で「予定通りか？」に答える。ベースライン、スナップショット、ヘルスシグナル。",
+
+    "home.hero.eyebrow": "v0.4 · alpha",
+    "home.hero.meta1": "§00 / index",
+    "home.hero.meta2": "MIT + 商用",
+    "home.hero.meta3": "EN · JA",
+    "home.hero.meta4": "東京 · リモート",
+    "home.hero.line1": "数理に基づくロジックを、",
+    "home.hero.line2": "PMOと、それを支援するAIエージェントに。",
+    "home.hero.body":
+      "PERT・モンテカルロ・ベイズ更新・TCOなど、シニアアナリストが使う手法をClaudeや任意のエージェントが扱えるよう、Skill・MCPサーバー・APIとしてオープンソースで提供します。",
+    "home.hero.ctaPrimary": "ドキュメントを読む",
+    "home.hero.ctaSecondary": "CLIをインストール",
+    "home.hero.caption": "npm i -g pmo · 2.4MB · zero deps",
+    "home.metric.skills.label": "Skills",
+    "home.metric.skills.value": "12",
+    "home.metric.skills.sub": "Claudeネイティブ",
+    "home.metric.mcp.label": "MCPサーバー",
+    "home.metric.mcp.value": "6",
+    "home.metric.mcp.sub": "stdio + SSE",
+    "home.metric.apis.label": "API",
+    "home.metric.apis.value": "REST + gRPC",
+    "home.metric.apis.sub": "安定版",
+    "home.metric.methods.label": "手法",
+    "home.metric.methods.value": "PERT · MC · ベイズ",
+    "home.metric.methods.sub": "査読済み",
+
+    "home.premise.title":
+      "管理業務としてのPMOは消える。戦略としてのPMOには、エージェントが必要になる。",
+    "home.premise.body":
+      "代替を売るのではなく、次世代のPMO業務を支える基盤を提供します。カーネルはOSS、データ連携は有償プラグイン、案件固有の分析は伴走型コンサルティングで。",
+    "home.premise.quote":
+      "p90の納期を12秒で算出してくれるモデルが、どのタスクを解放すべきかは知らない。私たちは、その後者を補います。",
+    "home.premise.note":
+      "多くのPMOソフトウェアは計算過程を隠しています。エージェントには、引用・決定論的シード・再現可能な出力とともに、計算過程が露出している必要があります。",
+    "home.premise.observed":
+      "— 14件のPMOエンゲージメントでの観察、2024〜2026",
+
+    "home.methods.title": "数理に裏づけられたロジックを、ツールとして。",
+    "home.methods.lede":
+      "各手法はClaude向けのSkill、任意のエージェント向けMCPサーバー、HTTP APIとして提供。同じカーネルを、三つの表面から。",
+    "home.methods.pert.title": "PERT — プログラム評価・レビュー手法",
+    "home.methods.pert.body":
+      "重みづけ三点見積もりとクリティカルパス検出。フロート、スラック、解放すべきタスクを可視化。",
+    "home.methods.mc.title": "モンテカルロ — 10⁵サンプルのスケジュール模擬",
+    "home.methods.mc.body":
+      "単点の納期予測を分布に置き換える。p50・p90納期、タスク別感度、根拠を示せる信頼区間。",
+    "home.methods.bayes.title": "ベイズ更新 — 実績から学ぶ見積もり",
+    "home.methods.bayes.body":
+      "チケット消化に応じて事前分布を更新。「勘で再ベースライン」を、監査可能な尤度更新に置き換える。",
+    "home.methods.tco.title": "TCO — 総所有コストを項目に分解",
+    "home.methods.tco.body":
+      "ライセンス + 運用 + 統合 + 教育 + 隠れコスト。SIerが調達判断の根拠として使う指標。",
+    "home.methods.more":
+      "＋アーンドバリュー、スループット会計、待ち行列モデル、リスク調整NPV — /docs を参照",
+
+    "home.install.title": "Claude・Cursor・任意のMCPクライアントに、そのまま組み込み。",
+    "home.install.lede":
+      "プラットフォーム依存なし。SkillはClaudeに読み込む。同じカーネルがローカルMCPサーバーとしても、ゲートウェイ越しのHTTP APIとしても動きます。",
+
+    "home.opencore.title": "三層、ひとつの契約。",
+    "home.opencore.lede":
+      "推論カーネルは寛容なライセンスを保ち、それを変えません。有償機能とコンサルティングは、その上に綺麗に重なります — 決して前に立ちません。",
+    "home.opencore.col.layer": "層",
+    "home.opencore.col.contents": "内容",
+    "home.opencore.col.audience": "対象",
+    "home.opencore.col.license": "ライセンス",
+    "home.opencore.col.pricing": "価格",
+    "home.opencore.row1.contents":
+      "Skills・MCPサーバー・API。PERT、モンテカルロ、ベイズ、EVM、TCO、待ち行列。",
+    "home.opencore.row1.audience":
+      "国際PMOコミュニティ、個人実務者、コントリビューター。",
+    "home.opencore.row2.contents":
+      "独自コネクタ: Jira Cloud、ServiceNow、SAP、MS Project、Salesforce。業種別データセット、ベンチマーク。",
+    "home.opencore.row2.audience":
+      "システムインテグレーター、社内プラットフォームチーム。",
+    "home.opencore.row3.contents":
+      "個別分析、モデル校正、展開支援、経営報告、研修プログラム。",
+    "home.opencore.row3.audience":
+      "コンサルティングファーム、大規模変革プログラム。",
+
+    "home.audience.title": "管理者から戦略家へ進化するPMOのために。",
+    "home.audience.lede":
+      "ステータス集約、差異報告、スケジュール維持といったPMOの管理業務はエージェントが担います。私たちの仕事は、優秀なアナリストが使うのと同じ厳密なツールをエージェントに渡し、人間の役割を戦略の上流に移すことです。",
+    "home.audience.practitioner.label": "実務者",
+    "home.audience.practitioner.body":
+      "Excelで手作りのモンテカルロをやめる。ClaudeにSkillを入れる。根拠を示せる同じ数値が得られます。",
+    "home.audience.sier.label": "SIer",
+    "home.audience.sier.body":
+      "顧客のJira / ServiceNow / SAPに接続。必要ならOEMでライセンス統合も。",
+    "home.audience.consulting.label": "コンサルティングファーム",
+    "home.audience.consulting.body":
+      "私たちの手法カーネルを御社のエンゲージメントの下で活用。分析の難易度に応じて共同提供します。",
+
+    "home.start.title": "ドキュメントを読んで、二行でインストール。",
+    "home.start.docs": "ドキュメントを読む",
+    "home.start.github": "GitHubで見る",
+    "home.start.consult": "あるいは: コンサルティング案件をご相談ください →",
+
     "landing.trust.opensource": "オープンソース",
     "landing.trust.privacy": "プライバシー優先",
     "landing.trust.noaccount": "アカウント不要",
     "landing.trust.api": "API提供",
-    "landing.secondary.text": "GitHubでソースを見る",
-    "landing.secondary.url": "https://github.com/lemur47/logic",
+
     "blog.title": "ブログ",
     "blog.empty": "まだ投稿はありません。",
     "docs.title": "ドキュメント",
     "docs.empty": "まだドキュメントはありません。",
+    "tools.title": "ツール",
     "contact.title": "お問い合わせ",
     "contact.body": "ご質問、フィードバック、提携に関するお問い合わせ：",
     "contact.email": "メールで連絡",
+
+    "about.hero.eyebrow": "§00 / 私たち",
+    "about.hero.title": "オープンな手法を、戦略的PMOのために。",
+    "about.hero.body":
+      "pmo.runは、AIツールと人の判断を組み合わせたPMOサービスのオープンな基盤です。数理を公開し、提供面（Skills・MCP・API）を運用し、校正が要となる個別案件に伴走します。",
+    "about.thesis.title": "なぜ存在するのか",
+    "about.thesis.lede":
+      "設計を方向づけた、三つの観察。",
+    "about.thesis.cell1.title": "エージェントには露出した数理が必要",
+    "about.thesis.cell1.body":
+      "PMOソフトウェアは30年間、計算を隠してきました。エージェントには逆が必要です：決定論的シード、引用、再現可能な出力。承認する人間が、すべての数値を辿れるように。",
+    "about.thesis.cell2.title": "OSSカーネル、有償コネクタ",
+    "about.thesis.cell2.body":
+      "推論カーネルはMITで維持します — 誠実な唯一の道はコミュニティ貢献です。価値はデータ連携と校正データにあり、数式を有料化することにはありません。",
+    "about.thesis.cell3.title": "戦略は人の仕事",
+    "about.thesis.cell3.body":
+      "ステータス集約、差異報告、スケジュール維持 — すべてエージェントが担います。戦略的PMO業務 — どこに投資するか、何を止めるか、トレードオフをどう伝えるか — は上流の人の仕事として残ります。",
+    "about.people.title": "メンバー",
+    "about.people.lede":
+      "東京を拠点とする小さなチーム。PMO実務者、数学者、AIエンジニア。写真は準備中 — 私たちはまだカメラ慣れしていません。",
+    "about.contact.title": "コンタクト",
+    "about.contact.lede":
+      "三つの連絡経路。",
+    "about.contact.method1.label": "オープンソース",
+    "about.contact.method1.body":
+      "Issue、PR、RFCはGitHubへ。技術的なことはすべて、原則として公開で。",
+    "about.contact.method2.label": "コンサルティング",
+    "about.contact.method2.body":
+      "概要を一段落でメールください。二営業日以内に返信します。",
+    "about.contact.method3.label": "パートナーシップ",
+    "about.contact.method3.body":
+      "SIer、コンサルティングファーム、統合パートナーの皆様。一言いただければ、通話を設定します。",
+
     "tco.calc.mode.single": "単体",
     "tco.calc.mode.compare": "比較",
     "tco.calc.initialPrice": "初期価格",

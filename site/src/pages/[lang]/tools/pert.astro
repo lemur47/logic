@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
 import PertCalculator from "../../../components/svelte/PertCalculator.svelte";
 import { useTranslations } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
@@ -12,8 +13,9 @@ const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 ---
 
-<Base title={t("tools.pert")} wide>
-  <h1 class="text-3xl font-bold mb-4">{t("tools.pert")}</h1>
-  <p class="text-gray-600 mb-8">{t("tools.pert.desc")}</p>
-  <PertCalculator client:load lang={lang} />
+<Base title={t("tools.pert")} bleed>
+  <section class="section section--tight">
+    <SectionHead num="01" label="tools · pert" title={t("tools.pert")} lede={t("tools.pert.desc")} />
+    <PertCalculator client:load lang={lang} />
+  </section>
 </Base>

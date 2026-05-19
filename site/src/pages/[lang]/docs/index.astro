@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
 import { getCollection } from "astro:content";
 import { useTranslations, parseEntryLocale } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
@@ -19,26 +20,25 @@ const allDocs = await getCollection("docs", (entry) => {
 const docs = allDocs.sort((a, b) => a.data.order - b.data.order);
 ---
 
-<Base title={t("docs.title")}>
-  <h1 class="text-3xl font-bold mb-8">{t("docs.title")}</h1>
-  {docs.length === 0 ? (
-    <p class="text-gray-500">{t("docs.empty")}</p>
-  ) : (
-    <ul class="grid gap-4">
-      {docs.map((doc) => {
-        const { slug } = parseEntryLocale(doc.id);
-        return (
-          <li>
-            <a
-              href={`/${lang}/docs/${slug}/`}
-              class="block border rounded p-4 hover:border-gray-400"
-            >
-              <h2 class="font-semibold">{doc.data.title}</h2>
-              <p class="text-sm text-gray-600">{doc.data.description}</p>
+<Base title={t("docs.title")} bleed>
+  <section class="section section--tight">
+    <SectionHead num="00" label="docs" title={t("docs.title")} />
+
+    {docs.length === 0 ? (
+      <p class="muted">{t("docs.empty")}</p>
+    ) : (
+      <div class="grid-2">
+        {docs.map((doc) => {
+          const { slug } = parseEntryLocale(doc.id);
+          return (
+            <a href={`/${lang}/docs/${slug}/`} class="cell" style="text-decoration:none;color:inherit;">
+              <div class="label">{`§${String(doc.data.order).padStart(2, "0")}`}</div>
+              <h3>{doc.data.title}</h3>
+              {doc.data.description && <p>{doc.data.description}</p>}
             </a>
-          </li>
-        );
-      })}
-    </ul>
-  )}
+          );
+        })}
+      </div>
+    )}
+  </section>
 </Base>

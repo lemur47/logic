@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
 import { useTranslations } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
 
@@ -11,13 +12,12 @@ const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 ---
 
-<Base title={t("contact.title")}>
-  <h1 class="text-3xl font-bold mb-4">{t("contact.title")}</h1>
-  <p class="text-gray-600 mb-6">{t("contact.body")}</p>
-  <a
-    href="mailto:hi@pmo.run"
-    class="inline-block bg-gray-900 text-white px-6 py-3 rounded font-medium hover:bg-gray-800"
-  >
-    {t("contact.email")}
-  </a>
+<Base title={t("contact.title")} bleed>
+  <section class="section section--tight">
+    <SectionHead num="00" label="contact" title={t("contact.title")} lede={t("contact.body")} />
+    <div style="display:flex;gap:14px;flex-wrap:wrap;">
+      <a href="mailto:hi@pmo.run" class="btn">{t("contact.email")}</a>
+      <a href="https://github.com/lemur47/logic" target="_blank" rel="noopener" class="btn btn--ghost">GitHub ↗</a>
+    </div>
+  </section>
 </Base>
