@@ -34,7 +34,7 @@ export const ui = {
     "footer.link.plugins": "Plugins",
     "footer.link.engagement": "Engagement model",
     "footer.builton": "Built with Astro + Svelte on Cloudflare",
-    "footer.location": "Tokyo · Open from 2024",
+    "footer.location": "Japan · Open from 2026",
 
     "tools.tco": "TCO Calculator",
     "tools.tco.desc": "Total Cost of Ownership Analysis for Informed Purchasing Decisions.",
@@ -46,23 +46,22 @@ export const ui = {
     "home.hero.meta1": "§00 / index",
     "home.hero.meta2": "MIT + commercial",
     "home.hero.meta3": "EN · JA",
-    "home.hero.meta4": "tokyo · remote",
+    "home.hero.meta4": "japan · remote",
     "home.hero.line1": "Mathematical rigour,",
     "home.hero.line2": "for PMOs and the agents that assist them.",
     "home.hero.body":
       "Open-source Skills, MCP servers, and APIs that let Claude and other agents reason about projects the way a senior analyst does — with PERT, Monte Carlo, Bayesian updating, TCO and the rest of the kit.",
     "home.hero.ctaPrimary": "Read the docs",
-    "home.hero.ctaSecondary": "Install the CLI",
-    "home.hero.caption": "npm i -g pmo · 2.4MB · zero deps",
+    "home.hero.ctaSecondary": "Install the skills",
     "home.metric.skills.label": "Skills",
-    "home.metric.skills.value": "12",
+    "home.metric.skills.value": "4",
     "home.metric.skills.sub": "Claude-native",
-    "home.metric.mcp.label": "MCP servers",
-    "home.metric.mcp.value": "6",
-    "home.metric.mcp.sub": "stdio + SSE",
+    "home.metric.mcp.label": "MCP tools",
+    "home.metric.mcp.value": "5",
+    "home.metric.mcp.sub": "stdio · prototype",
     "home.metric.apis.label": "APIs",
-    "home.metric.apis.value": "REST + gRPC",
-    "home.metric.apis.sub": "stable",
+    "home.metric.apis.value": "REST",
+    "home.metric.apis.sub": "FastAPI",
     "home.metric.methods.label": "Methods",
     "home.metric.methods.value": "PERT · MC · Bayes",
     "home.metric.methods.sub": "peer-reviewed",
@@ -72,11 +71,7 @@ export const ui = {
     "home.premise.body":
       "We're not selling a replacement. We're shipping the toolbox the next generation of PMO work is built on — kernel open, premium plugins where data integration warrants it, consulting where the analysis is bespoke.",
     "home.premise.quote":
-      "The model that calculates a p90 ship date for me in twelve seconds is the same model that doesn't know which task to unblock. We're fixing the second half.",
-    "home.premise.note":
-      "Most PMO software hides its maths. Agents need it exposed, with citations, deterministic seeds, and reproducible outputs — so the human signing off can trace every number.",
-    "home.premise.observed":
-      "— observed across 14 PMO engagements, 2024–2026",
+      "An AI agent can estimate a delivery date in seconds, but it can't judge which task to unblock next. pmo.run gives PMOs and their agents the maths to do both — with every number traceable.",
 
     "home.methods.title": "Maths-proved logic, packaged as tools.",
     "home.methods.lede":
@@ -102,7 +97,7 @@ export const ui = {
 
     "home.opencore.title": "Three layers. One contract.",
     "home.opencore.lede":
-      "The reasoning kernel is permissively licensed and stays that way. Paid features and consulting sit cleanly above it — never in front of it.",
+      "The three-layer core is open source: the core logic and tools stay MIT-licensed. Paid plugins and consulting services add on top — your own proprietary layer.",
     "home.opencore.col.layer": "Layer",
     "home.opencore.col.contents": "What's in it",
     "home.opencore.col.audience": "Who it's for",
@@ -132,9 +127,9 @@ export const ui = {
       "Plug into your client's Jira / ServiceNow / SAP. Ship licensed integrations under your brand if you need to.",
     "home.audience.consulting.label": "consulting firm",
     "home.audience.consulting.body":
-      "Use our methods kernel under your engagement. We co-deliver where the analysis warrants it.",
+      "Put your historical data to work with PMO logic and tools, and sharpen your firm's insight.",
 
-    "home.start.title": "Read the docs, then install in two lines.",
+    "home.start.title": "Clone the repo and start using it right away.",
     "home.start.docs": "Read the docs",
     "home.start.github": "Browse on GitHub",
     "home.start.consult": "or: brief us on a consulting engagement →",
@@ -158,27 +153,27 @@ export const ui = {
     "about.hero.title": "Open methods, in service of strategic PMOs.",
     "about.hero.body":
       "pmo.run is the open foundation of a PMO service combining AI tooling and human judgement. We publish the maths, ship the surfaces (Skills, MCP, APIs), and engage on the bespoke work where calibration matters.",
-    "about.thesis.title": "Why this exists",
+    "about.thesis.title": "Why we exist",
     "about.thesis.lede":
-      "Three observations that shaped the design.",
-    "about.thesis.cell1.title": "Agents need exposed maths",
+      "Three PMO challenges in the age of AI.",
+    "about.thesis.cell1.title": "AI agents need mathematical logic",
     "about.thesis.cell1.body":
-      "PMO software has hidden its calculations for thirty years. Agents need the opposite: deterministic seeds, citations, reproducible outputs, so the human signing off can trace every number.",
-    "about.thesis.cell2.title": "Open kernel, paid connectors",
+      "Plausible-sounding reasoning and ad-hoc fixes don't solve the problem. Giving AI agents mathematically verified tools turns your organisation's tacit knowledge into a reproducible system.",
+    "about.thesis.cell2.title": "Open-source kernel, paid plugins",
     "about.thesis.cell2.body":
-      "The reasoning kernel stays MIT — community contribution is the only honest path. The value is in the data connectors and the calibration data, not in paywalling formulas.",
+      "Core logic and tools are open source — we contribute to the PMO community. The value lies in accumulated data and the systematising of tacit knowledge, not in monetising the basic tools.",
     "about.thesis.cell3.title": "Strategy is the human work",
     "about.thesis.cell3.body":
       "Status rollups, variance reports, schedule maintenance — agents will do all of it. Strategic PMO work — where to invest, what to stop, how to communicate trade-offs — is upstream and stays human.",
-    "about.people.title": "People",
+    "about.people.title": "Team",
     "about.people.lede":
-      "A small Tokyo-based team. PMO operators, mathematicians, AI engineers. Headshots pending — we're still camera-shy.",
+      "A Japan-based human + AI team — practising PMOs, AI mathematicians, and an AI DevSecOps team. We turn the PMO's tacit knowledge into maths and build it into tools.",
     "about.contact.title": "Get in touch",
     "about.contact.lede":
       "Three ways to reach us.",
     "about.contact.method1.label": "open source",
     "about.contact.method1.body":
-      "Issues, PRs, RFCs on GitHub. Public-by-default for everything technical.",
+      "Issues and RFCs on GitHub. To guard against malware and supply-chain attacks, we don't accept pull requests from external or unverified parties.",
     "about.contact.method2.label": "consulting",
     "about.contact.method2.body":
       "Email us with a one-paragraph brief. We respond within two business days.",
@@ -259,7 +254,7 @@ export const ui = {
     "nav.tools": "ツール",
     "nav.blog": "ブログ",
     "nav.docs": "ドキュメント",
-    "nav.about": "私たち",
+    "nav.about": "チーム",
     "nav.contact": "お問い合わせ",
     "footer.copy": "pmo.run",
     "footer.github": "GitHub",
@@ -277,7 +272,7 @@ export const ui = {
     "footer.link.plugins": "プラグイン",
     "footer.link.engagement": "エンゲージメントモデル",
     "footer.builton": "Astro + Svelte / Cloudflareで構築",
-    "footer.location": "東京 · 2024年から",
+    "footer.location": "日本 · 2026年から",
 
     "tools.tco": "TCO計算ツール",
     "tools.tco.desc": "総所有コスト分析で、購買判断を数値で裏付ける。",
@@ -288,23 +283,22 @@ export const ui = {
     "home.hero.meta1": "§00 / index",
     "home.hero.meta2": "MIT + 商用",
     "home.hero.meta3": "EN · JA",
-    "home.hero.meta4": "東京 · リモート",
+    "home.hero.meta4": "日本 · リモート",
     "home.hero.line1": "数理に基づくロジックを、",
     "home.hero.line2": "PMOと、それを支援するAIエージェントに。",
     "home.hero.body":
       "PERT・モンテカルロ・ベイズ更新・TCOなど、シニアアナリストが使う手法をClaudeや任意のエージェントが扱えるよう、Skill・MCPサーバー・APIとしてオープンソースで提供します。",
     "home.hero.ctaPrimary": "ドキュメントを読む",
-    "home.hero.ctaSecondary": "CLIをインストール",
-    "home.hero.caption": "npm i -g pmo · 2.4MB · zero deps",
+    "home.hero.ctaSecondary": "Skillをインストール",
     "home.metric.skills.label": "Skills",
-    "home.metric.skills.value": "12",
+    "home.metric.skills.value": "4",
     "home.metric.skills.sub": "Claudeネイティブ",
-    "home.metric.mcp.label": "MCPサーバー",
-    "home.metric.mcp.value": "6",
-    "home.metric.mcp.sub": "stdio + SSE",
+    "home.metric.mcp.label": "MCPツール",
+    "home.metric.mcp.value": "5",
+    "home.metric.mcp.sub": "stdio · プロトタイプ",
     "home.metric.apis.label": "API",
-    "home.metric.apis.value": "REST + gRPC",
-    "home.metric.apis.sub": "安定版",
+    "home.metric.apis.value": "REST",
+    "home.metric.apis.sub": "FastAPI",
     "home.metric.methods.label": "手法",
     "home.metric.methods.value": "PERT · MC · ベイズ",
     "home.metric.methods.sub": "査読済み",
@@ -314,11 +308,7 @@ export const ui = {
     "home.premise.body":
       "代替を売るのではなく、次世代のPMO業務を支える基盤を提供します。カーネルはOSS、データ連携は有償プラグイン、案件固有の分析は伴走型コンサルティングで。",
     "home.premise.quote":
-      "p90の納期を12秒で算出してくれるモデルが、どのタスクを解放すべきかは知らない。私たちは、その後者を補います。",
-    "home.premise.note":
-      "多くのPMOソフトウェアは計算過程を隠しています。エージェントには、引用・決定論的シード・再現可能な出力とともに、計算過程が露出している必要があります。",
-    "home.premise.observed":
-      "— 14件のPMOエンゲージメントでの観察、2024〜2026",
+      "AIエージェントは納期を数秒で見積もれますが、次にどのタスクを解放すべきかは判断できません。pmo.runは、PMOとそのエージェントに、その両方を担うための数理ロジックを — すべての数値を追跡可能な形で提供します。",
 
     "home.methods.title": "数理に裏づけられたロジックを、ツールとして。",
     "home.methods.lede":
@@ -344,7 +334,7 @@ export const ui = {
 
     "home.opencore.title": "三層、ひとつの契約。",
     "home.opencore.lede":
-      "推論カーネルは寛容なライセンスを保ち、それを変えません。有償機能とコンサルティングは、その上に綺麗に重なります — 決して前に立ちません。",
+      "3層のコアはオープンソース。基幹ロジックとツールはMITライセンス。有償プラグインとコンサルティングサービスは貴社独自の層として追加可能です。",
     "home.opencore.col.layer": "層",
     "home.opencore.col.contents": "内容",
     "home.opencore.col.audience": "対象",
@@ -374,12 +364,12 @@ export const ui = {
       "顧客のJira / ServiceNow / SAPに接続。必要ならOEMでライセンス統合も。",
     "home.audience.consulting.label": "コンサルティングファーム",
     "home.audience.consulting.body":
-      "私たちの手法カーネルを御社のエンゲージメントの下で活用。分析の難易度に応じて共同提供します。",
+      "PMOロジックとツールで過去データを活用。貴社のインサイトを強化します。",
 
-    "home.start.title": "ドキュメントを読んで、二行でインストール。",
+    "home.start.title": "リポジトリをクローンして、すぐに利用可能。",
     "home.start.docs": "ドキュメントを読む",
     "home.start.github": "GitHubで見る",
-    "home.start.consult": "あるいは: コンサルティング案件をご相談ください →",
+    "home.start.consult": "あるいは: コンサルティングをご相談ください →",
 
     "landing.trust.opensource": "オープンソース",
     "landing.trust.privacy": "プライバシー優先",
@@ -395,31 +385,31 @@ export const ui = {
     "contact.body": "ご質問、フィードバック、提携に関するお問い合わせ：",
     "contact.email": "メールで連絡",
 
-    "about.hero.eyebrow": "§00 / 私たち",
+    "about.hero.eyebrow": "§00 / about",
     "about.hero.title": "オープンな手法を、戦略的PMOのために。",
     "about.hero.body":
       "pmo.runは、AIツールと人の判断を組み合わせたPMOサービスのオープンな基盤です。数理を公開し、提供面（Skills・MCP・API）を運用し、校正が要となる個別案件に伴走します。",
-    "about.thesis.title": "なぜ存在するのか",
+    "about.thesis.title": "私たちの存在意義",
     "about.thesis.lede":
-      "設計を方向づけた、三つの観察。",
-    "about.thesis.cell1.title": "エージェントには露出した数理が必要",
+      "AI時代における3つのPMO課題。",
+    "about.thesis.cell1.title": "AIエージェントには数理ロジックが必要",
     "about.thesis.cell1.body":
-      "PMOソフトウェアは30年間、計算を隠してきました。エージェントには逆が必要です：決定論的シード、引用、再現可能な出力。承認する人間が、すべての数値を辿れるように。",
-    "about.thesis.cell2.title": "OSSカーネル、有償コネクタ",
+      "それっぽい推論や、場当たり的な対応は問題を解決しません。AIエージェントに数理的に検証されたツールを与えることで、貴社の「暗黙知」を再現性のあるシステムに変容させます。",
+    "about.thesis.cell2.title": "OSSカーネル、有償プラグイン",
     "about.thesis.cell2.body":
-      "推論カーネルはMITで維持します — 誠実な唯一の道はコミュニティ貢献です。価値はデータ連携と校正データにあり、数式を有料化することにはありません。",
+      "基幹ロジックとツールはオープンソース。PMOコミュニティに貢献します。価値は蓄積されたデータや暗黙知のシステム化にあり、基本ツールの収益化ではありません。",
     "about.thesis.cell3.title": "戦略は人の仕事",
     "about.thesis.cell3.body":
       "ステータス集約、差異報告、スケジュール維持 — すべてエージェントが担います。戦略的PMO業務 — どこに投資するか、何を止めるか、トレードオフをどう伝えるか — は上流の人の仕事として残ります。",
-    "about.people.title": "メンバー",
+    "about.people.title": "チームメンバー",
     "about.people.lede":
-      "東京を拠点とする小さなチーム。PMO実務者、数学者、AIエンジニア。写真は準備中 — 私たちはまだカメラ慣れしていません。",
+      "日本を拠点とする「人間＋AI」チーム。現役PMO、AI数学者、AI DevSecOpsチーム。PMOの暗黙知をAIが数式化し、ツールを開発しています。",
     "about.contact.title": "コンタクト",
     "about.contact.lede":
       "三つの連絡経路。",
     "about.contact.method1.label": "オープンソース",
     "about.contact.method1.body":
-      "Issue、PR、RFCはGitHubへ。技術的なことはすべて、原則として公開で。",
+      "GitHubのIssueとRFCをどうぞ。マルウェアやサプライチェーン攻撃を防ぐため、外部・未確認の主体からのプルリクエストは受け付けていません。",
     "about.contact.method2.label": "コンサルティング",
     "about.contact.method2.body":
       "概要を一段落でメールください。二営業日以内に返信します。",

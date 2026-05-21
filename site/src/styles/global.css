@@ -612,10 +612,16 @@ p { text-wrap: pretty; }
   letter-spacing: -0.015em;
 }
 .prose a { text-decoration: underline; text-underline-offset: 3px; }
-.prose code {
+/* inline code only — never restyle tokens inside Shiki <pre> blocks */
+.prose :not(pre) > code {
   font-family: var(--mono);
   font-size: 0.9em;
   padding: 1px 4px;
   background: var(--paper-2);
   border-radius: 2px;
+}
+.prose pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
 }

@@ -76,8 +76,7 @@ const tcoSegs: TcoSeg[] = [];
 
         <div class="hero__ctas">
           <a href={`/${lang}/docs/`} class="btn">{t("home.hero.ctaPrimary")}</a>
-          <a href={`/${lang}/docs/api-overview/`} class="btn btn--ghost">{t("home.hero.ctaSecondary")} →</a>
-          <span class="hero__caption">{t("home.hero.caption")}</span>
+          <a href="#install" class="btn btn--ghost">{t("home.hero.ctaSecondary")} →</a>
         </div>
 
         <div class="metric-strip">
@@ -101,15 +100,11 @@ const tcoSegs: TcoSeg[] = [];
       title={t("home.premise.title")}
       lede={t("home.premise.body")}
     />
-    <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:32px;align-items:start;">
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:32px;align-items:start;">
       <div></div>
-      <blockquote class="serif" style="margin:0;font-family:var(--serif);font-size:22px;line-height:1.45;color:var(--ink);letter-spacing:-0.005em;">
-        “{t("home.premise.quote")}”
+      <blockquote class="serif" style="margin:0;font-family:var(--serif);font-size:22px;line-height:1.45;color:var(--ink);letter-spacing:-0.005em;max-width:46ch;">
+        {t("home.premise.quote")}
       </blockquote>
-      <div style="font-size:14px;color:var(--ink-2);line-height:1.6;">
-        <p style="margin:0;">{t("home.premise.note")}</p>
-        <div class="label" style="margin-top:16px;">{t("home.premise.observed")}</div>
-      </div>
     </div>
   </section>
 
@@ -209,7 +204,7 @@ const tcoSegs: TcoSeg[] = [];
             {tcoSegs.map((seg) => (
               <g>
                 <rect x={seg.x} y="60" width={seg.w - 1} height="40" fill={seg.colour} />
-                <text x={seg.x} y="115" class="label">{seg.label} · {seg.pct}%</text>
+                <text x={seg.x + (seg.w - 1) / 2} y="114" text-anchor="middle" class="label">{seg.pct}%</text>
               </g>
             ))}
             <text x="20" y="48" class="label">TCO over 36 months</text>
@@ -226,7 +221,7 @@ const tcoSegs: TcoSeg[] = [];
   </section>
 
   {/* §03 Install */}
-  <section class="section section--paper-2">
+  <section id="install" class="section section--paper-2" style="scroll-margin-top:72px;">
     <SectionHead
       num="03"
       label="install"
@@ -236,35 +231,43 @@ const tcoSegs: TcoSeg[] = [];
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
       <div class="spec">
         <div class="spec__bar">
-          <span>~/skills/pmo.skill.md</span>
+          <span>~/.claude/skills</span>
           <span>claude code</span>
         </div>
-        <pre class="code code--flush"><span class="c-com"># install the skill</span>
-$ pmo skills install <span class="c-str">@pmo/pert</span>
+        <pre class="code code--flush"><span class="c-com"># clone the open-source repo</span>
+$ git clone <span class="c-str">https://github.com/lemur47/logic</span>
+$ <span class="c-fn">cd</span> logic
+
+<span class="c-com"># install the skills for Claude Code</span>
+$ cp -r skills/* ~/.claude/skills/
 
 <span class="c-com"># Claude can now reason with PERT</span>
 <span class="c-prompt">claude&gt;</span> what's the critical path on the Q3 plan?
 
-<span class="c-fn">→ pmo.pert.analyze</span>(<span class="c-str">"./plans/q3.yml"</span>)
+<span class="c-fn">→ skill: pmo/pert</span>
 <span class="c-com">  critical: A → B → D → F → G  (14.2d)</span>
 <span class="c-com">  slack:    C: 2.1d, E: 0.8d</span></pre>
       </div>
       <div class="spec">
         <div class="spec__bar">
-          <span>mcp.config.json</span>
+          <span>.mcp.json</span>
           <span>any client</span>
         </div>
-        <pre class="code code--flush"><span class="c-key">{`{`}</span>
+        <pre class="code code--flush"><span class="c-com"># after cloning: install + run the server</span>
+$ uv pip install -e .
+$ uv run python -m mcp_server.server
+
+<span class="c-com"># or wire it into any MCP client</span>
+<span class="c-key">{`{`}</span>
   <span class="c-str">"mcpServers"</span>: <span class="c-key">{`{`}</span>
-    <span class="c-str">"pmo"</span>: <span class="c-key">{`{`}</span>
-      <span class="c-str">"command"</span>: <span class="c-str">"pmo"</span>,
-      <span class="c-str">"args"</span>: [<span class="c-str">"mcp"</span>, <span class="c-str">"--stdio"</span>],
-      <span class="c-str">"env"</span>: {`{ `}<span class="c-str">"PMO_PROFILE"</span>: <span class="c-str">"strict"</span>{` }`}
+    <span class="c-str">"pmo-logic"</span>: <span class="c-key">{`{`}</span>
+      <span class="c-str">"command"</span>: <span class="c-str">"uv"</span>,
+      <span class="c-str">"args"</span>: [<span class="c-str">"run"</span>, <span class="c-str">"python"</span>, <span class="c-str">"-m"</span>, <span class="c-str">"mcp_server.server"</span>]
     <span class="c-key">{`}`}</span>
   <span class="c-key">{`}`}</span>
 <span class="c-key">{`}`}</span>
 
-<span class="c-com"># exposes 24 tools, 12 prompts, 6 resources</span></pre>
+<span class="c-com"># prototype · 5 tools over stdio</span></pre>
       </div>
     </div>
   </section>
@@ -303,7 +306,7 @@ $ pmo skills install <span class="c-str">@pmo/pert</span>
           <td class="num">seat / usage</td>
         </tr>
         <tr>
-          <td><span class="chip chip--cons">CONS</span> <strong style="margin-left:6px;">Strategic</strong></td>
+          <td><span class="chip chip--cons">SERVICE</span> <strong style="margin-left:6px;">Strategic</strong></td>
           <td>{t("home.opencore.row3.contents")}</td>
           <td>{t("home.opencore.row3.audience")}</td>
           <td class="num">contract</td>

@@ -8,6 +8,7 @@ const t = useTranslations(lang);
 const path = Astro.url.pathname;
 
 const links = [
+  { href: `/${lang}/`, label: t("nav.home"), match: `/${lang}/`, exact: true },
   { href: `/${lang}/tools/`, label: t("nav.tools"), match: "/tools" },
   { href: `/${lang}/docs/`, label: t("nav.docs"), match: "/docs" },
   { href: `/${lang}/blog/`, label: t("nav.blog"), match: "/blog" },
@@ -15,7 +16,9 @@ const links = [
   { href: `/${lang}/contact/`, label: t("nav.contact"), match: "/contact" },
 ];
 
-const isCurrent = (match: string) => path.includes(match);
+const stripSlash = (s: string) => s.replace(/\/+$/, "");
+const isCurrent = (match: string, exact = false) =>
+  exact ? stripSlash(path) === stripSlash(match) : path.includes(match);
 ---
 
 <nav class="nav">
@@ -26,8 +29,8 @@ const isCurrent = (match: string) => path.includes(match);
   </a>
 
   <div class="nav__links">
-    {links.map(({ href, label, match }) => (
-      <a href={href} aria-current={isCurrent(match) ? "page" : undefined}>{label}</a>
+    {links.map(({ href, label, match, exact }) => (
+      <a href={href} aria-current={isCurrent(match, exact) ? "page" : undefined}>{label}</a>
     ))}
   </div>
 
