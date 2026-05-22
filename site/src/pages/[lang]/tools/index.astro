@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
 import { useTranslations } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
 
@@ -11,22 +12,26 @@ const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 
 const tools = [
-  { href: `/${lang}/tools/tco/`, name: t("tools.tco"), desc: t("tools.tco.desc") },
-  { href: `/${lang}/tools/pert/`, name: t("tools.pert"), desc: t("tools.pert.desc") },
-  { href: `/${lang}/docs/api-overview/`, name: t("tools.evm"), desc: t("tools.evm.desc") },
+  { href: `/${lang}/tools/tco/`, label: "TCO", name: t("tools.tco"), desc: t("tools.tco.desc") },
+  { href: `/${lang}/tools/pert/`, label: "PERT", name: t("tools.pert"), desc: t("tools.pert.desc") },
+  { href: `/${lang}/tools/breakeven/`, label: "Break-even", name: t("tools.breakeven"), desc: t("tools.breakeven.desc") },
 ];
 ---
 
-<Base title={t("nav.tools")}>
-  <h1 class="text-3xl font-bold mb-8">{t("nav.tools")}</h1>
-  <ul class="grid gap-4">
-    {tools.map(({ href, name, desc }) => (
-      <li>
-        <a href={href} class="block border rounded p-4 hover:border-gray-400">
-          <h2 class="font-semibold">{name}</h2>
-          <p class="text-sm text-gray-600">{desc}</p>
+<Base title={t("tools.title")} bleed>
+  <section class="section section--tight">
+    <SectionHead num="00" label="tools" title={t("tools.title")} />
+    <div class="grid-3">
+      {tools.map(({ href, label, name, desc }) => (
+        <a href={href} class="cell" style="text-decoration:none;color:inherit;">
+          <div class="label label--ink">{label}</div>
+          <h3>{name}</h3>
+          <p>{desc}</p>
+          <div style="margin-top:8px;">
+            <span class="chip chip--oss">OSS</span>
+          </div>
         </a>
-      </li>
-    ))}
-  </ul>
+      ))}
+    </div>
+  </section>
 </Base>

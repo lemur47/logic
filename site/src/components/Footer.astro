@@ -1,23 +1,60 @@
 ---
+import Mark from "./Mark.astro";
 import { getLangFromUrl, useTranslations } from "../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-gray-200 mt-auto">
-  <div class="max-w-4xl mx-auto px-4 py-6 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-500">
-    <span>&copy; {new Date().getFullYear()} {t("footer.copy")}</span>
-    <nav class="flex gap-6">
-      <a href="https://github.com/lemur47/logic" target="_blank" class="hover:text-gray-900">
-        {t("footer.github")}
-      </a>
-      <a href={`/${lang}/blog/`} class="hover:text-gray-900">
-        {t("footer.blog")}
-      </a>
-      <a href={`/${lang}/docs/`} class="hover:text-gray-900">
-        {t("footer.docs")}
-      </a>
-    </nav>
+<footer class="footer">
+  <div>
+    <a href={`/${lang}/`} class="nav__brand" style="margin-bottom: 12px;">
+      <Mark />
+      <span>pmo.run</span>
+    </a>
+    <p class="footer__blurb">{t("footer.blurb")}</p>
+    <div class="footer__chips">
+      <span class="chip chip--oss">Open-Core</span>
+      <span class="chip">MIT + Commercial</span>
+    </div>
+  </div>
+
+  <div>
+    <h4>{t("footer.section.oss")}</h4>
+    <ul>
+      <li><a href={`/${lang}/docs/`}>{t("footer.link.skills")}</a></li>
+      <li><a href={`/${lang}/docs/api-overview/`}>{t("footer.link.api")}</a></li>
+      <li><a href="https://github.com/lemur47/logic" target="_blank" rel="noopener">{t("footer.github")}</a></li>
+    </ul>
+  </div>
+
+  <div>
+    <h4>{t("footer.section.paid")}</h4>
+    <ul>
+      <li><a href={`/${lang}/tools/`}>{t("footer.link.tools")}</a></li>
+      <li><a href={`/${lang}/about/`}>{t("footer.link.plugins")}</a></li>
+    </ul>
+  </div>
+
+  <div>
+    <h4>{t("footer.section.cons")}</h4>
+    <ul>
+      <li><a href={`/${lang}/about/`}>{t("footer.link.engagement")}</a></li>
+      <li><a href={`/${lang}/contact/`}>{t("nav.contact")}</a></li>
+    </ul>
+  </div>
+
+  <div>
+    <h4>{t("footer.section.resources")}</h4>
+    <ul>
+      <li><a href={`/${lang}/docs/`}>{t("footer.docs")}</a></li>
+      <li><a href={`/${lang}/blog/`}>{t("footer.blog")}</a></li>
+    </ul>
+  </div>
+
+  <div class="footer__bottom">
+    <span>© {year} pmo.run · {t("footer.builton")}</span>
+    <span>{t("footer.location")}</span>
   </div>
 </footer>

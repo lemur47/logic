@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
 import { useTranslations } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
 
@@ -11,10 +12,17 @@ const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 ---
 
-<Base title={t("tools.breakeven")}>
-  <h1 class="text-3xl font-bold mb-4">{t("tools.breakeven")}</h1>
-  <p class="text-gray-600 mb-8">{t("tools.breakeven.desc")}</p>
-  <div class="border rounded p-8 text-center text-gray-400">
-    Coming soon
-  </div>
+<Base title={t("tools.breakeven")} bleed>
+  <section class="section section--tight">
+    <SectionHead num="03" label="tools · break-even" title={t("tools.breakeven")} lede={t("tools.breakeven.desc")} />
+    <div class="spec">
+      <div class="spec__bar">
+        <span>status</span>
+        <span>roadmap</span>
+      </div>
+      <div class="spec__body" style="text-align:center;color:var(--ink-3);">
+        Coming soon
+      </div>
+    </div>
+  </section>
 </Base>

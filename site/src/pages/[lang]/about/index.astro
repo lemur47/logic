@@ -1,0 +1,96 @@
+---
+import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
+import { useTranslations } from "../../../i18n/utils";
+import type { Lang } from "../../../i18n/ui";
+
+export function getStaticPaths() {
+  return [{ params: { lang: "en" } }, { params: { lang: "ja" } }];
+}
+
+const { lang } = Astro.params as { lang: Lang };
+const t = useTranslations(lang);
+---
+
+<Base title={t("nav.about")} bleed>
+  {/* Hero */}
+  <section class="hero">
+    <div class="hero__grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span>{t("about.hero.eyebrow")}</div>
+      </div>
+      <div>
+        <h1 class="hero__title" style="font-size:clamp(36px,4.4vw,64px);">
+          {t("about.hero.title")}
+        </h1>
+        <p class="hero__lede">{t("about.hero.body")}</p>
+      </div>
+    </div>
+  </section>
+
+  {/* §01 Thesis */}
+  <section class="section section--tight section--paper-2">
+    <SectionHead num="01" label="thesis" title={t("about.thesis.title")} lede={t("about.thesis.lede")} />
+    <div class="grid-3">
+      <div class="cell">
+        <div class="label label--ink">01</div>
+        <h3>{t("about.thesis.cell1.title")}</h3>
+        <p>{t("about.thesis.cell1.body")}</p>
+      </div>
+      <div class="cell">
+        <div class="label label--ink">02</div>
+        <h3>{t("about.thesis.cell2.title")}</h3>
+        <p>{t("about.thesis.cell2.body")}</p>
+      </div>
+      <div class="cell">
+        <div class="label label--ink">03</div>
+        <h3>{t("about.thesis.cell3.title")}</h3>
+        <p>{t("about.thesis.cell3.body")}</p>
+      </div>
+    </div>
+  </section>
+
+  {/* §02 People (placeholder cells) */}
+  <section class="section section--tight">
+    <SectionHead num="02" label="team" title={t("about.people.title")} lede={t("about.people.lede")} />
+    <div class="grid-4">
+      {[1, 2, 3, 4].map((i) => (
+        <div class="cell">
+          <div class="ph">photo</div>
+          <div class="label" style="margin-top:8px;">member · {String(i).padStart(2, "0")}</div>
+          <h3 style="color:var(--ink-3);">Coming soon</h3>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {/* §03 Contact (dark) */}
+  <section class="section section--dark">
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:32px;">
+      <div class="label">§03 / contact</div>
+      <div>
+        <h2 class="section__title" style="color:var(--paper);max-width:24ch;">
+          {t("about.contact.title")}
+        </h2>
+        <p class="section__lede">{t("about.contact.lede")}</p>
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+          <div style="border-left:2px solid var(--accent);padding-left:14px;">
+            <div class="label label--accent">{t("about.contact.method1.label")}</div>
+            <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("about.contact.method1.body")}</p>
+            <a href="https://github.com/lemur47/logic" target="_blank" rel="noopener" class="label" style="margin-top:10px;display:inline-block;color:var(--paper);">github →</a>
+          </div>
+          <div style="border-left:2px solid var(--accent);padding-left:14px;">
+            <div class="label label--accent">{t("about.contact.method2.label")}</div>
+            <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("about.contact.method2.body")}</p>
+            <a href="mailto:hi@pmo.run" class="label" style="margin-top:10px;display:inline-block;color:var(--paper);">hi@pmo.run →</a>
+          </div>
+          <div style="border-left:2px solid var(--accent);padding-left:14px;">
+            <div class="label label--accent">{t("about.contact.method3.label")}</div>
+            <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("about.contact.method3.body")}</p>
+            <a href={`/${lang}/contact/`} class="label" style="margin-top:10px;display:inline-block;color:var(--paper);">brief us →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

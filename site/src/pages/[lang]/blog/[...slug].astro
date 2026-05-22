@@ -6,7 +6,7 @@ import { parseEntryLocale } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
 
 export async function getStaticPaths() {
-  const showDrafts = import.meta.env.DEV || import.meta.env.PUBLIC_SHOW_DRAFTS === 'true';
+  const showDrafts = import.meta.env.DEV || import.meta.env.PUBLIC_SHOW_DRAFTS === "true";
   const posts = await getCollection("blog", (entry) => showDrafts || !entry.data.draft);
   return posts.map((post) => {
     const { lang, slug } = parseEntryLocale(post.id);
@@ -20,19 +20,22 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 const { lang } = Astro.params as { lang: Lang };
+
+const dateStr = post.data.pubDate.toLocaleDateString(lang, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
 ---
 
-<Base title={post.data.title} description={post.data.description}>
+<Base title={post.data.title} description={post.data.description} narrow>
   <article class="prose prose-gray max-w-none">
-    <header class="mb-8 not-prose">
-      <h1 class="text-3xl font-bold mb-2">{post.data.title}</h1>
-      <p class="text-sm text-gray-500">
-        {post.data.pubDate.toLocaleDateString(lang, {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}
-      </p>
+    <header class="not-prose" style="margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid var(--rule);">
+      <div class="label">{dateStr}</div>
+      <h1 style="margin:12px 0 0;font-size:clamp(28px, 3.6vw, 44px);font-weight:500;letter-spacing:-0.02em;line-height:1.15;">{post.data.title}</h1>
+      {post.data.description && (
+        <p style="margin:14px 0 0;color:var(--ink-2);font-size:17px;line-height:1.5;max-width:60ch;">{post.data.description}</p>
+      )}
     </header>
     <Content />
     <BlogCta lang={lang} tags={post.data.tags} />

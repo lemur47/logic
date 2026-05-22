@@ -1,5 +1,6 @@
 ---
 import Base from "../../../layouts/Base.astro";
+import SectionHead from "../../../components/SectionHead.astro";
 import { getCollection } from "astro:content";
 import { useTranslations, parseEntryLocale } from "../../../i18n/utils";
 import type { Lang } from "../../../i18n/ui";
@@ -11,43 +12,52 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 
-const showDrafts = import.meta.env.DEV || import.meta.env.PUBLIC_SHOW_DRAFTS === 'true';
+const showDrafts = import.meta.env.DEV || import.meta.env.PUBLIC_SHOW_DRAFTS === "true";
 const allPosts = await getCollection("blog", (entry) => {
   const { lang: entryLang } = parseEntryLocale(entry.id);
   return entryLang === lang && (showDrafts || !entry.data.draft);
 });
 
 const posts = allPosts.sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 ---
 
-<Base title={t("blog.title")}>
-  <h1 class="text-3xl font-bold mb-8">{t("blog.title")}</h1>
-  {posts.length === 0 ? (
-    <p class="text-gray-500">{t("blog.empty")}</p>
-  ) : (
-    <ul class="grid gap-6">
-      {posts.map((post) => {
-        const { slug } = parseEntryLocale(post.id);
-        return (
-          <li>
-            <a href={`/${lang}/blog/${slug}/`} class="block group">
-              <h2 class="text-xl font-semibold group-hover:underline">
-                {post.data.title}
-              </h2>
-              <p class="text-sm text-gray-500">
-                {post.data.pubDate.toLocaleDateString(lang, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-              <p class="text-gray-600 mt-1">{post.data.description}</p>
-            </a>
-          </li>
-        );
-      })}
-    </ul>
-  )}
+<Base title={t("blog.title")} bleed>
+  <section class="section section--tight">
+    <SectionHead num="00" label="blog" title={t("blog.title")} />
+
+    {posts.length === 0 ? (
+      <p class="muted">{t("blog.empty")}</p>
+    ) : (
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;">
+        {posts.map((post, i) => {
+          const { slug } = parseEntryLocale(post.id);
+          const dateStr = post.data.pubDate.toLocaleDateString(lang, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+          const isFirst = i === 0;
+          const tagSummary = (post.data.tags ?? []).slice(0, 2).join(" · ");
+          return (
+            <li style={`border-top:1px solid ${isFirst ? "var(--ink)" : "var(--rule)"};padding:28px 0;display:grid;grid-template-columns:120px 1fr;gap:24px;`}>
+              <div>
+                <div class="label">{dateStr}</div>
+                {tagSummary && <div class="label" style="margin-top:6px;color:var(--ink-3);">{tagSummary}</div>}
+              </div>
+              <div>
+                <a href={`/${lang}/blog/${slug}/`} style="text-decoration:none;">
+                  <h3 style="margin:0;font-size:20px;font-weight:500;letter-spacing:-0.01em;color:var(--ink);">{post.data.title}</h3>
+                  {post.data.description && (
+                    <p style="margin:8px 0 0;color:var(--ink-2);font-size:14px;line-height:1.55;">{post.data.description}</p>
+                  )}
+                </a>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+  </section>
 </Base>

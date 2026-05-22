@@ -18,14 +18,15 @@ const tool = tags.includes("pert")
 ---
 
 {tool && (
-  <div class="not-prose mt-12 border border-gray-200 rounded-lg bg-gray-50 p-6 text-center">
-    <p class="text-lg font-semibold mb-2">{tool.title}</p>
-    <p class="text-sm text-gray-600 mb-4">{tool.desc}</p>
-    <a
-      href={tool.href}
-      class="inline-block bg-gray-900 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 text-sm"
-    >
-      {tool.title} &rarr;
-    </a>
-  </div>
+  <aside class="not-prose spec" style="margin-top:56px;">
+    <div class="spec__bar">
+      <span>try it</span>
+      <span>{tags.includes("pert") ? "pmo.pert" : "pmo.tco"}</span>
+    </div>
+    <div class="spec__body" style="text-align:center;">
+      <p style="margin:0;font-size:17px;font-weight:500;">{tool.title}</p>
+      <p style="margin:6px 0 16px;color:var(--ink-2);font-size:14px;">{tool.desc}</p>
+      <a href={tool.href} class="btn">{tool.title} →</a>
+    </div>
+  </aside>
 )}

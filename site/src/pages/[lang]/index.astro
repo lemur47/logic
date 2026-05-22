@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import SectionHead from "../../components/SectionHead.astro";
 import { useTranslations } from "../../i18n/utils";
 import type { Lang } from "../../i18n/ui";
 
@@ -10,76 +11,352 @@ export function getStaticPaths() {
 const { lang } = Astro.params as { lang: Lang };
 const t = useTranslations(lang);
 
-const features = [
-  {
-    title: t("landing.features.cost.title"),
-    desc: t("landing.features.cost.desc"),
-    href: `/${lang}/tools/tco/`,
-  },
-  {
-    title: t("landing.features.estimation.title"),
-    desc: t("landing.features.estimation.desc"),
-    href: `/${lang}/tools/pert/`,
-  },
-  {
-    title: t("landing.features.tracking.title"),
-    desc: t("landing.features.tracking.desc"),
-    href: `/${lang}/docs/api-overview/`,
-  },
+const metrics = [
+  ["home.metric.skills.label", "home.metric.skills.value", "home.metric.skills.sub"],
+  ["home.metric.mcp.label", "home.metric.mcp.value", "home.metric.mcp.sub"],
+  ["home.metric.apis.label", "home.metric.apis.value", "home.metric.apis.sub"],
+  ["home.metric.methods.label", "home.metric.methods.value", "home.metric.methods.sub"],
+] as const;
+
+/* PERT diagram node coords */
+const pertNodes: Array<[number, number, string]> = [
+  [40, 80, "A"],
+  [110, 40, "B"],
+  [110, 120, "C"],
+  [190, 60, "D"],
+  [190, 130, "E"],
+  [270, 80, "F"],
+  [330, 80, "G"],
 ];
 
-const trustItems = [
-  t("landing.trust.opensource"),
-  t("landing.trust.privacy"),
-  t("landing.trust.noaccount"),
-  t("landing.trust.api"),
+/* Monte-Carlo bars */
+const mcBars = [3, 5, 8, 12, 18, 24, 29, 32, 30, 26, 20, 15, 11, 7, 4, 2];
+const mcMax = Math.max(...mcBars);
+
+/* TCO segments — pre-computed widths/offsets */
+type TcoSeg = { label: string; pct: number; colour: string; x: number; w: number };
+const tcoSegsRaw: Array<[string, number, string]> = [
+  ["license", 22, "var(--ink)"],
+  ["ops", 28, "var(--ink-2)"],
+  ["integration", 18, "var(--ink-3)"],
+  ["training", 14, "var(--accent)"],
+  ["hidden", 18, "oklch(0.75 0.04 28)"],
 ];
+const tcoSegs: TcoSeg[] = [];
+{
+  let cursor = 20;
+  for (const [label, pct, colour] of tcoSegsRaw) {
+    const w = pct * 3.2;
+    tcoSegs.push({ label, pct, colour, x: cursor, w });
+    cursor += w;
+  }
+}
 ---
 
-<Base wide>
-  <section class="py-24 text-center max-w-3xl mx-auto">
-    <h1 class="text-3xl sm:text-5xl font-bold tracking-tight">{t("landing.hero")}</h1>
-    <p class="text-lg sm:text-xl text-gray-600 mt-6 max-w-2xl mx-auto">
-      {t("landing.sub")}
-    </p>
-    <a
-      href={`/${lang}/tools/pert/`}
-      class="mt-8 inline-block bg-gray-900 text-white px-6 sm:px-8 py-4 rounded-lg font-medium hover:bg-gray-800 text-base sm:text-lg"
-    >
-      {t("landing.cta")}
-    </a>
-  </section>
+<Base bleed>
+  {/* Hero */}
+  <section class="hero">
+    <div class="hero__grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span>{t("home.hero.eyebrow")}</div>
+        <div class="hero__sidebar hero__sidebar-meta">
+          {t("home.hero.meta1")}<br/>
+          {t("home.hero.meta2")}<br/>
+          {t("home.hero.meta3")}<br/>
+          {t("home.hero.meta4")}
+        </div>
+      </div>
 
-  <section class="py-8 border-y border-gray-100">
-    <div class="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-gray-500">
-      {trustItems.map((item, i) => (
-        <>
-          {i > 0 && <span aria-hidden="true">&middot;</span>}
-          <span>{item}</span>
-        </>
-      ))}
+      <div>
+        <h1 class="hero__title">
+          {t("home.hero.line1")}<br/>
+          <span class="hero__title--muted">{t("home.hero.line2")}</span>
+        </h1>
+        <p class="hero__lede">{t("home.hero.body")}</p>
+
+        <div class="hero__ctas">
+          <a href={`/${lang}/docs/`} class="btn">{t("home.hero.ctaPrimary")}</a>
+          <a href="#install" class="btn btn--ghost">{t("home.hero.ctaSecondary")} →</a>
+        </div>
+
+        <div class="metric-strip">
+          {metrics.map(([k, v, s]) => (
+            <div class="metric">
+              <div class="label">{t(k)}</div>
+              <div class="metric__value">{t(v)}</div>
+              <div class="metric__sub">{t(s)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="py-20">
-    <h2 class="text-2xl font-bold text-center mb-12">{t("landing.features.title")}</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {features.map(({ title, desc, href }) => (
-        <a href={href} class="block border border-gray-200 rounded-lg p-6 hover:border-gray-400 transition-colors">
-          <h3 class="text-lg font-semibold mb-2">{title}</h3>
-          <p class="text-sm text-gray-600 leading-relaxed">{desc}</p>
-        </a>
-      ))}
+  {/* §01 Premise */}
+  <section class="section section--tight section--paper-2">
+    <SectionHead
+      num="01"
+      label="premise"
+      title={t("home.premise.title")}
+      lede={t("home.premise.body")}
+    />
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:32px;align-items:start;">
+      <div></div>
+      <blockquote class="serif" style="margin:0;font-family:var(--serif);font-size:22px;line-height:1.45;color:var(--ink);letter-spacing:-0.005em;max-width:46ch;">
+        {t("home.premise.quote")}
+      </blockquote>
     </div>
   </section>
 
-  <section class="py-12 text-center">
-    <a
-      href={t("landing.secondary.url")}
-      class="text-gray-500 hover:text-gray-900 underline text-sm"
-      target="_blank"
-    >
-      {t("landing.secondary.text")}
-    </a>
+  {/* §02 Methods */}
+  <section class="section">
+    <SectionHead
+      num="02"
+      label="methods"
+      title={t("home.methods.title")}
+      lede={t("home.methods.lede")}
+    />
+    <div class="grid-2">
+      <div class="cell">
+        <div class="label label--ink">PERT</div>
+        <h3>{t("home.methods.pert.title")}</h3>
+        <p>{t("home.methods.pert.body")}</p>
+        <div style="margin-top:12px;">
+          <svg class="diagram" viewBox="0 0 360 160" preserveAspectRatio="xMidYMid meet">
+            <path class="edge" d="M40 80 L110 40" />
+            <path class="edge" d="M40 80 L110 120" />
+            <path class="edge" d="M110 40 L190 60" />
+            <path class="edge" d="M110 120 L190 60" />
+            <path class="edge" d="M110 120 L190 130" />
+            <path class="edge" d="M190 60 L270 80" />
+            <path class="edge" d="M190 130 L270 80" />
+            <path class="edge" d="M270 80 L330 80" />
+            <path d="M40 80 L110 40 L190 60 L270 80 L330 80" stroke="var(--accent)" stroke-width="1.5" fill="none" />
+            {pertNodes.map(([x, y, n]) => (
+              <g>
+                <circle cx={x} cy={y} r="11" class="node" />
+                <text x={x} y={y + 3} text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="var(--ink)">{n}</text>
+              </g>
+            ))}
+            <text x="40" y="150" class="label">start</text>
+            <text x="320" y="150" class="label">finish</text>
+            <text x="180" y="20" class="label" fill="var(--accent)">critical path · 14.2d</text>
+          </svg>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <span class="chip chip--oss">OSS</span>
+          <span class="chip">skill · mcp · api</span>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="label label--ink">Monte Carlo</div>
+        <h3>{t("home.methods.mc.title")}</h3>
+        <p>{t("home.methods.mc.body")}</p>
+        <div style="margin-top:12px;">
+          <svg class="diagram" viewBox="0 0 360 160" preserveAspectRatio="xMidYMid meet">
+            <line class="axis" x1="20" y1="130" x2="340" y2="130" />
+            <line class="axis" x1="20" y1="20" x2="20" y2="130" />
+            {mcBars.map((v, i) => {
+              const h = (v / mcMax) * 100;
+              const x = 28 + i * 19;
+              return <rect x={x} y={130 - h} width="14" height={h} fill="var(--ink)" opacity="0.85" />;
+            })}
+            <line x1="160" y1="20" x2="160" y2="130" stroke="var(--ink-3)" stroke-dasharray="2 3" />
+            <line x1="245" y1="20" x2="245" y2="130" stroke="var(--accent)" stroke-dasharray="2 3" />
+            <text x="162" y="16" class="label">p50</text>
+            <text x="247" y="16" class="label" fill="var(--accent)">p90</text>
+            <text x="20" y="148" class="label">delivery date →</text>
+          </svg>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <span class="chip chip--oss">OSS</span>
+          <span class="chip">deterministic seed</span>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="label label--ink">Bayesian updating</div>
+        <h3>{t("home.methods.bayes.title")}</h3>
+        <p>{t("home.methods.bayes.body")}</p>
+        <div style="margin-top:12px;">
+          <svg class="diagram" viewBox="0 0 360 160" preserveAspectRatio="xMidYMid meet">
+            <line class="axis" x1="20" y1="130" x2="340" y2="130" />
+            <path d="M30 130 Q 120 60 210 130" class="data" stroke-dasharray="3 3" />
+            <text x="100" y="60" class="label">prior</text>
+            <path d="M120 130 Q 200 30 280 130" class="data data--accent" />
+            <text x="220" y="40" class="label" fill="var(--accent)">posterior · evidence applied</text>
+            <text x="20" y="148" class="label">estimate variance →</text>
+          </svg>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <span class="chip chip--oss">OSS</span>
+          <span class="chip">conjugate priors</span>
+        </div>
+      </div>
+
+      <div class="cell">
+        <div class="label label--ink">TCO</div>
+        <h3>{t("home.methods.tco.title")}</h3>
+        <p>{t("home.methods.tco.body")}</p>
+        <div style="margin-top:12px;">
+          <svg class="diagram" viewBox="0 0 360 160" preserveAspectRatio="xMidYMid meet">
+            {tcoSegs.map((seg) => (
+              <g>
+                <rect x={seg.x} y="60" width={seg.w - 1} height="40" fill={seg.colour} />
+                <text x={seg.x + (seg.w - 1) / 2} y="114" text-anchor="middle" class="label">{seg.pct}%</text>
+              </g>
+            ))}
+            <text x="20" y="48" class="label">TCO over 36 months</text>
+            <text x="20" y="135" class="label muted">hidden cost typically under-modeled by 12–22%</text>
+          </svg>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <span class="chip chip--oss">OSS</span>
+          <span class="chip chip--paid">+ industry datasets</span>
+        </div>
+      </div>
+    </div>
+    <div class="label" style="margin-top:16px;">{t("home.methods.more")}</div>
+  </section>
+
+  {/* §03 Install */}
+  <section id="install" class="section section--paper-2" style="scroll-margin-top:72px;">
+    <SectionHead
+      num="03"
+      label="install"
+      title={t("home.install.title")}
+      lede={t("home.install.lede")}
+    />
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div class="spec">
+        <div class="spec__bar">
+          <span>~/.claude/skills</span>
+          <span>claude code</span>
+        </div>
+        <pre class="code code--flush"><span class="c-com"># clone the open-source repo</span>
+$ git clone <span class="c-str">https://github.com/lemur47/logic</span>
+$ <span class="c-fn">cd</span> logic
+
+<span class="c-com"># install the skills for Claude Code</span>
+$ cp -r skills/* ~/.claude/skills/
+
+<span class="c-com"># Claude can now reason with PERT</span>
+<span class="c-prompt">claude&gt;</span> what's the critical path on the Q3 plan?
+
+<span class="c-fn">→ skill: pmo/pert</span>
+<span class="c-com">  critical: A → B → D → F → G  (14.2d)</span>
+<span class="c-com">  slack:    C: 2.1d, E: 0.8d</span></pre>
+      </div>
+      <div class="spec">
+        <div class="spec__bar">
+          <span>.mcp.json</span>
+          <span>any client</span>
+        </div>
+        <pre class="code code--flush"><span class="c-com"># after cloning: install + run the server</span>
+$ uv pip install -e .
+$ uv run python -m mcp_server.server
+
+<span class="c-com"># or wire it into any MCP client</span>
+<span class="c-key">{`{`}</span>
+  <span class="c-str">"mcpServers"</span>: <span class="c-key">{`{`}</span>
+    <span class="c-str">"pmo-logic"</span>: <span class="c-key">{`{`}</span>
+      <span class="c-str">"command"</span>: <span class="c-str">"uv"</span>,
+      <span class="c-str">"args"</span>: [<span class="c-str">"run"</span>, <span class="c-str">"python"</span>, <span class="c-str">"-m"</span>, <span class="c-str">"mcp_server.server"</span>]
+    <span class="c-key">{`}`}</span>
+  <span class="c-key">{`}`}</span>
+<span class="c-key">{`}`}</span>
+
+<span class="c-com"># prototype · 5 tools over stdio</span></pre>
+      </div>
+    </div>
+  </section>
+
+  {/* §04 Open core */}
+  <section class="section">
+    <SectionHead
+      num="04"
+      label="open core"
+      title={t("home.opencore.title")}
+      lede={t("home.opencore.lede")}
+    />
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:20%;">{t("home.opencore.col.layer")}</th>
+          <th style="width:30%;">{t("home.opencore.col.contents")}</th>
+          <th>{t("home.opencore.col.audience")}</th>
+          <th style="width:12%;">{t("home.opencore.col.license")}</th>
+          <th style="width:12%;">{t("home.opencore.col.pricing")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="chip chip--oss">OSS</span> <strong style="margin-left:6px;">Kernel</strong></td>
+          <td>{t("home.opencore.row1.contents")}</td>
+          <td>{t("home.opencore.row1.audience")}</td>
+          <td class="num">MIT</td>
+          <td class="num">free</td>
+        </tr>
+        <tr>
+          <td><span class="chip chip--paid">PAID</span> <strong style="margin-left:6px;">Plugins</strong></td>
+          <td>{t("home.opencore.row2.contents")}</td>
+          <td>{t("home.opencore.row2.audience")}</td>
+          <td class="num">commercial</td>
+          <td class="num">seat / usage</td>
+        </tr>
+        <tr>
+          <td><span class="chip chip--cons">SERVICE</span> <strong style="margin-left:6px;">Strategic</strong></td>
+          <td>{t("home.opencore.row3.contents")}</td>
+          <td>{t("home.opencore.row3.audience")}</td>
+          <td class="num">contract</td>
+          <td class="num">retainer</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  {/* §05 For whom (dark) */}
+  <section class="section section--dark">
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:32px;">
+      <div class="label">§05 / for whom</div>
+      <div>
+        <h2 class="section__title" style="color:var(--paper);max-width:22ch;">
+          {t("home.audience.title")}
+        </h2>
+        <p class="section__lede">{t("home.audience.lede")}</p>
+        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+          <div>
+            <div class="label label--accent">{t("home.audience.practitioner.label")}</div>
+            <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("home.audience.practitioner.body")}</p>
+          </div>
+          <div>
+            <div class="label label--accent">{t("home.audience.sier.label")}</div>
+            <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("home.audience.sier.body")}</p>
+          </div>
+          <div>
+            <div class="label label--accent">{t("home.audience.consulting.label")}</div>
+            <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("home.audience.consulting.body")}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* §06 Start */}
+  <section class="section">
+    <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:32px;">
+      <div class="label">§06 / start</div>
+      <div>
+        <h2 class="section__title" style="max-width:16ch;">
+          {t("home.start.title")}
+        </h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start;">
+        <a href={`/${lang}/docs/`} class="btn">{t("home.start.docs")}</a>
+        <a href="https://github.com/lemur47/logic" target="_blank" rel="noopener" class="btn btn--ghost">{t("home.start.github")} →</a>
+        <a href={`/${lang}/contact/`} class="label" style="margin-top:8px;">{t("home.start.consult")}</a>
+      </div>
+    </div>
   </section>
 </Base>

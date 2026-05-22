@@ -1,20 +1,49 @@
 ---
-import Nav from "./Nav.astro";
-import LanguageSwitcher from "./LanguageSwitcher.astro";
-import { getLangFromUrl, useTranslations } from "../i18n/utils";
+import Mark from "./Mark.astro";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "../i18n/utils";
+import { languages, type Lang } from "../i18n/ui";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
+const path = Astro.url.pathname;
+
+const links = [
+  { href: `/${lang}/`, label: t("nav.home"), match: `/${lang}/`, exact: true },
+  { href: `/${lang}/tools/`, label: t("nav.tools"), match: "/tools" },
+  { href: `/${lang}/docs/`, label: t("nav.docs"), match: "/docs" },
+  { href: `/${lang}/blog/`, label: t("nav.blog"), match: "/blog" },
+  { href: `/${lang}/about/`, label: t("nav.about"), match: "/about" },
+  { href: `/${lang}/contact/`, label: t("nav.contact"), match: "/contact" },
+];
+
+const stripSlash = (s: string) => s.replace(/\/+$/, "");
+const isCurrent = (match: string, exact = false) =>
+  exact ? stripSlash(path) === stripSlash(match) : path.includes(match);
 ---
 
-<header class="border-b border-gray-200">
-  <div class="max-w-4xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-2">
-    <a href={`/${lang}/`} class="text-lg font-bold font-mono tracking-tight">
-      {t("site.title")}
-    </a>
-    <div class="flex items-center gap-3">
-      <Nav />
-      <LanguageSwitcher />
-    </div>
+<nav class="nav">
+  <a href={`/${lang}/`} class="nav__brand" aria-label="pmo.run home">
+    <Mark />
+    <span>pmo.run</span>
+    <span class="nav__brand-version">v0.4 · alpha</span>
+  </a>
+
+  <div class="nav__links">
+    {links.map(({ href, label, match, exact }) => (
+      <a href={href} aria-current={isCurrent(match, exact) ? "page" : undefined}>{label}</a>
+    ))}
   </div>
-</header>
+
+  <div class="nav__cta">
+    <div class="nav__lang" role="group" aria-label="Language">
+      {Object.entries(languages).map(([code, label]) => (
+        <a
+          href={getLocalizedPath(path, code as Lang)}
+          class:list={[code === lang && "is-on"]}
+          aria-current={code === lang ? "page" : undefined}
+        >{label === "English" ? "EN" : "JA"}</a>
+      ))}
+    </div>
+    <a href="https://github.com/lemur47/logic" class="btn btn--ghost btn--sm" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</nav>

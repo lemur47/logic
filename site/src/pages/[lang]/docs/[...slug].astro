@@ -18,9 +18,15 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<Base title={entry.data.title} description={entry.data.description}>
+<Base title={entry.data.title} description={entry.data.description} narrow>
   <article class="prose prose-gray max-w-none">
-    <h1>{entry.data.title}</h1>
+    <header class="not-prose" style="margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid var(--rule);">
+      <div class="label">docs · §{String(entry.data.order).padStart(2, "0")}</div>
+      <h1 style="margin:10px 0 0;font-size:clamp(26px, 3vw, 38px);font-weight:500;letter-spacing:-0.02em;line-height:1.15;">{entry.data.title}</h1>
+      {entry.data.description && (
+        <p style="margin:12px 0 0;color:var(--ink-2);font-size:16px;line-height:1.5;max-width:60ch;">{entry.data.description}</p>
+      )}
+    </header>
     <Content />
   </article>
 </Base>
