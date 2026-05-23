@@ -21,6 +21,10 @@ That's it. Claude reads the skill, follows the formulas, and shows its work.
 | [TCO](tco/SKILL.md) | `app/tco` | Full | Total Cost of Ownership with NPV adjustment |
 | [Monte Carlo](montecarlo/SKILL.md) | `app/montecarlo` | Stateless | Schedule simulation with probability distributions |
 
+## Operational Skills
+
+Beyond decision-logic, the repo tracks **operational skills** — editorial and process guardrails with no `app/` module behind them. See [`operational/`](operational/README.md). These keep organisation-specific values in a gitignored local overlay, so the public skill stays organisation-neutral.
+
 ## What Stays API-Only
 
 Some features involve iterative computation or stateful tracking that doesn't fit conversational execution. These are available only via the FastAPI app.
@@ -56,6 +60,10 @@ logic/
 │   │   └── SKILL.md
 │   ├── montecarlo/
 │   │   └── SKILL.md
+│   ├── operational/
+│   │   ├── anonymisation/
+│   │   │   └── SKILL.md
+│   │   └── README.md
 │   └── README.md
 ├── site/         # pmo.run website (interactive UI)
 └── docs/         # Strategy and documentation
