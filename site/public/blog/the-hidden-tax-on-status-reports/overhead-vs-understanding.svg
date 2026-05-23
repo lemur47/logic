@@ -1,0 +1,47 @@
+<svg width="100%" viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Communication overhead versus shared understanding</title>
+  <desc id="desc">Two curves plotted against the shift from a status-report culture to decision logic kept in code. Communication overhead starts high and falls; shared understanding starts low and rises. After the shift the two move in opposite directions.</desc>
+  <style>
+    text { font-family: "Anthropic Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1a1d24; }
+    .axis { stroke: #1a1d24; stroke-width: 1; opacity: 0.35; }
+    .divider { stroke: #1a1d24; stroke-width: 1; opacity: 0.30; stroke-dasharray: 4 4; }
+    .curve { fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .overhead { stroke: #c8442a; }
+    .understanding { stroke: #085041; }
+    .region { font-size: 13px; fill: #1a1d24; opacity: 0.65; }
+    .shift { font-size: 12px; fill: #1a1d24; opacity: 0.55; font-style: italic; }
+    .label { font-size: 14px; font-weight: 600; }
+  </style>
+
+  <defs>
+    <marker id="arw" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#1a1d24" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Axes -->
+  <line class="axis" x1="90" y1="56" x2="90" y2="300" marker-start="url(#arw)"/>
+  <line class="axis" x1="90" y1="300" x2="624" y2="300" marker-end="url(#arw)"/>
+
+  <!-- The shift -->
+  <line class="divider" x1="355" y1="70" x2="355" y2="300"/>
+  <text class="shift" x="355" y="50" text-anchor="middle">decision logic moves into code</text>
+
+  <!-- Curves -->
+  <path class="curve overhead" d="M100 100 C 200 96, 300 100, 355 120 C 440 150, 540 250, 605 272"/>
+  <path class="curve understanding" d="M100 258 C 200 256, 300 250, 355 235 C 440 212, 540 110, 605 92"/>
+
+  <!-- Endpoint dots -->
+  <circle cx="100" cy="100" r="3.5" fill="#c8442a"/>
+  <circle cx="605" cy="272" r="3.5" fill="#c8442a"/>
+  <circle cx="100" cy="258" r="3.5" fill="#085041"/>
+  <circle cx="605" cy="92" r="3.5" fill="#085041"/>
+
+  <!-- Curve labels -->
+  <text class="label overhead" x="110" y="86" text-anchor="start" fill="#c8442a">Communication overhead</text>
+  <text class="label understanding" x="600" y="80" text-anchor="end" fill="#085041">Shared understanding</text>
+
+  <!-- Region labels -->
+  <text class="region" x="222" y="324" text-anchor="middle">Status-report culture</text>
+  <text class="region" x="490" y="324" text-anchor="middle">Decision logic in code</text>
+</svg>
