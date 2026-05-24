@@ -2,22 +2,36 @@
 # R&D and prototyping tools
 
 [project]
-name = "logic"
+name = "pmorun-mcp"
 version = "0.1.0"
-description = "Atomic logic for decision-making. Turning abstract ideas into executable functions."
-readme = "README.md"
+description = "pmo.run MCP server — classic PMO decision tools (PERT, Monte Carlo, TCO, EVM) over the Model Context Protocol."
+readme = "mcp_server/README.md"
 requires-python = ">=3.14"
 license = "MIT"
 authors = [{ name = "lemur47" }]
-keywords = ["tco", "calculator", "fastapi", "tools"]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "pmo",
+    "pert",
+    "monte-carlo",
+    "tco",
+    "evm",
+    "project-management",
+]
 
 dependencies = [
     "fastapi[standard]>=0.128.0",
+    "mcp[cli]>=1.0",
     "numpy>=2.2.0",
+    "pydantic>=2.0",
     "scipy>=1.15.0",
     "sqlalchemy>=2.0.46",
     "uvicorn>=0.40.0",
 ]
+
+[project.scripts]
+pmorun-mcp = "mcp_server.server:main"
 
 [project.optional-dependencies]
 dev = [
@@ -31,9 +45,6 @@ dev = [
 analysis = [
     "pandas>=2.2.0",
     "matplotlib>=3.9.0",
-]
-mcp = [
-    "mcp[cli]>=1.0",
 ]
 
 [tool.setuptools.packages.find]

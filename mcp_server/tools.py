@@ -1,39 +1,291 @@
 """
-MCP tool implementations.
+MCP tool implementations (v0.1 — four classic PMO tools).
 
-Each function is registered as an MCP tool by `server.py`. Tools are
-verb-noun named — the description states the *decision question*, not
-the maths, because that's what helps an LLM pick the right one.
+Each public, registered function is exposed as an MCP tool by ``server.py``. Tools
+are verb-noun named, and every description leads with the *decision question* —
+that is what helps an LLM pick the right tool, not the underlying maths.
 
-Imports flow: mcp_server/ → app.{module}.core (pure functions only).
-We never import FastAPI or DB models here — the MCP server stays
-runnable without uvicorn or the SQLite file.
+Design rules for v0.1:
+
+- **One core, multiple surfaces.** Imports flow ``mcp_server/ → app.{module}.core``
+  (pure functions only). We never import FastAPI, routers, or DB models here, so the
+  server runs without uvicorn or the SQLite file.
+- **Shared Pydantic models, single source of truth.** Inputs and outputs reuse the
+  exact models from ``app.{module}.schemas`` — the same classes that validate the
+  FastAPI surface. No duplicated field definitions.
+- **Structured errors.** Every tool is wrapped by ``@structured_errors`` so failures
+  reach the client as tagged messages, never as Python tracebacks.
+
+Note: this module intentionally does *not* use ``from __future__ import annotations``.
+The ``@structured_errors`` wrapper lives in another module, and concrete (non-string)
+annotations let FastMCP resolve the tool schema without cross-module globals lookups.
 """
 
-from __future__ import annotations
-
-import math
 import statistics
 from typing import Any, Literal
 
-from app.evm.core import HealthThresholds, evm_metrics, health_signal
+import numpy as np
+
+from app.evm.core import evm_metrics, health_signal
+from app.evm.schemas import (
+    EvmCalculateInput,
+    EvmCalculateResponse,
+    EvmMetricsResult,
+    HealthResult,
+)
 from app.montecarlo.core import Task, simulate_schedule
+from app.montecarlo.schemas import (
+    HistogramResult,
+    PercentileResult,
+    SimulationConfig,
+    SimulationResult,
+)
+from app.montecarlo.schemas import TaskInput as MonteCarloTaskInput
 from app.pert.core import DEFAULT_TAGS, InsightTag, calculate_task
+from app.pert.schemas import TaskEstimation
+from app.pert.schemas import TaskInput as PertTaskInput
 from app.tco.core import compare_options
+from app.tco.schemas import CompareRequest, CompareResponse, CompareResultItem
+
+from .errors import ToolValidationError, structured_errors
+
+# Stochastic tools default to this seed so worked examples and tests are
+# reproducible (project worked-example convention). Pass a different integer
+# to vary the run.
+DEFAULT_SEED = 42
+
 
 # ─────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────
 
 
+def _resolve_task_tags(
+    task: PertTaskInput,
+) -> list[InsightTag | tuple[InsightTag, float]] | None:
+    """Resolve a task's insight-tag names into ``(InsightTag, severity)`` pairs.
+
+    Names are matched case-insensitively against the known catalogue. An unknown
+    name fails loudly — better than silently applying nothing.
+    """
+    if not task.tags:
+        return None
+    resolved: list[InsightTag | tuple[InsightTag, float]] = []
+    for tag_input in task.tags:
+        tag = DEFAULT_TAGS.get(tag_input.name.upper())
+        if tag is None:
+            available = ", ".join(sorted(DEFAULT_TAGS.keys()))
+            raise ToolValidationError(
+                f"Unknown insight tag '{tag_input.name}'. Available: {available}"
+            )
+        resolved.append((tag, tag_input.severity))
+    return resolved
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tool 1 — estimate_task_duration (PERT)
+# ─────────────────────────────────────────────────────────────────────
+
+
+@structured_errors
+def estimate_task_duration(task: PertTaskInput) -> TaskEstimation:
+    """Estimate how long a single task will take from a three-point estimate.
+
+    Use when: you have a human optimistic / most-likely / pessimistic estimate for
+    one task and want the textbook PERT expected duration, plus — optionally — an
+    estimate adjusted for known real-world frictions.
+
+    The PERT expected value is ``(O + 4M + P) / 6`` and the standard deviation is
+    ``(P - O) / 6``; both are expressed in whatever time unit the estimates use
+    (days, weeks — the tool is unit-agnostic). Insight tags widen the pessimistic
+    tail to reflect frictions the raw estimate ignores.
+
+    Args:
+        task: The three-point estimate. Fields:
+            ``optimistic`` (O, best case), ``most_likely`` (M), ``pessimistic``
+            (P, worst case) — all in the same time unit, with ``O <= M <= P``.
+            ``tags`` (optional): insight tags, each a ``{name, severity}`` pair with
+            severity in ``[0, 1]``. Known names (case-insensitive):
+            FRAGMENTED_COMMUNICATION, MULTIPLE_STAKEHOLDERS, HIDDEN_DEPENDENCIES.
+
+    Returns:
+        A ``TaskEstimation`` with ``input`` (echo of O/M/P), ``textbook`` (PERT
+        ``expected``, ``std_dev``, ``variance`` and the 68/95/99% ranges), and
+        ``adjusted`` (the same stats after tags widen the tail, or ``null`` when no
+        tags were supplied).
+    """
+    tags = _resolve_task_tags(task)
+    result = calculate_task(
+        optimistic=task.optimistic,
+        most_likely=task.most_likely,
+        pessimistic=task.pessimistic,
+        tags=tags,
+    )
+    return TaskEstimation.model_validate(result)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tool 2 — identify_schedule_risk (Monte Carlo schedule)
+# ─────────────────────────────────────────────────────────────────────
+
+
+@structured_errors
+def identify_schedule_risk(
+    tasks: list[MonteCarloTaskInput],
+    config: SimulationConfig | None = None,
+) -> SimulationResult:
+    """Find how long a task network is likely to take, and which tasks drive the risk.
+
+    Use when: you have several tasks with three-point estimates and dependencies, and
+    want a probabilistic completion forecast rather than a single additive number.
+    Runs a Monte Carlo simulation, sampling each task from its beta-PERT distribution
+    and honouring the dependency graph.
+
+    Args:
+        tasks: The task network. Each task has ``name``, three-point estimates
+            (``optimistic`` / ``most_likely`` / ``pessimistic``, same time unit), and
+            an optional ``depends_on`` list of predecessor task names. (``risk_class``
+            is reserved for v0.2 drift simulation and is ignored here.)
+        config: Optional run settings — ``num_simulations`` (100–1,000,000; default
+            10,000) and ``seed``. When ``seed`` is omitted it defaults to 42 for a
+            reproducible run; pass a different integer to vary it.
+
+    Returns:
+        A ``SimulationResult`` with ``percentiles`` (P50/P75/P85/P95 of total
+        duration), ``critical_path_frequency`` (per task, the fraction of runs in
+        which it sat on the critical path — the higher, the more it drives schedule
+        risk), a 50-bin ``histogram`` of durations, and the run's ``mean``,
+        ``std_dev``, ``min_duration`` and ``max_duration``.
+    """
+    if not tasks:
+        raise ToolValidationError("Provide at least one task to simulate.")
+
+    run_config = config or SimulationConfig()
+    seed = run_config.seed if run_config.seed is not None else DEFAULT_SEED
+
+    core_tasks = [
+        Task(
+            name=t.name,
+            optimistic=t.optimistic,
+            most_likely=t.most_likely,
+            pessimistic=t.pessimistic,
+            depends_on=tuple(t.depends_on),
+        )
+        for t in tasks
+    ]
+    result = simulate_schedule(core_tasks, n_simulations=run_config.num_simulations, seed=seed)
+
+    return SimulationResult(
+        n_simulations=result.n_simulations,
+        percentiles=PercentileResult(**result.percentiles),
+        histogram=HistogramResult(
+            bin_edges=result.histogram["bin_edges"],
+            counts=[int(c) for c in result.histogram["counts"]],
+        ),
+        critical_path_frequency=result.critical_path_frequency,
+        mean=round(float(np.mean(result.durations)), 2),
+        std_dev=round(float(np.std(result.durations)), 2),
+        min_duration=round(float(np.min(result.durations)), 2),
+        max_duration=round(float(np.max(result.durations)), 2),
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tool 3 — compare_investment_options (TCO)
+# ─────────────────────────────────────────────────────────────────────
+
+
+@structured_errors
+def compare_investment_options(request: CompareRequest) -> CompareResponse:
+    """Compare options on real lifetime cost, not sticker price.
+
+    Use when: you have two or more options (vendors, platforms, tools), each with an
+    initial price, a useful life, and recurring costs, and want them ranked by
+    total cost of ownership rather than up-front price.
+
+    Args:
+        request: ``options`` — a list of at least two options. Each option has
+            ``name``, ``initial_price``, ``useful_life_years``, and optional
+            ``residual_value``, ``annual_maintenance``, ``annual_operating_cost`` and
+            ``discount_rate`` (default 0.03). Monetary fields share one currency;
+            the tool is currency-agnostic.
+
+    Returns:
+        A ``CompareResponse`` whose ``results`` are ranked by annual cost ascending
+        (rank 1 = cheapest). Each item carries ``total_cost``, ``annual_cost``,
+        ``monthly_cost``, ``cost_per_day``, NPV-adjusted ``npv_tco`` / ``npv_annual``,
+        and its ``rank``. ``best_option`` names the cheapest.
+    """
+    options = [option.model_dump() for option in request.options]
+    results = compare_options(options)
+    return CompareResponse(
+        results=[CompareResultItem(**result) for result in results],
+        best_option=results[0]["name"],
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tool 4 — evaluate_project_health (EVM)
+# ─────────────────────────────────────────────────────────────────────
+
+
+@structured_errors
+def evaluate_project_health(evm: EvmCalculateInput) -> EvmCalculateResponse:
+    """Judge whether a project is on track, at risk, or off track, using EVM.
+
+    Use when: you know the planned value, earned value, actual cost and total budget,
+    and want the standard earned-value indices plus a plain-English health verdict.
+
+    Args:
+        evm: The four earned-value fundamentals, all in one currency:
+            ``pv`` (Planned Value — budgeted cost of work scheduled by now),
+            ``ev`` (Earned Value — budgeted cost of work actually completed),
+            ``ac`` (Actual Cost — what was actually spent),
+            ``bac`` (Budget at Completion — total planned budget, must be > 0).
+
+    Returns:
+        An ``EvmCalculateResponse`` with ``metrics`` — schedule (``sv``, ``spi``),
+        cost (``cv``, ``cpi``), forecasts (``eac``, ``etc``, ``vac``, ``tcpi``) and
+        ``percent_complete`` / ``percent_spent`` — and ``health`` (a coarse
+        ``status`` of on_track / at_risk / off_track, the ``reasons``, and a one-line
+        ``summary``). Indices are unitless ratios where 1.0 is on-plan; an index that
+        is undefined (e.g. SPI when PV is 0) is reported as ``null``.
+    """
+    metrics = evm_metrics(pv=evm.pv, ev=evm.ev, ac=evm.ac, bac=evm.bac)
+    signal = health_signal(spi=metrics["spi"], cpi=metrics["cpi"])
+    return EvmCalculateResponse(
+        metrics=EvmMetricsResult(**metrics),
+        health=HealthResult(**signal),
+    )
+
+
+# ═════════════════════════════════════════════════════════════════════
+# PARKED — not registered in v0.1 (see server.py)
+# ═════════════════════════════════════════════════════════════════════
+# `estimate_from_history` is the two-layer, calibration-driven estimator. It is
+# parked for v0.1 under the same rationale that parked the Bayesian and
+# Dirichlet-drift tools in the v0.1 MCP scoping Decision: the calibration is
+# conservative and unvalidated (no field data yet), so its PMO story is not sharp
+# enough to ship as a single-call LLM tool at the v0.1 quality bar. The code is
+# kept intact, not deleted. Re-enable it (re-register in server.py, restore its
+# tests) once the estimation_log data source exists to ground the Layer 2
+# constants — earliest Sprint 10.
+# ─────────────────────────────────────────────────────────────────────
+
+# Layer 2 calibration constants. Conservative defaults agreed with CTO; to be
+# tuned against field data before this tool ships.
+_COMPLEXITY_M_UPLIFT = 0.4  # complexity_factor=1.0 lifts M by 40%
+_NOVELTY_P_UPLIFT = 0.5  # novelty_factor=1.0 lifts the tail by 50%
+_FAMILIARITY_MAX_SPREAD = 2.0  # familiarity=0 doubles the historical spread
+
+
 def _resolve_insight_tags(
     insight_tags: dict[str, float] | None,
 ) -> list[InsightTag | tuple[InsightTag, float]] | None:
-    """Convert {tag_name: severity} → [(InsightTag, severity), ...].
+    """Convert ``{tag_name: severity}`` → ``[(InsightTag, severity), ...]``.
 
-    Unknown tag names raise — better to fail loudly than silently apply
-    nothing. Severities are clamped to [0.0, 1.0] by the underlying
-    PERT helper.
+    Unknown tag names raise. Severities are clamped to ``[0.0, 1.0]`` by the
+    underlying PERT helper.
     """
     if not insight_tags:
         return None
@@ -47,53 +299,6 @@ def _resolve_insight_tags(
     return resolved
 
 
-# ─────────────────────────────────────────────────────────────────────
-# Tool 1 — estimate_task_duration
-# ─────────────────────────────────────────────────────────────────────
-
-
-def estimate_task_duration(
-    optimistic: float,
-    most_likely: float,
-    pessimistic: float,
-    insight_tags: dict[str, float] | None = None,
-) -> dict[str, Any]:
-    """Estimate how long a single task will take, with optional reality
-    adjustments.
-
-    Use when: you have a human three-point estimate and want the
-    textbook PERT expected value plus an adjusted estimate that
-    accounts for known frictions (fragmented communication, multiple
-    stakeholders, hidden dependencies).
-
-    Args:
-        optimistic: Best-case duration (O). Must be >= 0.
-        most_likely: Most probable duration (M). Must be >= O.
-        pessimistic: Worst-case duration (P). Must be >= M.
-        insight_tags: Optional mapping of tag name → severity (0.0-1.0).
-            Names are case-insensitive. Available tags:
-            FRAGMENTED_COMMUNICATION, MULTIPLE_STAKEHOLDERS,
-            HIDDEN_DEPENDENCIES.
-
-    Returns:
-        Dict with `input`, `textbook` (PERT stats), and `adjusted`
-        (PERT stats after tag application; None if no tags).
-    """
-    tags = _resolve_insight_tags(insight_tags)
-    return calculate_task(optimistic, most_likely, pessimistic, tags)
-
-
-# ─────────────────────────────────────────────────────────────────────
-# Tool 2 — estimate_from_history (flagship, v0.1)
-# ─────────────────────────────────────────────────────────────────────
-
-# Layer 2 calibration constants. v0.1 — these multipliers are the
-# conservative defaults agreed with CTO. Tune via field data.
-_COMPLEXITY_M_UPLIFT = 0.4  # complexity_factor=1.0 lifts M by 40%
-_NOVELTY_P_UPLIFT = 0.5  # novelty_factor=1.0 lifts the tail by 50%
-_FAMILIARITY_MAX_SPREAD = 2.0  # familiarity=0 doubles the historical spread
-
-
 def estimate_from_history(
     task_category: str,
     optimistic: float,
@@ -103,16 +308,16 @@ def estimate_from_history(
     novelty_factor: float = 0.5,
     insight_tags: dict[str, float] | None = None,
 ) -> dict[str, Any]:
-    """Estimate a task's duration by composing past actual durations
-    with calibration knobs and insight tags.
+    """Estimate a task's duration by composing past actual durations with
+    calibration knobs and insight tags.
 
-    Use when: you have observed past durations for similar tasks and
-    want a calibrated estimate, not a guess. This is the two-layer
-    flagship — Layer 2 (pre-PERT) translates history into M and P;
-    Layer 1 (post-PERT) widens the tail via insight tags.
+    PARKED for v0.1 — see the section banner above. Kept intact for re-enablement.
 
-    **v0.1 calibration formula** — subject to revision once we have
-    field data:
+    Use when: you have observed past durations for similar tasks and want a
+    calibrated estimate, not a guess. Layer 2 (pre-PERT) translates history into M
+    and P; Layer 1 (post-PERT) widens the tail via insight tags.
+
+    **v0.1 calibration formula** — subject to revision once we have field data:
 
         base_M = median(past_actuals)
         base_spread = max(past_actuals) - base_M     # if len >= 2
@@ -125,29 +330,27 @@ def estimate_from_history(
         derived_spread = base_spread * familiarity_multiplier * novelty_multiplier
         derived_P = derived_M + derived_spread
 
-    Then `calculate_task(optimistic, derived_M, derived_P, insight_tags)`
-    runs the standard PERT pipeline (Layer 1).
+    Then ``calculate_task(optimistic, derived_M, derived_P, insight_tags)`` runs the
+    standard PERT pipeline (Layer 1).
 
     Args:
-        task_category: Short label for the task class (e.g. "auth-api").
-            Recorded in the response for traceability; not used in the
-            maths.
+        task_category: Short label for the task class (e.g. "auth-api"). Recorded for
+            traceability; not used in the maths.
         optimistic: Human-supplied best-case duration. Acts as the floor.
-        past_actuals: Observed durations of past tasks in this class.
-            At least one is required.
-        team_familiarity: 0.0 (entirely new team) — 1.0 (same team that
-            ran all past tasks). Higher = narrower spread.
-        complexity_factor: 0.0 (simpler than past) — 1.0 (much more
-            complex). Higher = larger M and P.
-        novelty_factor: 0.0 (familiar work) — 1.0 (entirely new
-            territory). Higher = wider tail.
-        insight_tags: Optional Layer 1 adjustments — same shape as
-            `estimate_task_duration`'s.
+        past_actuals: Observed durations of past tasks in this class. At least one.
+        team_familiarity: 0.0 (entirely new team) — 1.0 (same team that ran all past
+            tasks). Higher = narrower spread.
+        complexity_factor: 0.0 (simpler than past) — 1.0 (much more complex). Higher
+            = larger M and P.
+        novelty_factor: 0.0 (familiar work) — 1.0 (entirely new territory). Higher =
+            wider tail.
+        insight_tags: Optional Layer 1 adjustments — same shape as the dict form used
+            by the parked prototype.
 
     Returns:
-        Dict with `derived_most_likely`, `derived_pessimistic`,
-        `textbook_estimate`, `adjusted_estimate`, `confidence`,
-        `layer2_adjustment`, `layer1_adjustment`, `data_quality`.
+        Dict with ``derived_most_likely``, ``derived_pessimistic``,
+        ``textbook_estimate``, ``adjusted_estimate``, ``confidence``,
+        ``layer2_adjustment``, ``layer1_adjustment``, ``data_quality``.
     """
     if not past_actuals:
         raise ValueError("past_actuals must contain at least one observation")
@@ -233,166 +436,3 @@ def estimate_from_history(
         "data_quality": data_quality,
         "calibration_version": "v0.1",
     }
-
-
-# ─────────────────────────────────────────────────────────────────────
-# Tool 3 — identify_schedule_risk
-# ─────────────────────────────────────────────────────────────────────
-
-
-def identify_schedule_risk(
-    tasks: list[dict[str, Any]],
-    num_simulations: int = 10_000,
-    seed: int | None = None,
-) -> dict[str, Any]:
-    """Rank tasks by their contribution to schedule risk.
-
-    Use when: you have a network of tasks with three-point estimates
-    and want to know which ones are most likely to drive the project
-    over schedule. Runs Monte Carlo simulation and combines critical-path
-    frequency with PERT variance into a single risk score.
-
-    Args:
-        tasks: List of task dicts. Each must have `name`, `optimistic`,
-            `most_likely`, `pessimistic`. Optional `depends_on` is a list
-            of predecessor task names.
-        num_simulations: Iterations to run (100 - 1,000,000). Default 10,000.
-        seed: Optional random seed for reproducible runs.
-
-    Returns:
-        Dict with `ranked_risks` (tasks ordered by risk_score, descending),
-        `project_percentiles` (P50/P75/P85/P95 of total duration), and
-        `summary` (one-line plain-English verdict).
-    """
-    if not tasks:
-        raise ValueError("tasks must contain at least one task")
-
-    core_tasks = [
-        Task(
-            name=t["name"],
-            optimistic=t["optimistic"],
-            most_likely=t["most_likely"],
-            pessimistic=t["pessimistic"],
-            depends_on=tuple(t.get("depends_on", [])),
-        )
-        for t in tasks
-    ]
-    result = simulate_schedule(core_tasks, n_simulations=num_simulations, seed=seed)
-
-    ranked: list[dict[str, Any]] = []
-    for t in core_tasks:
-        cp_freq = result.critical_path_frequency.get(t.name, 0.0)
-        # Risk score: critical-path probability × PERT variance — simple and
-        # interpretable. A task that's always on the critical path with a
-        # tight estimate scores low; a task that's sometimes critical with a
-        # wide spread scores high.
-        score = cp_freq * (t.pert_std_dev**2)
-        ranked.append(
-            {
-                "name": t.name,
-                "critical_path_frequency": round(cp_freq, 4),
-                "pert_variance": round(t.pert_std_dev**2, 4),
-                "risk_score": round(score, 4),
-            }
-        )
-    ranked.sort(key=lambda r: r["risk_score"], reverse=True)
-    for i, r in enumerate(ranked):
-        r["rank"] = i + 1
-
-    p50, p85 = result.percentiles["P50"], result.percentiles["P85"]
-    summary = (
-        f"P50 duration {p50}, P85 {p85}. "
-        f"Top risk: {ranked[0]['name']} (score {ranked[0]['risk_score']})."
-        if ranked
-        else f"P50 duration {p50}, P85 {p85}."
-    )
-
-    return {
-        "ranked_risks": ranked,
-        "project_percentiles": result.percentiles,
-        "summary": summary,
-    }
-
-
-# ─────────────────────────────────────────────────────────────────────
-# Tool 4 — compare_investment_options
-# ─────────────────────────────────────────────────────────────────────
-
-
-def compare_investment_options(
-    options: list[dict[str, Any]],
-) -> dict[str, Any]:
-    """Compare investment options on NPV-adjusted total cost of ownership.
-
-    Use when: you have two or more options (vendors, platforms, tools)
-    each with initial price + lifetime + recurring costs, and want to
-    rank them on real lifetime cost rather than sticker price.
-
-    Args:
-        options: List of option dicts. Each must have `name`,
-            `initial_price`, `useful_life_years`. Optional fields:
-            `residual_value`, `annual_maintenance`, `annual_operating_cost`,
-            `discount_rate` (default 0.03).
-
-    Returns:
-        Dict with `ranked_options` (sorted by annual cost ascending) and
-        `summary` (plain-English verdict including delta vs. cheapest).
-    """
-    if len(options) < 2:
-        raise ValueError("compare_investment_options requires at least 2 options")
-    ranked = compare_options(options)
-    cheapest = ranked[0]
-    summary = (
-        f"Cheapest annual cost: {cheapest['name']} "
-        f"(${cheapest['annual_cost']:.2f}/yr over {cheapest['useful_life_years']}y)."
-    )
-    if len(ranked) > 1:
-        runner_up = ranked[1]
-        delta = runner_up["annual_cost"] - cheapest["annual_cost"]
-        summary += (
-            f" {runner_up['name']} costs ${delta:.2f}/yr more (${runner_up['annual_cost']:.2f}/yr)."
-        )
-    return {"ranked_options": ranked, "summary": summary}
-
-
-# ─────────────────────────────────────────────────────────────────────
-# Tool 5 — evaluate_project_health
-# ─────────────────────────────────────────────────────────────────────
-
-
-def evaluate_project_health(
-    planned_value: float,
-    earned_value: float,
-    actual_cost: float,
-    budget_at_completion: float,
-) -> dict[str, Any]:
-    """Evaluate project health from EVM fundamentals.
-
-    Use when: you have planned value (PV), earned value (EV), actual
-    cost (AC), and the total budget (BAC), and want SPI/CPI/EAC plus
-    a plain-English health verdict.
-
-    Args:
-        planned_value: How much work should be done by now (in budget terms).
-        earned_value: How much work is actually done (valued at planned rates).
-        actual_cost: What we actually spent on the work performed.
-        budget_at_completion: Total planned budget.
-
-    Returns:
-        Dict with `metrics` (SPI/CPI/EAC/ETC/VAC/TCPI/percent_complete),
-        `health` (status + reasons + summary), and `verdict` (one-line
-        plain-English roll-up).
-    """
-    metrics = evm_metrics(
-        pv=planned_value, ev=earned_value, ac=actual_cost, bac=budget_at_completion
-    )
-    # health_signal needs SPI and CPI; cap inf for the signal call so a
-    # zero-PV / zero-AC corner case still produces a usable status.
-    spi_for_signal = metrics["spi"] if math.isfinite(metrics["spi"]) else 0.0
-    cpi_for_signal = metrics["cpi"] if math.isfinite(metrics["cpi"]) else 0.0
-    health = health_signal(spi=spi_for_signal, cpi=cpi_for_signal, thresholds=HealthThresholds())
-    verdict = (
-        f"{health['status'].upper()} — SPI {metrics['spi']}, CPI {metrics['cpi']}, "
-        f"EAC ${metrics['eac']} (BAC ${budget_at_completion:.2f})."
-    )
-    return {"metrics": metrics, "health": health, "verdict": verdict}
