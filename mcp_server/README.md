@@ -1,43 +1,39 @@
-# pmo.run MCP Server (Prototype)
+# pmo.run MCP Server
 
 An MCP server that exposes the pmo.run **decision-logic** modules — PERT, Monte
-Carlo, TCO, EVM — as tools an LLM can call. It is one half of the composition
+Carlo, TCO and EVM — as tools an LLM can call. It is one half of the composition
 pattern that makes pmo.run useful: a data-source MCP (Airtable, GitHub) feeds
 records in; this server runs the maths; Claude orchestrates and narrates the
 result.
 
-> **Status:** prototype. Five tools, stdio transport, light tests. The
-> flagship `estimate_from_history` ships at calibration version **v0.1** —
-> conservative formulae documented in code, subject to refinement once we
-> have field data.
-
-## Why it exists
-
-Without historical data composition, an MCP tool over PERT is just a slow
-Airtable formula. The differentiator is composing past actuals + human
-judgement + insight tags into a calibrated estimate the LLM can defend. That
-is what `estimate_from_history` does, and what the four supporting tools
-plug into.
+> **Status: v0.1.** Four classic PMO tools, stdio transport, structured errors.
+> Distributed on PyPI as [`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/). The
+> hosted lane (Streamable HTTP + auth) and the calibration-driven tools are parked
+> for v0.2 — see [Out of scope](#out-of-scope-v02).
 
 ## What's in the box
+
+Each tool is a thin adapter over the corresponding `app.{module}.core` function,
+with inputs and outputs validated by the **same Pydantic models as the FastAPI
+surface** — one source of truth, no duplication.
 
 | Tool | Decision question | Wraps |
 |---|---|---|
 | `estimate_task_duration` | "How long will this single task take, given a three-point estimate and known frictions?" | `app.pert.core.calculate_task` |
-| `estimate_from_history` | "Given past actuals and where we are now, what is a calibrated estimate?" | Layer 2 (history) + `calculate_task` |
-| `identify_schedule_risk` | "Across this task network, which tasks drive most of the schedule risk?" | `app.montecarlo.core.simulate_schedule` |
+| `identify_schedule_risk` | "Across this task network, how long are we likely to take and which tasks drive the risk?" | `app.montecarlo.core.simulate_schedule` |
 | `compare_investment_options` | "Of these vendor / platform / tool options, which is cheapest on real lifetime cost?" | `app.tco.core.compare_options` |
 | `evaluate_project_health` | "Given PV / EV / AC / BAC, are we on track, at risk, or off track?" | `app.evm.core.evm_metrics` + `health_signal` |
 
 Tools are named verb-noun (`estimate_*`, `identify_*`, `compare_*`,
-`evaluate_*`), not by acronym (`pert`, `tco`, `evm`). LLMs pick tools by
-purpose, not by domain shorthand.
+`evaluate_*`), not by acronym. LLMs pick tools by purpose, not by domain
+shorthand — so every description leads with a "Use when:" decision question,
+documents every parameter, and states the units of every output.
 
 ## How it fits into the stack
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Claude (orchestrator) — composes tools into a decision         │
+│  Claude (orchestrator) — composes tools into a decision          │
 └──────────────┬──────────────────────────┬───────────────────────┘
                │                          │
    ┌───────────▼───────────┐  ┌───────────▼───────────┐
@@ -52,79 +48,152 @@ purpose, not by domain shorthand.
                               └───────────────────────┘
 ```
 
-The MCP server depends only on `app.{module}.core` — never on FastAPI, the
-SQLite store, or the routers. It runs without uvicorn, without the database,
-and stays portable to a future TypeScript port that mirrors the same surface.
+The server imports only `app.{module}.core` — never the routers or the SQLite
+store directly — so it runs without uvicorn or a database, and stays portable to
+a future TypeScript port that mirrors the same surface.
 
-## Layer 2 calibration (`estimate_from_history`, v0.1)
-
-Two layers compose into one estimate:
-
-- **Layer 2 (pre-PERT) — history applicability.** Given `past_actuals`,
-  `team_familiarity`, `complexity_factor`, and `novelty_factor`, derive the
-  most-likely (`derived_M`) and pessimistic (`derived_P`) inputs.
-- **Layer 1 (post-PERT) — environmental adjustment.** Apply `insight_tags`
-  (e.g. `FRAGMENTED_COMMUNICATION`, `MULTIPLE_STAKEHOLDERS`,
-  `HIDDEN_DEPENDENCIES`) on top of the textbook PERT result.
-
-The v0.1 Layer 2 formula:
-
-```
-base_M       = median(past_actuals)
-base_spread  = max(past_actuals) − base_M       (if ≥ 2 actuals)
-             = base_M × 0.3                      (if 1 actual — heuristic)
-
-derived_M    = base_M × (1 + complexity_factor × 0.4)
-
-familiarity_mul = 2.0 − team_familiarity        (∈ [1.0, 2.0])
-novelty_mul     = 1 + novelty_factor × 0.5
-derived_spread  = base_spread × familiarity_mul × novelty_mul
-derived_P       = derived_M + derived_spread
-```
-
-The numbers (`0.4`, `0.5`, the familiarity range) are conservative defaults.
-They will be tuned against real estimation logs once Bayesian updating has
-enough data per task category — at which point Layer 2 calibration knobs
-become priors that the system learns over time.
-
-## Running it
-
-Install with the optional `[mcp]` extra:
+## Install
 
 ```bash
-uv pip install -e ".[mcp]"
+pip install pmorun-mcp
+# or
+uv add pmorun-mcp
 ```
 
-Run via stdio (the FastMCP default):
+This installs the `pmorun-mcp` command (a stdio MCP server).
+
+## Wire it into Claude Desktop
+
+Add this to `claude_desktop_config.json` (on macOS,
+`~/Library/Application Support/Claude/claude_desktop_config.json`; the path
+differs on Linux/Windows):
+
+```json
+{
+  "mcpServers": {
+    "pmo-logic": {
+      "command": "pmorun-mcp"
+    }
+  }
+}
+```
+
+Restart Claude Desktop; the four tools appear under the `pmo-logic` server.
+
+For Claude Code: `claude mcp add pmo-logic pmorun-mcp`.
+
+### Running from a source checkout
 
 ```bash
 uv run python -m mcp_server.server
 ```
 
-Wire it into Claude Desktop by adding this to
-`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
-or the equivalent on Linux/Windows:
+Point the Claude Desktop config at the checkout instead of the installed
+command:
 
 ```json
 {
   "mcpServers": {
     "pmo-logic": {
       "command": "uv",
-      "args": [
-        "--directory",
-        "/absolute/path/to/logic",
-        "run",
-        "python",
-        "-m",
-        "mcp_server.server"
-      ]
+      "args": ["--directory", "/absolute/path/to/logic", "run", "python", "-m", "mcp_server.server"]
     }
   }
 }
 ```
 
-For Claude Code, use `claude mcp add pmo-logic uv run python -m mcp_server.server`
-from the repo root.
+## Worked examples
+
+One representative call per tool. Inputs are the shared Pydantic models, so these
+shapes match the FastAPI request bodies exactly.
+
+### `estimate_task_duration` (PERT)
+
+A task estimated at 2 / 5 / 14 (optimistic / most-likely / pessimistic) days:
+
+```json
+{ "task": { "optimistic": 2, "most_likely": 5, "pessimistic": 14 } }
+```
+
+Returns the textbook PERT expected duration of **6.0** days (`(2 + 4·5 + 14) / 6`)
+with a standard deviation of **2.0** (`(14 − 2) / 6`). Add insight tags to widen
+the pessimistic tail for known frictions:
+
+```json
+{
+  "task": {
+    "optimistic": 2, "most_likely": 5, "pessimistic": 14,
+    "tags": [{ "name": "FRAGMENTED_COMMUNICATION", "severity": 0.5 }]
+  }
+}
+```
+
+### `identify_schedule_risk` (Monte Carlo)
+
+A three-task chain (Design → Build → Test), 2,000 iterations, seeded for
+reproducibility:
+
+```json
+{
+  "tasks": [
+    { "name": "Design", "optimistic": 3, "most_likely": 5, "pessimistic": 10 },
+    { "name": "Build", "optimistic": 8, "most_likely": 14, "pessimistic": 25, "depends_on": ["Design"] },
+    { "name": "Test", "optimistic": 3, "most_likely": 5, "pessimistic": 10, "depends_on": ["Build"] }
+  ],
+  "config": { "num_simulations": 2000, "seed": 42 }
+}
+```
+
+Returns P50 ≈ **25.5** and P85 ≈ **29.6** days, plus the per-task
+`critical_path_frequency` (in this strict chain, 1.0 for every task — they all
+always sit on the critical path). `seed` defaults to **42** when omitted, so runs
+are reproducible by default; pass a different integer to vary the draw.
+
+### `compare_investment_options` (TCO)
+
+Cloud (low upfront, high running cost) versus on-prem (high upfront, low running
+cost), each over three years:
+
+```json
+{
+  "request": {
+    "options": [
+      { "name": "Cloud", "initial_price": 5000, "useful_life_years": 3, "annual_operating_cost": 12000 },
+      { "name": "On-prem", "initial_price": 40000, "useful_life_years": 3, "annual_maintenance": 3000 }
+    ]
+  }
+}
+```
+
+Returns the options ranked by annual cost (rank 1 = cheapest). Here `best_option`
+is **Cloud** (≈ 13,667/yr versus ≈ 16,333/yr for on-prem).
+
+### `evaluate_project_health` (EVM)
+
+A project a little behind and over budget:
+
+```json
+{ "evm": { "pv": 1000, "ev": 900, "ac": 1100, "bac": 5000 } }
+```
+
+Returns SPI **0.9**, CPI **≈ 0.82**, the forecast `eac`/`etc`/`vac`/`tcpi`, and a
+health verdict of **off_track** with the reasons spelled out.
+
+## Errors
+
+Every tool returns **structured, tagged errors** — never a Python traceback.
+Errors carry a type tag the model can reason about:
+
+- `[ValidationError]` — inputs are individually valid but jointly inconsistent
+  (e.g. an unknown insight tag), or rejected before computation.
+- `[ComputationError]` — the underlying maths rejected the inputs (e.g. an
+  optimistic estimate larger than the most-likely one, a non-positive budget).
+- `[InternalError]` — an unexpected failure, reported generically so no internal
+  state leaks.
+
+Field-level constraints (a negative cost, fewer than two options to compare) are
+caught by the shared Pydantic models and surfaced as structured validation
+messages.
 
 ## Development
 
@@ -134,34 +203,20 @@ Tests live in `tests/mcp_server/`:
 pytest tests/mcp_server/
 ```
 
-They cover registration (all five tools present, every tool description
-leads with the decision question) and one happy path per tool, plus a
-handful of Layer 2 edge cases on the flagship. Implementation-grade test
-sweeps for the underlying maths live in `tests/{pert,montecarlo,tco,evm}/`
-already — we don't duplicate them here.
+They cover registration (exactly the four tools, each leading with a decision
+question, each exposing input and output schemas), one worked example per tool,
+seed-42 determinism on the Monte Carlo tool, and the structured-error contract.
+Implementation-grade maths sweeps live in `tests/{pert,montecarlo,tco,evm}/`
+already — we do not duplicate them here.
 
-## Out of scope (for now)
+## Out of scope (v0.2+)
 
-- **SSE / HTTP transport.** stdio is enough for local Claude Desktop /
-  Claude Code wiring. The `mcp[cli]` package supports SSE; flip the
-  transport in `server.py` when remote consumers (Make.com, web clients)
-  are needed.
-- **Persistence.** Tools are stateless. The agent is responsible for
-  persisting results back through the data-source MCP.
-- **Bayesian wiring.** Once the Bayesian module's posteriors have field
-  data, Layer 2 priors will move from hard-coded constants to learned
-  parameters.
-
-## Follow-ups
-
-1. **Calibrate Layer 2 against estimation_log data.** Replace the v0.1
-   constants with Bayesian-updated priors per task_category.
-2. **SSE / HTTP transport.** For the Make.com integration path.
-3. **Add `simulate_with_drift` exposure.** The new Sprint 8 Dirichlet-drift
-   work in `app.montecarlo.core.simulate_with_drift` would slot naturally
-   into `identify_schedule_risk` once we agree on how to expose
-   `risk_class` / posteriors via MCP without exploding the tool's input
-   surface.
+- **Streamable HTTP transport, OAuth, hosting, rate limiting, audit logging** —
+  the paid hosted lane. v0.1 is stdio-only and local-trust.
+- **Calibration-driven and stochastic-mix tools** — `estimate_from_history`
+  (two-layer calibration) is parked in `tools.py`; the Bayesian and
+  Dirichlet-drift tools are parked too. All wait on field data to ground their
+  calibration before they meet the v0.1 quality bar.
 
 ## Licence
 

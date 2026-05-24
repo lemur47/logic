@@ -1,21 +1,47 @@
 """
-MCP server prototype tests.
+MCP server v0.1 tests.
 
-Light coverage — registration check and one happy path per tool, plus a
-couple of Layer 2 edge cases on the flagship. Implementation-grade
-sweeps live in tests/{pert,montecarlo,tco,evm}/ already.
+Covers: registration of exactly the four classic tools (each leading with a
+decision question), one worked example per tool through the shared Pydantic
+models, seed-42 determinism on the stochastic tool, and the structured-error
+contract (typed tags, no tracebacks on the wire).
+
+Implementation-grade maths sweeps live in tests/{pert,montecarlo,tco,evm}/ —
+we do not duplicate them here. `estimate_from_history` is parked for v0.1
+(see the banner in mcp_server/tools.py) and is intentionally untested here.
 """
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError as FastMCPToolError
+from pydantic import ValidationError as PydanticValidationError
 
+from app.evm.schemas import EvmCalculateInput, EvmCalculateResponse
+from app.montecarlo.schemas import SimulationConfig, SimulationResult
+from app.montecarlo.schemas import TaskInput as MCTaskInput
+from app.pert.schemas import TagInput, TaskEstimation
+from app.pert.schemas import TaskInput as PertTaskInput
+from app.tco.schemas import CompareOption, CompareRequest, CompareResponse
+from mcp_server.errors import (
+    ToolComputationError,
+    ToolInternalError,
+    ToolValidationError,
+    structured_errors,
+)
 from mcp_server.server import mcp
 from mcp_server.tools import (
     compare_investment_options,
-    estimate_from_history,
     estimate_task_duration,
     evaluate_project_health,
     identify_schedule_risk,
 )
+
+V01_TOOLS = {
+    "estimate_task_duration",
+    "identify_schedule_risk",
+    "compare_investment_options",
+    "evaluate_project_health",
+}
+
 
 # =============================================================================
 # Registration
@@ -23,211 +49,212 @@ from mcp_server.tools import (
 
 
 class TestServerRegistration:
-    async def test_all_five_tools_registered(self):
+    async def test_exactly_the_four_v01_tools_registered(self):
         names = {t.name for t in await mcp.list_tools()}
-        assert names == {
-            "estimate_task_duration",
-            "estimate_from_history",
-            "identify_schedule_risk",
-            "compare_investment_options",
-            "evaluate_project_health",
-        }
+        assert names == V01_TOOLS
 
-    async def test_tool_descriptions_state_decision_question(self):
-        """Each tool's description should lead with 'Use when:' so the LLM
-        picks the right tool for the right decision question (not by guessing
-        from acronyms)."""
+    async def test_parked_flagship_is_not_registered(self):
+        names = {t.name for t in await mcp.list_tools()}
+        assert "estimate_from_history" not in names
+
+    async def test_descriptions_lead_with_decision_question(self):
+        """Each tool's description states a 'Use when:' decision question so the
+        LLM picks the right tool by purpose, not by acronym."""
         for tool in await mcp.list_tools():
             assert tool.description, f"Tool {tool.name} has no description"
             assert "Use when:" in tool.description, (
-                f"Tool {tool.name} description should start with 'Use when:'"
+                f"Tool {tool.name} description should state a 'Use when:' question"
             )
+
+    async def test_every_tool_exposes_input_and_output_schema(self):
+        """Inputs and outputs are the shared FastAPI Pydantic models, so every
+        tool carries both an input and a structured output schema."""
+        for tool in await mcp.list_tools():
+            assert tool.inputSchema.get("properties"), f"{tool.name} has no input properties"
+            assert tool.outputSchema is not None, f"{tool.name} has no output schema"
 
 
 # =============================================================================
-# estimate_task_duration
+# estimate_task_duration (PERT)
 # =============================================================================
 
 
 class TestEstimateTaskDuration:
-    def test_textbook_only(self):
-        r = estimate_task_duration(2, 5, 14)
-        assert r["textbook"]["expected"] == pytest.approx(6.0)
-        assert r["adjusted"] is None
+    def test_textbook_worked_example(self):
+        result = estimate_task_duration(PertTaskInput(optimistic=2, most_likely=5, pessimistic=14))
+        assert isinstance(result, TaskEstimation)
+        assert result.textbook.expected == pytest.approx(6.0)  # (2 + 4*5 + 14) / 6
+        assert result.textbook.std_dev == pytest.approx(2.0)  # (14 - 2) / 6
+        assert result.adjusted is None
 
-    def test_with_insight_tags_widens_pessimistic(self):
-        r = estimate_task_duration(2, 5, 14, insight_tags={"FRAGMENTED_COMMUNICATION": 0.5})
-        assert r["adjusted"] is not None
-        assert r["adjusted"]["expected"] > r["textbook"]["expected"]
-
-    def test_unknown_tag_raises(self):
-        with pytest.raises(ValueError, match="Unknown insight tag 'nonesuch'"):
-            estimate_task_duration(2, 5, 10, insight_tags={"nonesuch": 0.5})
-
-
-# =============================================================================
-# estimate_from_history (flagship v0.1)
-# =============================================================================
-
-
-class TestEstimateFromHistory:
-    def test_happy_path_medium_quality(self):
-        r = estimate_from_history(
-            "auth-api",
-            optimistic=4,
-            past_actuals=[5.0, 6.5, 7.2, 5.8, 6.1],
-            team_familiarity=0.5,
-            complexity_factor=0.5,
-            novelty_factor=0.5,
+    def test_insight_tag_widens_the_pessimistic_tail(self):
+        result = estimate_task_duration(
+            PertTaskInput(
+                optimistic=2,
+                most_likely=5,
+                pessimistic=14,
+                tags=[TagInput(name="FRAGMENTED_COMMUNICATION", severity=0.5)],
+            )
         )
-        assert r["data_quality"] == "medium"
-        assert r["calibration_version"] == "v0.1"
-        assert r["derived_most_likely"] >= 4
-        assert r["derived_pessimistic"] >= r["derived_most_likely"]
+        assert result.adjusted is not None
+        assert result.adjusted.expected > result.textbook.expected
 
-    def test_data_quality_buckets(self):
-        low = estimate_from_history("x", 1, [5.0])
-        mid = estimate_from_history("x", 1, [5.0, 6.0, 7.0])
-        high = estimate_from_history("x", 1, [5.0] * 8)
-        assert low["data_quality"] == "low"
-        assert mid["data_quality"] == "medium"
-        assert high["data_quality"] == "high"
+    def test_optimistic_exceeding_most_likely_is_a_computation_error(self):
+        with pytest.raises(ToolComputationError, match=r"\[ComputationError\]"):
+            estimate_task_duration(PertTaskInput(optimistic=10, most_likely=5, pessimistic=14))
 
-    def test_complexity_lifts_most_likely(self):
-        easy = estimate_from_history("x", 1, [5.0, 6.0, 7.0], complexity_factor=0.0)
-        hard = estimate_from_history("x", 1, [5.0, 6.0, 7.0], complexity_factor=1.0)
-        assert hard["derived_most_likely"] > easy["derived_most_likely"]
-
-    def test_low_familiarity_widens_spread(self):
-        familiar = estimate_from_history("x", 1, [5.0, 6.0, 7.0], team_familiarity=1.0)
-        new = estimate_from_history("x", 1, [5.0, 6.0, 7.0], team_familiarity=0.0)
-        familiar_spread = familiar["derived_pessimistic"] - familiar["derived_most_likely"]
-        new_spread = new["derived_pessimistic"] - new["derived_most_likely"]
-        assert new_spread > familiar_spread
-
-    def test_novelty_lifts_pessimistic_only(self):
-        """Novelty widens the tail without moving the central tendency."""
-        familiar = estimate_from_history("x", 1, [5.0, 6.0, 7.0], novelty_factor=0.0)
-        new = estimate_from_history("x", 1, [5.0, 6.0, 7.0], novelty_factor=1.0)
-        assert new["derived_most_likely"] == familiar["derived_most_likely"]
-        assert new["derived_pessimistic"] > familiar["derived_pessimistic"]
-
-    def test_empty_history_raises(self):
-        with pytest.raises(ValueError, match="at least one observation"):
-            estimate_from_history("x", 1, [])
-
-    def test_calibration_knob_out_of_range_raises(self):
-        with pytest.raises(ValueError, match="team_familiarity"):
-            estimate_from_history("x", 1, [5.0], team_familiarity=1.5)
-
-    def test_layer1_tags_compose_with_layer2(self):
-        without = estimate_from_history(
-            "x", 1, [5.0, 6.0, 7.0], complexity_factor=0.5, novelty_factor=0.3
-        )
-        with_tags = estimate_from_history(
-            "x",
-            1,
-            [5.0, 6.0, 7.0],
-            complexity_factor=0.5,
-            novelty_factor=0.3,
-            insight_tags={"MULTIPLE_STAKEHOLDERS": 0.5},
-        )
-        # Same Layer 2 derivation; Layer 1 widens pessimistic only.
-        assert with_tags["derived_most_likely"] == without["derived_most_likely"]
-        assert with_tags["adjusted_estimate"] is not None
-        assert without["adjusted_estimate"] is None
-
-
-# =============================================================================
-# identify_schedule_risk
-# =============================================================================
-
-
-class TestIdentifyScheduleRisk:
-    def test_returns_ranked_risks(self):
-        r = identify_schedule_risk(
-            [
-                {"name": "A", "optimistic": 2, "most_likely": 5, "pessimistic": 12},
-                {
-                    "name": "B",
-                    "optimistic": 3,
-                    "most_likely": 6,
-                    "pessimistic": 8,
-                    "depends_on": ["A"],
-                },
-            ],
-            num_simulations=500,
-            seed=42,
-        )
-        assert len(r["ranked_risks"]) == 2
-        assert r["ranked_risks"][0]["rank"] == 1
-        assert r["ranked_risks"][0]["risk_score"] >= r["ranked_risks"][1]["risk_score"]
-        assert "P50" in r["project_percentiles"]
-
-    def test_empty_tasks_raises(self):
-        with pytest.raises(ValueError, match="at least one task"):
-            identify_schedule_risk([], num_simulations=100)
-
-
-# =============================================================================
-# compare_investment_options
-# =============================================================================
-
-
-class TestCompareInvestmentOptions:
-    def test_ranks_by_annual_cost(self):
-        r = compare_investment_options(
-            [
-                {
-                    "name": "A",
-                    "initial_price": 1000,
-                    "useful_life_years": 5,
-                    "annual_maintenance": 100,
-                },
-                {
-                    "name": "B",
-                    "initial_price": 800,
-                    "useful_life_years": 5,
-                    "annual_maintenance": 200,
-                },
-            ]
-        )
-        assert r["ranked_options"][0]["name"] == "A"
-        assert "Cheapest" in r["summary"]
-
-    def test_single_option_raises(self):
-        with pytest.raises(ValueError, match="at least 2"):
-            compare_investment_options(
-                [{"name": "A", "initial_price": 100, "useful_life_years": 1}]
+    def test_unknown_insight_tag_is_a_validation_error(self):
+        with pytest.raises(ToolValidationError, match="Unknown insight tag"):
+            estimate_task_duration(
+                PertTaskInput(
+                    optimistic=2,
+                    most_likely=5,
+                    pessimistic=14,
+                    tags=[TagInput(name="nonesuch", severity=0.5)],
+                )
             )
 
 
 # =============================================================================
-# evaluate_project_health
+# identify_schedule_risk (Monte Carlo schedule)
+# =============================================================================
+
+
+class TestIdentifyScheduleRisk:
+    # A simple linear chain: Design → Build → Test.
+    WORKED = [
+        MCTaskInput(name="Design", optimistic=3, most_likely=5, pessimistic=10),
+        MCTaskInput(
+            name="Build", optimistic=8, most_likely=14, pessimistic=25, depends_on=["Design"]
+        ),
+        MCTaskInput(name="Test", optimistic=3, most_likely=5, pessimistic=10, depends_on=["Build"]),
+    ]
+
+    def test_seed_42_is_reproducible(self):
+        a = identify_schedule_risk(self.WORKED, SimulationConfig(num_simulations=2000, seed=42))
+        b = identify_schedule_risk(self.WORKED, SimulationConfig(num_simulations=2000, seed=42))
+        assert a.percentiles.model_dump() == b.percentiles.model_dump()
+
+    def test_default_seed_equals_explicit_42(self):
+        """An omitted seed defaults to 42, so the default run matches seed=42."""
+        default = identify_schedule_risk(self.WORKED, SimulationConfig(num_simulations=2000))
+        explicit = identify_schedule_risk(
+            self.WORKED, SimulationConfig(num_simulations=2000, seed=42)
+        )
+        assert default.percentiles.model_dump() == explicit.percentiles.model_dump()
+
+    def test_worked_example_pins_output(self):
+        result = identify_schedule_risk(
+            self.WORKED, SimulationConfig(num_simulations=2000, seed=42)
+        )
+        assert isinstance(result, SimulationResult)
+        # Pinned reference run (seed 42, 2,000 iterations) — guards against regressions.
+        assert abs(result.percentiles.P50 - 25.53) < 0.01
+        assert abs(result.percentiles.P85 - 29.62) < 0.01
+        # In a strict linear chain every task is always on the critical path.
+        assert result.critical_path_frequency == {"Design": 1.0, "Build": 1.0, "Test": 1.0}
+
+    def test_empty_task_list_is_a_validation_error(self):
+        with pytest.raises(ToolValidationError, match="at least one task"):
+            identify_schedule_risk([])
+
+
+# =============================================================================
+# compare_investment_options (TCO)
+# =============================================================================
+
+
+class TestCompareInvestmentOptions:
+    def test_worked_example_ranks_by_lifetime_cost(self):
+        result = compare_investment_options(
+            CompareRequest(
+                options=[
+                    CompareOption(
+                        name="Cloud",
+                        initial_price=5000,
+                        useful_life_years=3,
+                        annual_operating_cost=12000,
+                    ),
+                    CompareOption(
+                        name="On-prem",
+                        initial_price=40000,
+                        useful_life_years=3,
+                        annual_maintenance=3000,
+                    ),
+                ]
+            )
+        )
+        assert isinstance(result, CompareResponse)
+        assert result.best_option == "Cloud"
+        assert result.results[0].rank == 1
+        assert result.results[0].annual_cost <= result.results[1].annual_cost
+
+    def test_fewer_than_two_options_rejected_by_shared_schema(self):
+        with pytest.raises(PydanticValidationError):
+            CompareRequest(
+                options=[CompareOption(name="A", initial_price=100, useful_life_years=1)]
+            )
+
+
+# =============================================================================
+# evaluate_project_health (EVM)
 # =============================================================================
 
 
 class TestEvaluateProjectHealth:
-    def test_off_track_when_under_budget_threshold(self):
-        r = evaluate_project_health(
-            planned_value=1000,
-            earned_value=900,
-            actual_cost=1100,
-            budget_at_completion=5000,
-        )
-        assert r["health"]["status"] == "off_track"
-        assert r["metrics"]["spi"] == pytest.approx(0.9)
-        assert r["metrics"]["cpi"] < 1.0
+    def test_off_track_worked_example(self):
+        result = evaluate_project_health(EvmCalculateInput(pv=1000, ev=900, ac=1100, bac=5000))
+        assert isinstance(result, EvmCalculateResponse)
+        assert result.health.status == "off_track"
+        assert result.metrics.spi == pytest.approx(0.9)
+        assert result.metrics.cpi is not None and result.metrics.cpi < 1.0
 
-    def test_on_track_when_at_or_above_thresholds(self):
-        r = evaluate_project_health(
-            planned_value=1000,
-            earned_value=1000,
-            actual_cost=950,
-            budget_at_completion=5000,
-        )
-        assert r["health"]["status"] == "on_track"
+    def test_on_track_worked_example(self):
+        result = evaluate_project_health(EvmCalculateInput(pv=1000, ev=1000, ac=950, bac=5000))
+        assert result.health.status == "on_track"
 
-    def test_zero_bac_raises(self):
-        with pytest.raises(ValueError, match="BAC must be positive"):
-            evaluate_project_health(100, 100, 100, 0)
+    def test_zero_budget_rejected_by_shared_schema(self):
+        with pytest.raises(PydanticValidationError):
+            EvmCalculateInput(pv=100, ev=100, ac=100, bac=0)
+
+
+# =============================================================================
+# Structured error contract
+# =============================================================================
+
+
+class TestStructuredErrors:
+    def test_error_types_render_their_tag(self):
+        assert str(ToolValidationError("bad input")) == "[ValidationError] bad input"
+        assert str(ToolComputationError("maths rejected")) == "[ComputationError] maths rejected"
+        assert str(ToolInternalError("oops")) == "[InternalError] oops"
+
+    def test_wrapper_retags_value_error_as_computation_error(self):
+        @structured_errors
+        def boom():
+            raise ValueError("bad")
+
+        with pytest.raises(ToolComputationError, match=r"\[ComputationError\] bad"):
+            boom()
+
+    def test_wrapper_hides_unexpected_internals(self):
+        @structured_errors
+        def boom():
+            raise RuntimeError("secret internal detail")
+
+        with pytest.raises(ToolInternalError) as exc_info:
+            boom()
+        assert "secret internal detail" not in str(exc_info.value)
+        assert "[InternalError]" in str(exc_info.value)
+
+    async def test_domain_error_on_the_wire_is_tagged_and_traceback_free(self):
+        """A domain error raised inside a tool surfaces to the client as a tagged
+        message with no Python traceback."""
+        with pytest.raises(FastMCPToolError) as exc_info:
+            await mcp.call_tool(
+                "estimate_task_duration",
+                {"task": {"optimistic": 10, "most_likely": 5, "pessimistic": 14}},
+            )
+        message = str(exc_info.value)
+        assert "[ComputationError]" in message
+        assert "Traceback" not in message
