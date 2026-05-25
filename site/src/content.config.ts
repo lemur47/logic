@@ -10,6 +10,9 @@ const blog = defineCollection({
     pubDate: z.coerce.date(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
+    // Drives JSON-LD schema selection (LLM-first content architecture).
+    // Consumer not yet built — kept optional and permissive until then.
+    contentType: z.string().optional(),
   }),
 });
 
