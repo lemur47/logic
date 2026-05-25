@@ -103,7 +103,7 @@ You do not need to deploy anything to start paying less of this tax.
 
 Everything above rests on one move: getting your decision logic out of documents and meetings and into something an agent can compute and surface on demand. But an agent is only useful if it can reach the places your work actually lives — your assistant, your planning tools, your repository.
 
-That connection now has a standard: the Model Context Protocol (MCP). The next post in this series introduces pmo.run's MCP server — the layer that lets an AI assistant call these decision tools directly, so the shared picture assembles itself wherever you already work. If this post is the *why*, that one is the *how*.
+That connection now has a standard: the Model Context Protocol (MCP). [The next post in this series](/en/blog/how-pmos-can-automate-tasks-with-claude-using-pmoruns-mcp-server/) introduces pmo.run's MCP server — the layer that lets an AI assistant call these decision tools directly, so the shared picture assembles itself wherever you already work. If this post is the *why*, that one is the *how*.
 
 ---
 
