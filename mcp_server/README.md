@@ -7,9 +7,9 @@ records in; this server runs the maths; Claude orchestrates and narrates the
 result.
 
 > **Status: v0.1.** Four classic PMO tools, stdio transport, structured errors.
-> Distributed on PyPI as [`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/). The
-> hosted lane (Streamable HTTP + auth) and the calibration-driven tools are parked
-> for v0.2 — see [Out of scope](#out-of-scope-v02).
+> Run it from a source checkout (see [Install](#install)); a published package is
+> planned for a later release. The hosted lane (Streamable HTTP + auth) and the
+> calibration-driven tools are parked for v0.2 — see [Out of scope](#out-of-scope-v02).
 
 ## What's in the box
 
@@ -54,42 +54,19 @@ a future TypeScript port that mirrors the same surface.
 
 ## Install
 
-```bash
-pip install pmorun-mcp
-# or
-uv add pmorun-mcp
-```
+Until a package is published, run the server from a source checkout:
 
-This installs the `pmorun-mcp` command (a stdio MCP server).
+```bash
+git clone https://github.com/lemur47/logic.git
+cd logic
+uv run python -m mcp_server.server
+```
 
 ## Wire it into Claude Desktop
 
 Add this to `claude_desktop_config.json` (on macOS,
 `~/Library/Application Support/Claude/claude_desktop_config.json`; the path
-differs on Linux/Windows):
-
-```json
-{
-  "mcpServers": {
-    "pmo-logic": {
-      "command": "pmorun-mcp"
-    }
-  }
-}
-```
-
-Restart Claude Desktop; the four tools appear under the `pmo-logic` server.
-
-For Claude Code: `claude mcp add pmo-logic pmorun-mcp`.
-
-### Running from a source checkout
-
-```bash
-uv run python -m mcp_server.server
-```
-
-Point the Claude Desktop config at the checkout instead of the installed
-command:
+differs on Linux/Windows), pointing at your checkout:
 
 ```json
 {
@@ -100,6 +77,14 @@ command:
     }
   }
 }
+```
+
+Restart Claude Desktop; the four tools appear under the `pmo-logic` server.
+
+For Claude Code:
+
+```bash
+claude mcp add pmo-logic -- uv --directory /absolute/path/to/logic run python -m mcp_server.server
 ```
 
 ## Worked examples
