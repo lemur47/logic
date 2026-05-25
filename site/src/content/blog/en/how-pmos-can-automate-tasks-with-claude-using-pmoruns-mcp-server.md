@@ -124,4 +124,4 @@ The local OSS package will continue receiving maths and tooling updates. A hoste
 
 ---
 
-Clone the repo and try it on a real estimate. Source: [github.com/lemur47/logic](https://github.com/lemur47/logic). Issues and PRs welcome.
+Clone the repo and try it on a real estimate. Source: [github.com/lemur47/logic](https://github.com/lemur47/logic). Issues welcome.

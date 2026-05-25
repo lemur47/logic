@@ -128,4 +128,4 @@ v0.2 以降に持ち越したのは次の6つです:
 
 ---
 
-リポジトリをクローンして、実際の見積もりで試してみてください。ソース: [github.com/lemur47/logic](https://github.com/lemur47/logic)。Issue と PR を歓迎します。
+リポジトリをクローンして、実際の見積もりで試してみてください。ソース: [github.com/lemur47/logic](https://github.com/lemur47/logic)。Issue を歓迎します。
