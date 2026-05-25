@@ -6,7 +6,7 @@ tags: ["mcp", "claude", "pert", "pmo", "release"]
 contentType: "how-to"
 ---
 
-[The Hidden Tax on Status Reports](https://pmo.run/en/blog/the-hidden-tax-on-status-reports/) showed why programme communication overhead inflates every delivery estimate. This post is the practical follow-on: pmo.run now ships an MCP server giving Claude four classic PMI tools — PERT, EVM, TCO, and Monte Carlo schedule — installable from source today, with a polished PyPI release on the roadmap. The worked example below shows why a vendor's textbook 14-day estimate often becomes a 28-day programme commit, once you account for friction your vendor cannot see from their side.
+[The Hidden Tax on Status Reports](/en/blog/the-hidden-tax-on-status-reports/) showed why programme communication overhead inflates every delivery estimate. This post is the practical follow-on: pmo.run now ships an MCP server giving Claude four classic PMI tools — PERT, EVM, TCO, and Monte Carlo schedule — installable from source today, with a polished PyPI release on the roadmap. The worked example below shows why a vendor's textbook 14-day estimate often becomes a 28-day programme commit, once you account for friction your vendor cannot see from their side.
 
 ## What Does pmo.run's MCP Server Do?
 
