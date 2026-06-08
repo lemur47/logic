@@ -27,7 +27,8 @@ keywords = [
 
 # Lean stdio runtime. The four registered tools import only the pure-function
 # cores (PERT, Monte Carlo, TCO, EVM) plus shared Pydantic schemas — no FastAPI
-# REST layer, no DB. So fastapi/uvicorn/sqlalchemy are intentionally absent here.
+# REST layer, no DB. So fastapi/uvicorn/sqlalchemy are intentionally absent here
+# — they live in the `app` optional-dependency extra below for FastAPI dev/test.
 # (uvicorn + starlette still arrive transitively via mcp's bundled HTTP/SSE
 # transport — that is the SDK's requirement, not ours, and unavoidable short of
 # vendoring it.) numpy is used by tools.py and montecarlo.core; scipy.stats by
@@ -43,7 +44,18 @@ dependencies = [
 pmorun-mcp = "mcp_server.server:main"
 
 [project.optional-dependencies]
+# The FastAPI application layer (REST API + DB). NOT needed to run the stdio MCP
+# server — the published artifact stays lean (see `dependencies` above). Install
+# this to develop or run the web app: `uvicorn app.main:app`. Keeping it an extra
+# is what lets one pyproject serve two products from this repo: the lean MCP
+# package on PyPI, and the FastAPI app for contributors.
+app = [
+    "fastapi[standard]>=0.128.0",
+    "sqlalchemy>=2.0.46",
+    "uvicorn>=0.40.0",
+]
 dev = [
+    "pmorun-mcp[app]",  # pull the web stack so the full test suite runs on a clean clone
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
