@@ -158,6 +158,51 @@ class TestIdentifyScheduleRisk:
         with pytest.raises(ToolValidationError, match="at least one task"):
             identify_schedule_risk([])
 
+    # Parallel oracle: A and B run concurrently, C merges them (depends_on A & B).
+    # Honoured deps  -> makespan = max(A, B) + C, and exactly one of A/B is on the
+    #                   critical path per run, so freq(A) + freq(B) == 1.0, both < 1.
+    # Dropped deps   -> sequential fallback sums all three: makespan = A + B + C,
+    #                   and every task is critical (freq 1.0 each).
+    # A 3-task *chain* cannot tell these apart (chain == sequential arithmetic), so
+    # this merge structure is what actually exercises depends_on through the tool.
+    PARALLEL = [
+        MCTaskInput(name="A", optimistic=2, most_likely=4, pessimistic=6),
+        MCTaskInput(name="B", optimistic=1, most_likely=3, pessimistic=8),
+        MCTaskInput(name="C", optimistic=3, most_likely=5, pessimistic=9, depends_on=["A", "B"]),
+    ]
+
+    def test_parallel_network_is_not_summed_through_the_tool(self):
+        """The tool honours depends_on: a parallel merge is solved as max-of-paths,
+        not a blind sum. Guards against the adapter dropping deps and collapsing
+        every call to the sequential fallback."""
+        cfg = SimulationConfig(num_simulations=5000, seed=42)
+        parallel = identify_schedule_risk(self.PARALLEL, cfg)
+
+        # Same three tasks with the dependency stripped -> sequential fallback.
+        bare = [
+            MCTaskInput(
+                name=t.name,
+                optimistic=t.optimistic,
+                most_likely=t.most_likely,
+                pessimistic=t.pessimistic,
+            )
+            for t in self.PARALLEL
+        ]
+        sequential = identify_schedule_risk(bare, cfg)
+
+        cpf = parallel.critical_path_frequency
+        # The merge task C is always on the critical path; A and B split it, never
+        # both fully critical — the signature of honoured parallelism.
+        assert cpf["C"] == pytest.approx(1.0)
+        assert 0.0 < cpf["A"] < 1.0
+        assert 0.0 < cpf["B"] < 1.0
+        assert cpf["A"] + cpf["B"] == pytest.approx(1.0)
+
+        # max(A, B) + C is strictly cheaper than A + B + C: parallelism shortens
+        # the schedule. If deps were dropped these would be equal.
+        assert parallel.mean < sequential.mean
+        assert sequential.critical_path_frequency == {"A": 1.0, "B": 1.0, "C": 1.0}
+
 
 # =============================================================================
 # compare_investment_options (TCO)
