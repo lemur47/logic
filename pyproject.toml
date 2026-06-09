@@ -1,6 +1,14 @@
 # logic repo - pyproject.toml
 # R&D and prototyping tools
 
+# Declare the build backend explicitly so the wheel/sdist build resolves via an
+# isolated PEP 517 frontend instead of uv's implicit setuptools fallback. The
+# >=77 floor is the version that understands the SPDX `License-Expression` /
+# Metadata 2.4 the build already emits.
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pmorun-mcp"
 version = "0.1.0"
