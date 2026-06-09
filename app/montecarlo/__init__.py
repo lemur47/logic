@@ -12,7 +12,6 @@ from .core import (
     simulate_schedule,
     simulate_with_drift,
 )
-from .router import router
 
 __all__ = [
     "DriftConfig",
@@ -23,7 +22,6 @@ __all__ = [
     "Task",
     "compare_with_pert",
     "probability_of_completion",
-    "router",
     "simulate_schedule",
     "simulate_with_drift",
 ]

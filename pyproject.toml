@@ -1,12 +1,25 @@
 # logic repo - pyproject.toml
 # R&D and prototyping tools
 
+# Declare the build backend explicitly so the wheel/sdist build resolves via an
+# isolated PEP 517 frontend instead of uv's implicit setuptools fallback. The
+# >=77 floor is the version that understands the SPDX `License-Expression` /
+# Metadata 2.4 the build already emits.
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pmorun-mcp"
 version = "0.1.0"
 description = "pmo.run MCP server — classic PMO decision tools (PERT, Monte Carlo, TCO, EVM) over the Model Context Protocol."
 readme = "mcp_server/README.md"
-requires-python = ">=3.14"
+# Floor is 3.12, not lower: the shipped import graph uses PEP 695 type-parameter
+# syntax — `class PaginatedList[T]` (app/common/schemas.py) and
+# `def structured_errors[F: ...]` (mcp_server/errors.py) — which is a syntax error
+# before 3.12. numpy>=2.2 and scipy>=1.15 both support 3.12, so the floor is
+# code-driven, not dependency-driven.
+requires-python = ">=3.12"
 license = "MIT"
 authors = [{ name = "lemur47" }]
 keywords = [
@@ -20,21 +33,37 @@ keywords = [
     "project-management",
 ]
 
+# Lean stdio runtime. The four registered tools import only the pure-function
+# cores (PERT, Monte Carlo, TCO, EVM) plus shared Pydantic schemas — no FastAPI
+# REST layer, no DB. So fastapi/uvicorn/sqlalchemy are intentionally absent here
+# — they live in the `app` optional-dependency extra below for FastAPI dev/test.
+# (uvicorn + starlette still arrive transitively via mcp's bundled HTTP/SSE
+# transport — that is the SDK's requirement, not ours, and unavoidable short of
+# vendoring it.) numpy is used by tools.py and montecarlo.core; scipy.stats by
+# montecarlo.core — both genuinely required.
 dependencies = [
-    "fastapi[standard]>=0.128.0",
     "mcp[cli]>=1.0",
     "numpy>=2.2.0",
     "pydantic>=2.0",
     "scipy>=1.15.0",
-    "sqlalchemy>=2.0.46",
-    "uvicorn>=0.40.0",
 ]
 
 [project.scripts]
 pmorun-mcp = "mcp_server.server:main"
 
 [project.optional-dependencies]
+# The FastAPI application layer (REST API + DB). NOT needed to run the stdio MCP
+# server — the published artifact stays lean (see `dependencies` above). Install
+# this to develop or run the web app: `uvicorn app.main:app`. Keeping it an extra
+# is what lets one pyproject serve two products from this repo: the lean MCP
+# package on PyPI, and the FastAPI app for contributors.
+app = [
+    "fastapi[standard]>=0.128.0",
+    "sqlalchemy>=2.0.46",
+    "uvicorn>=0.40.0",
+]
 dev = [
+    "pmorun-mcp[app]",  # pull the web stack so the full test suite runs on a clean clone
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
@@ -48,14 +77,30 @@ analysis = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["app*", "mcp_server*"]
+# Ship the MCP server plus only the logic packages the four registered tools
+# import. app.bayesian is deliberately excluded (not registered in v0.1).
+# app.common is included for app.common.schemas (PaginatedList), reused by every
+# module's schemas. Note: this is package-granularity — the shipped logic
+# packages still carry their router/crud/models modules, but those are never
+# imported by the stdio server, so they pull no runtime deps.
+include = [
+    "mcp_server*",
+    "app",
+    "app.common",
+    "app.evm",
+    "app.montecarlo",
+    "app.pert",
+    "app.tco",
+]
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Ruff Configuration
 # ═══════════════════════════════════════════════════════════════════════════════
 [tool.ruff]
 line-length = 100
-target-version = "py314"
+# Match the package support floor so pyupgrade (UP) never rewrites to syntax
+# newer than 3.12 can run.
+target-version = "py312"
 
 [tool.ruff.lint]
 select = [
@@ -97,7 +142,9 @@ asyncio_mode = "auto"
 # Pyright Configuration
 # ═══════════════════════════════════════════════════════════════════════════════
 [tool.pyright]
-pythonVersion = "3.14"
+# Type-check against the support floor, not the dev interpreter, so accidental
+# use of >3.12 stdlib/syntax is caught.
+pythonVersion = "3.12"
 typeCheckingMode = "basic"  # Start lenient, move to "strict" later
 include = ["app"]
 exclude = ["tests", ".venv", "__pycache__", "examples"]
