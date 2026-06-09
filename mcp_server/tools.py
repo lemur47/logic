@@ -146,6 +146,10 @@ def identify_schedule_risk(
             (``optimistic`` / ``most_likely`` / ``pessimistic``, same time unit), and
             an optional ``depends_on`` list of predecessor task names. (``risk_class``
             is reserved for v0.2 drift simulation and is ignored here.)
+            Note: if **no** task in the network declares a ``depends_on`` the tasks
+            are assumed to form a sequential chain (durations sum) — bare tasks are
+            *not* inferred to run in parallel. Declare ``depends_on`` to model genuine
+            concurrency, where the makespan is the longest path, not the sum.
         config: Optional run settings — ``num_simulations`` (100–1,000,000; default
             10,000) and ``seed``. When ``seed`` is omitted it defaults to 42 for a
             reproducible run; pass a different integer to vary it.
