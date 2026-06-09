@@ -7,9 +7,10 @@ records in; this server runs the maths; Claude orchestrates and narrates the
 result.
 
 > **Status: v0.1.** Four classic PMO tools, stdio transport, structured errors.
-> Run it from a source checkout (see [Install](#install)); a published package is
-> planned for a later release. The hosted lane (Streamable HTTP + auth) and the
-> calibration-driven tools are parked for v0.2 — see [Out of scope](#out-of-scope-v02).
+> Published to PyPI as [`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/) — install
+> it or run it from a source checkout (see [Install](#install)). The hosted lane
+> (Streamable HTTP + auth) and the calibration-driven tools are parked for v0.2 —
+> see [Out of scope](#out-of-scope-v02).
 
 ## What's in the box
 
@@ -54,7 +55,22 @@ a future TypeScript port that mirrors the same surface.
 
 ## Install
 
-Until a package is published, run the server from a source checkout:
+The package is on PyPI as [`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/). The
+quickest path is to run it without installing — `uvx` fetches it into a throwaway
+environment:
+
+```bash
+uvx pmorun-mcp
+```
+
+Or install it into an environment of your own:
+
+```bash
+uv pip install pmorun-mcp   # or: pip install pmorun-mcp
+pmorun-mcp                  # console script — same entry point as python -m mcp_server.server
+```
+
+To hack on the server itself, run it from a source checkout instead:
 
 ```bash
 git clone https://github.com/lemur47/logic.git
@@ -66,14 +82,14 @@ uv run python -m mcp_server.server
 
 Add this to `claude_desktop_config.json` (on macOS,
 `~/Library/Application Support/Claude/claude_desktop_config.json`; the path
-differs on Linux/Windows), pointing at your checkout:
+differs on Linux/Windows):
 
 ```json
 {
   "mcpServers": {
     "pmo-logic": {
-      "command": "uv",
-      "args": ["--directory", "/absolute/path/to/logic", "run", "python", "-m", "mcp_server.server"]
+      "command": "uvx",
+      "args": ["pmorun-mcp"]
     }
   }
 }
@@ -84,8 +100,11 @@ Restart Claude Desktop; the four tools appear under the `pmo-logic` server.
 For Claude Code:
 
 ```bash
-claude mcp add pmo-logic -- uv --directory /absolute/path/to/logic run python -m mcp_server.server
+claude mcp add pmo-logic -- uvx pmorun-mcp
 ```
+
+> Running from a source checkout instead? Swap the command for
+> `uv --directory /absolute/path/to/logic run python -m mcp_server.server`.
 
 ## Worked examples
 
