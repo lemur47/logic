@@ -73,20 +73,20 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      # Installs the Python pinned in .python-version and caches by uv.lock hash
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8
         with:
-          python-version: "3.14"
-          cache: "pip"
+          enable-cache: true
 
-      - name: Install ruff
-        run: pip install ruff
+      - name: Install dependencies from lockfile
+        run: uv sync --frozen --extra dev
 
       - name: Run Ruff Linter
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Run Ruff Formatter Check
-        run: ruff format --check .
+        run: uv run ruff format --check .
 
   # Type checking with pyright
   typecheck:
@@ -94,19 +94,18 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8
         with:
-          python-version: "3.14"
-          cache: "pip"
+          enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          pip install pyright
-          pip install fastapi uvicorn sqlalchemy numpy scipy
+      # --frozen fails the job if uv.lock has drifted from pyproject.toml,
+      # so the committed lock is exercised on every run, not just stored.
+      - name: Install dependencies from lockfile
+        run: uv sync --frozen --extra dev
 
       - name: Run Pyright
-        run: pyright
+        run: uv run pyright
 
   # Frontend checks (Astro + Svelte + TypeScript)
   frontend:
