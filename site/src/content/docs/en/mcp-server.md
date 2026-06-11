@@ -56,11 +56,19 @@ Restart, and the four tools appear under the `pmo-logic` server.
 
 ## Ask a Real Question
 
-Once connected, you stop writing JSON and start asking questions:
+Once connected, you stop writing JSON and start asking questions. Start with a single task:
 
-> "Here are the three-point estimates for the migration tasks and their dependencies. What completion date can we commit to with 85% confidence, and which tasks should we de-risk first?"
+> "The data migration is 2 days best case, 5 days typical, 14 if the legacy schema fights back. What should I plan for?"
 
-Claude calls `identify_schedule_risk`, runs a seeded Monte Carlo simulation over your task network, and answers with the P85 date and the critical-path frequency per task — numbers you can take into a steering meeting.
+Claude calls `estimate_task_duration`, which runs the PERT maths over your three points and answers with an expected duration of **6.0 days** (standard deviation 2.0) — a single, defensible number instead of a gut feel.
+
+Then widen to the whole plan:
+
+> "Here are the three-point estimates for all the migration tasks and their dependencies. What completion date can we commit to with 85% confidence, and which tasks should we de-risk first?"
+
+Claude calls `identify_schedule_risk`, which runs a seeded Monte Carlo simulation across the task network, and answers with the P85 date and each task's critical-path frequency — numbers you can take into a steering meeting.
+
+That is the working pattern: PERT for one task, Monte Carlo for the network of them.
 
 ## Marketplace Listing Coming Later
 
