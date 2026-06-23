@@ -11,7 +11,7 @@ export const ui = {
   en: {
     "site.title": "pmo.run",
     "site.description":
-      "Mathematically-grounded tools for AI agents working alongside Project Management Offices. Open-source kernel, premium plugins, bespoke consulting.",
+      "Turn your PMO from a management unit into an intelligence organisation. Open-core decision tools for PMOs and consulting firms — Claude, MCP, Skills and API, with the shared method that makes the numbers reproducible.",
     "nav.home": "Home",
     "nav.tools": "Tools",
     "nav.blog": "Blog",
@@ -47,10 +47,10 @@ export const ui = {
     "home.hero.meta2": "MIT + commercial",
     "home.hero.meta3": "EN · JA",
     "home.hero.meta4": "japan · remote",
-    "home.hero.line1": "Mathematical rigour,",
-    "home.hero.line2": "for PMOs and the agents that assist them.",
+    "home.hero.line1": "From a management unit",
+    "home.hero.line2": "to an intelligence organisation.",
     "home.hero.body":
-      "Open-source Skills, MCP servers, and APIs that let Claude and other agents reason about projects the way a senior analyst does — with PERT, Monte Carlo, Bayesian updating, TCO and the rest of the kit.",
+      "Open-core decision tools for PMOs and consulting firms — give Claude and your team the method to turn project data into intelligence everyone can reproduce.",
     "home.hero.ctaPrimary": "Read the docs",
     "home.hero.ctaSecondary": "Install the skills",
     "home.metric.skills.label": "Skills",
@@ -67,19 +67,19 @@ export const ui = {
     "home.metric.methods.sub": "peer-reviewed",
 
     "home.premise.title":
-      "The administrative PMO won't survive agents. The strategic PMO will need them.",
+      "The administrative PMO won't survive agents. The intelligence-led PMO will run on them.",
     "home.premise.body":
-      "We're not selling a replacement. We're shipping the toolbox the next generation of PMO work is built on — kernel open, premium plugins where data integration warrants it, consulting where the analysis is bespoke.",
+      "We're not selling a replacement. We're shipping what the next generation of PMO work runs on — open-core, with premium plugins where data integration warrants it and consulting where the judgement is bespoke.",
     "home.premise.quote":
       "An AI agent can estimate a delivery date in seconds, but it can't judge which task to unblock next. pmo.run gives PMOs and their agents the maths to do both — with every number traceable.",
 
     "home.methods.title": "Maths-proved logic, packaged as tools.",
     "home.methods.lede":
-      "Each method ships as a Skill (for Claude), an MCP server (for any agent), and an HTTP API. Same kernel, three surfaces.",
+      "Each method ships as a Skill (for Claude), an MCP server (for any agent), and an HTTP API. Same logic, three surfaces.",
     "home.methods.pert.title": "Program Evaluation & Review Technique",
     "home.methods.pert.body":
       "Weighted three-point estimates with critical-path detection. Surfaces float, slack, and which task to actually unblock.",
-    "home.methods.mc.title": "Schedule simulation, 10⁵ samples",
+    "home.methods.mc.title": "Schedule simulation across thousands of runs",
     "home.methods.mc.body":
       "Replaces single-point dates with distributions. p50 / p90 ship dates, sensitivity per task, and confidence intervals you can defend.",
     "home.methods.bayes.title": "Estimates that learn from delivery",
@@ -93,7 +93,7 @@ export const ui = {
 
     "home.install.title": "Drop-in for Claude, Cursor, or any MCP client.",
     "home.install.lede":
-      "No platform lock. Skills load into Claude. The same kernel runs as a local MCP server, or behind your gateway as an HTTP API.",
+      "No platform lock. Skills load into Claude. The same tools run as a local MCP server, or behind your gateway as an HTTP API.",
 
     "home.opencore.title": "Three layers. One contract.",
     "home.opencore.lede":
@@ -116,9 +116,9 @@ export const ui = {
     "home.opencore.row3.audience":
       "Consulting firms, large transformation programmes.",
 
-    "home.audience.title": "For PMOs evolving from administrators to strategists.",
+    "home.audience.title": "For PMOs evolving from a management unit into an intelligence organisation.",
     "home.audience.lede":
-      "The administrative half of the PMO role — status rollups, variance reports, schedule maintenance — will be done by agents. Our work is to give those agents the same rigorous tools your best analysts use, so the human half can move upstream into strategy.",
+      "The administrative half of the PMO role — status rollups, variance reports, schedule maintenance — will be done by agents. Our work is to give those agents the same rigorous tools your best analysts use, so the human half can move upstream into intelligence work.",
     "home.audience.practitioner.label": "practitioner",
     "home.audience.practitioner.body":
       "Stop hand-rolling Monte Carlo in Excel. Drop the skill in Claude. Get the same numbers, defensible.",
@@ -150,7 +150,7 @@ export const ui = {
 
     /* About page */
     "about.hero.eyebrow": "§00 / about",
-    "about.hero.title": "Open methods, in service of strategic PMOs.",
+    "about.hero.title": "Open methods, in service of intelligence-led PMOs.",
     "about.hero.body":
       "pmo.run is the open foundation of a PMO service combining AI tooling and human judgement. We publish the maths, ship the surfaces (Skills, MCP, APIs), and engage on the bespoke work where calibration matters.",
     "about.thesis.title": "Why we exist",
@@ -159,12 +159,12 @@ export const ui = {
     "about.thesis.cell1.title": "AI agents need mathematical logic",
     "about.thesis.cell1.body":
       "Plausible-sounding reasoning and ad-hoc fixes don't solve the problem. Giving AI agents mathematically verified tools turns your organisation's tacit knowledge into a reproducible system.",
-    "about.thesis.cell2.title": "Open-source kernel, paid plugins",
+    "about.thesis.cell2.title": "Open-core, paid plugins",
     "about.thesis.cell2.body":
       "Core logic and tools are open source — we contribute to the PMO community. The value lies in accumulated data and the systematising of tacit knowledge, not in monetising the basic tools.",
-    "about.thesis.cell3.title": "Strategy is the human work",
+    "about.thesis.cell3.title": "Judgement is the human work",
     "about.thesis.cell3.body":
-      "Status rollups, variance reports, schedule maintenance — agents will do all of it. Strategic PMO work — where to invest, what to stop, how to communicate trade-offs — is upstream and stays human.",
+      "Status rollups, variance reports, schedule maintenance — agents will do all of it. The judgement work — where to invest, what to stop, how to communicate trade-offs — is upstream and stays human.",
     "about.people.title": "Team",
     "about.people.lede":
       "A Japan-based human + AI team — practising PMOs, AI mathematicians, and an AI DevSecOps team. We turn the PMO's tacit knowledge into maths and build it into tools.",
@@ -249,7 +249,7 @@ export const ui = {
   ja: {
     "site.title": "pmo.run",
     "site.description":
-      "PMOと、それを支援するAIエージェントのための、数理に基づくツール群。OSSカーネル、有償プラグイン、伴走型コンサルティング。",
+      "PMOを「管理部門」から「インテリジェンス組織」へ。PMOとコンサルティングファームのためのオープンコアな意思決定ツール群 — Claude・MCP・Skill・API、そして数値を再現可能にする共通の手法。",
     "nav.home": "ホーム",
     "nav.tools": "ツール",
     "nav.blog": "ブログ",
@@ -284,10 +284,10 @@ export const ui = {
     "home.hero.meta2": "MIT + 商用",
     "home.hero.meta3": "EN · JA",
     "home.hero.meta4": "日本 · リモート",
-    "home.hero.line1": "数理に基づくロジックを、",
-    "home.hero.line2": "PMOと、それを支援するAIエージェントに。",
+    "home.hero.line1": "「管理部門」から",
+    "home.hero.line2": "「インテリジェンス組織」へ。",
     "home.hero.body":
-      "PERT・モンテカルロ・ベイズ更新・TCOなど、シニアアナリストが使う手法をClaudeや任意のエージェントが扱えるよう、Skill・MCPサーバー・APIとしてオープンソースで提供します。",
+      "PMOとコンサルティングファームのためのオープンコアな意思決定ツール群。Claudeとチームに、プロジェクトのデータを誰もが再現できるインテリジェンスへと変える手法を。",
     "home.hero.ctaPrimary": "ドキュメントを読む",
     "home.hero.ctaSecondary": "Skillをインストール",
     "home.metric.skills.label": "Skills",
@@ -304,19 +304,19 @@ export const ui = {
     "home.metric.methods.sub": "査読済み",
 
     "home.premise.title":
-      "管理業務としてのPMOは消える。戦略としてのPMOには、エージェントが必要になる。",
+      "管理業務としてのPMOは消える。インテリジェンスを担うPMOには、エージェントが必要になる。",
     "home.premise.body":
-      "代替を売るのではなく、次世代のPMO業務を支える基盤を提供します。カーネルはOSS、データ連携は有償プラグイン、案件固有の分析は伴走型コンサルティングで。",
+      "代替を売るのではなく、次世代のPMO業務が動く土台を提供します。オープンコアを基盤に、データ連携は有償プラグイン、案件固有の判断は伴走型コンサルティングで。",
     "home.premise.quote":
       "AIエージェントは納期を数秒で見積もれますが、次にどのタスクを解放すべきかは判断できません。pmo.runは、PMOとそのエージェントに、その両方を担うための数理ロジックを — すべての数値を追跡可能な形で提供します。",
 
     "home.methods.title": "数理に裏づけられたロジックを、ツールとして。",
     "home.methods.lede":
-      "各手法はClaude向けのSkill、任意のエージェント向けMCPサーバー、HTTP APIとして提供。同じカーネルを、三つの表面から。",
+      "各手法はClaude向けのSkill、任意のエージェント向けMCPサーバー、HTTP APIとして提供。同じロジックを、三つの接点から。",
     "home.methods.pert.title": "PERT — プログラム評価・レビュー手法",
     "home.methods.pert.body":
       "重みづけ三点見積もりとクリティカルパス検出。フロート、スラック、解放すべきタスクを可視化。",
-    "home.methods.mc.title": "モンテカルロ — 10⁵サンプルのスケジュール模擬",
+    "home.methods.mc.title": "モンテカルロ — 数千回試行のスケジュール模擬",
     "home.methods.mc.body":
       "単点の納期予測を分布に置き換える。p50・p90納期、タスク別感度、根拠を示せる信頼区間。",
     "home.methods.bayes.title": "ベイズ更新 — 実績から学ぶ見積もり",
@@ -330,7 +330,7 @@ export const ui = {
 
     "home.install.title": "Claude・Cursor・任意のMCPクライアントに、そのまま組み込み。",
     "home.install.lede":
-      "プラットフォーム依存なし。SkillはClaudeに読み込む。同じカーネルがローカルMCPサーバーとしても、ゲートウェイ越しのHTTP APIとしても動きます。",
+      "プラットフォーム依存なし。SkillはClaudeに読み込む。同じツールがローカルMCPサーバーとしても、ゲートウェイ越しのHTTP APIとしても動きます。",
 
     "home.opencore.title": "三層、ひとつの契約。",
     "home.opencore.lede":
@@ -353,9 +353,9 @@ export const ui = {
     "home.opencore.row3.audience":
       "コンサルティングファーム、大規模変革プログラム。",
 
-    "home.audience.title": "管理者から戦略家へ進化するPMOのために。",
+    "home.audience.title": "「管理部門」から「インテリジェンス組織」へ進化するPMOのために。",
     "home.audience.lede":
-      "ステータス集約、差異報告、スケジュール維持といったPMOの管理業務はエージェントが担います。私たちの仕事は、優秀なアナリストが使うのと同じ厳密なツールをエージェントに渡し、人間の役割を戦略の上流に移すことです。",
+      "ステータス集約、差異報告、スケジュール維持といったPMOの管理業務はエージェントが担います。私たちの仕事は、優秀なアナリストが使うのと同じ厳密なツールをエージェントに渡し、人間の役割をより上流のインテリジェンス活動へ移すことです。",
     "home.audience.practitioner.label": "実務者",
     "home.audience.practitioner.body":
       "Excelで手作りのモンテカルロをやめる。ClaudeにSkillを入れる。根拠を示せる同じ数値が得られます。",
@@ -386,7 +386,7 @@ export const ui = {
     "contact.email": "メールで連絡",
 
     "about.hero.eyebrow": "§00 / about",
-    "about.hero.title": "オープンな手法を、戦略的PMOのために。",
+    "about.hero.title": "オープンな手法を、インテリジェンスを担うPMOのために。",
     "about.hero.body":
       "pmo.runは、AIツールと人の判断を組み合わせたPMOサービスのオープンな基盤です。数理を公開し、提供面（Skills・MCP・API）を運用し、校正が要となる個別案件に伴走します。",
     "about.thesis.title": "私たちの存在意義",
@@ -395,12 +395,12 @@ export const ui = {
     "about.thesis.cell1.title": "AIエージェントには数理ロジックが必要",
     "about.thesis.cell1.body":
       "それっぽい推論や、場当たり的な対応は問題を解決しません。AIエージェントに数理的に検証されたツールを与えることで、貴社の「暗黙知」を再現性のあるシステムに変容させます。",
-    "about.thesis.cell2.title": "OSSカーネル、有償プラグイン",
+    "about.thesis.cell2.title": "オープンコア、有償プラグイン",
     "about.thesis.cell2.body":
       "基幹ロジックとツールはオープンソース。PMOコミュニティに貢献します。価値は蓄積されたデータや暗黙知のシステム化にあり、基本ツールの収益化ではありません。",
-    "about.thesis.cell3.title": "戦略は人の仕事",
+    "about.thesis.cell3.title": "判断は人の仕事",
     "about.thesis.cell3.body":
-      "ステータス集約、差異報告、スケジュール維持 — すべてエージェントが担います。戦略的PMO業務 — どこに投資するか、何を止めるか、トレードオフをどう伝えるか — は上流の人の仕事として残ります。",
+      "ステータス集約、差異報告、スケジュール維持 — すべてエージェントが担います。判断を要する業務 — どこに投資するか、何を止めるか、トレードオフをどう伝えるか — は上流の人の仕事として残ります。",
     "about.people.title": "チームメンバー",
     "about.people.lede":
       "日本を拠点とする「人間＋AI」チーム。現役PMO、AI数学者、AI DevSecOpsチーム。PMOの暗黙知をAIが数式化し、ツールを開発しています。",
