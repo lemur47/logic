@@ -31,17 +31,20 @@ regex = '''(?i)(api_key|secret|token|password)\s*=\s*["\'][a-zA-Z0-9\-_]{16,}["\
 path = '''\.py$'''
 tags = ["python", "secret"]
 
-# Allowlist for false positives
+# Allowlist for false positives.
+#
+# Deliberately NARROW: markdown, docs and test files are NOT path-exempt — a
+# real key pasted into a blog post, doc, or test fixture must still be caught.
+# Sanctioned examples are handled by the placeholder `regexes` below, not by
+# exempting whole file types. Only this config and build noise are path-exempt.
 [allowlist]
 description = "Global allowlist"
 paths = [
     '''^\.gitleaks\.toml$''',
-    '''^tests/.*test.*\.py$''',
-    '''\.md$''',
     '''__pycache__''',
 ]
 
-# Allow example/placeholder patterns
+# Allow example/placeholder patterns — the only sanctioned "secrets" in-repo.
 regexes = [
     '''sk-ant-your-key-here''',
     '''sk-ant-\.\.\.''',
