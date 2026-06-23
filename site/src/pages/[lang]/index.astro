@@ -253,21 +253,23 @@ $ cp -r skills/* ~/.claude/skills/
           <span>.mcp.json</span>
           <span>any client</span>
         </div>
-        <pre class="code code--flush"><span class="c-com"># after cloning: install + run the server</span>
-$ uv pip install -e .
-$ uv run python -m mcp_server.server
+        <pre class="code code--flush"><span class="c-com"># run the published server — no clone needed</span>
+$ uvx pmorun-mcp@0.1.1
+
+<span class="c-com"># or one line into Claude Code</span>
+$ claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1
 
 <span class="c-com"># or wire it into any MCP client</span>
 <span class="c-key">{`{`}</span>
   <span class="c-str">"mcpServers"</span>: <span class="c-key">{`{`}</span>
     <span class="c-str">"pmo-logic"</span>: <span class="c-key">{`{`}</span>
-      <span class="c-str">"command"</span>: <span class="c-str">"uv"</span>,
-      <span class="c-str">"args"</span>: [<span class="c-str">"run"</span>, <span class="c-str">"python"</span>, <span class="c-str">"-m"</span>, <span class="c-str">"mcp_server.server"</span>]
+      <span class="c-str">"command"</span>: <span class="c-str">"uvx"</span>,
+      <span class="c-str">"args"</span>: [<span class="c-str">"pmorun-mcp@0.1.1"</span>]
     <span class="c-key">{`}`}</span>
   <span class="c-key">{`}`}</span>
 <span class="c-key">{`}`}</span>
 
-<span class="c-com"># prototype · 5 tools over stdio</span></pre>
+<span class="c-com"># pinned to @0.1.1 · on PyPI · 5 tools over stdio</span></pre>
       </div>
     </div>
   </section>

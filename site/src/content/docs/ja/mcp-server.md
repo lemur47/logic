@@ -26,17 +26,20 @@ order: 2
 最短の方法は、恒久的なインストールなしでサーバーを動かすことです。`uvx`が[PyPI上の`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/)を使い捨て環境に取得します：
 
 ```bash
-uvx pmorun-mcp
+uvx pmorun-mcp           # 最新リリース
+uvx pmorun-mcp@0.1.1     # このリリースに固定（推奨）
 ```
 
-恒久的に入れたい場合は、`uv pip install pmorun-mcp`（または通常の`pip install pmorun-mcp`）で`pmorun-mcp`コマンドが使えるようになります。
+`@0.1.1`で固定すると、不変のPyPI成果物から再現性のあるインストールになります。固定を外せば常に最新を追従します。
+
+恒久的に入れたい場合は、`uv pip install "pmorun-mcp==0.1.1"`（または通常の`pip install "pmorun-mcp==0.1.1"`）で`pmorun-mcp`コマンドが使えるようになります。
 
 ## Claudeへの接続
 
 Claude Codeなら一行です：
 
 ```bash
-claude mcp add pmo-logic -- uvx pmorun-mcp
+claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1   # @0.1.1 を外せば最新を追従
 ```
 
 Claude Desktopの場合は、`claude_desktop_config.json`に以下を追加します：
@@ -46,7 +49,7 @@ Claude Desktopの場合は、`claude_desktop_config.json`に以下を追加し�
   "mcpServers": {
     "pmo-logic": {
       "command": "uvx",
-      "args": ["pmorun-mcp"]
+      "args": ["pmorun-mcp@0.1.1"]
     }
   }
 }
