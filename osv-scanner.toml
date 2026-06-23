@@ -6,4 +6,11 @@
 # `overrides` block in site/package.json, so no ignore is required.
 #
 # Add an [[IgnoredVulns]] entry below only for a finding that genuinely cannot
-# be remediated (with id + reason), and remove it once a fix is available.
+# be remediated. Each entry MUST carry a reason and a review date so a
+# suppression can't silently outlive its upstream fix — re-check on/after the
+# date and delete the entry once a fixed version is available. Template:
+#
+#   [[IgnoredVulns]]
+#   id = "GHSA-xxxx-xxxx-xxxx"
+#   reason = "why this can't be fixed yet (package, version, blocker)"
+#   # review-by: YYYY-MM-DD — re-check upstream for a fix and remove if available.

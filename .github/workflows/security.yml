@@ -2,6 +2,10 @@
 # Runs on push to main, all PRs, and weekly Monday scan
 #
 # Jobs: gitleaks scan, opengrep SAST, osv-scanner SCA, ruff lint, pyright typecheck, frontend checks
+#
+# Third-party actions are pinned to a full commit SHA (human-readable version in
+# a trailing comment) so a moved or hijacked tag can't swap an action out from
+# under us. Dependabot (github-actions ecosystem) keeps the SHAs fresh.
 
 name: CI
 
@@ -24,12 +28,12 @@ jobs:
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0 # Full history for comprehensive scan
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
@@ -38,16 +42,21 @@ jobs:
   opengrep:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
+      # Installer pinned to a release tag (not the mutable `main` branch) so the
+      # bootstrap script is immutable; it installs the matching opengrep release.
       - name: Install Opengrep
-        run: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+        run: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/v1.23.0/install.sh | bash
 
+      # Blocking: --error makes opengrep exit non-zero on findings, and we no
+      # longer swallow that with `|| true`. A real finding now fails CI.
       - name: Run Opengrep
-        run: opengrep scan --config auto --config .opengrep/ --scan-unknown-extensions --error --json -o opengrep-report.json || true
+        run: opengrep scan --config auto --config .opengrep/ --scan-unknown-extensions --error --json -o opengrep-report.json
 
       - name: Upload Opengrep Report
-        uses: actions/upload-artifact@v7
+        if: always() # capture the report even when the scan step fails
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: opengrep-report
           path: opengrep-report.json
@@ -57,10 +66,10 @@ jobs:
   osv-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Run osv-scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v2.3.3
+        uses: google/osv-scanner-action/osv-scanner-action@c5996e0193a3df57d695c1b8a1dec2a4c62e8730 # v2.3.3
         with:
           scan-args: |-
             --recursive
@@ -71,11 +80,11 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       # Installs the Python pinned in .python-version and caches by uv.lock hash
       - name: Set up uv
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
 
@@ -92,10 +101,10 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
 
@@ -114,9 +123,9 @@ jobs:
       run:
         working-directory: site
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
           cache: "npm"
