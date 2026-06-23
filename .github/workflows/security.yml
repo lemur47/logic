@@ -46,8 +46,14 @@ jobs:
 
       # Installer pinned to a release tag (not the mutable `main` branch) so the
       # bootstrap script is immutable; it installs the matching opengrep release.
+      # The binary lands in ~/.opengrep/cli/latest, which is NOT on PATH, so we
+      # add it to $GITHUB_PATH for the scan step. (Previously this was masked:
+      # the scan step exited 127 "command not found" but `|| true` swallowed it,
+      # so SAST never actually ran in CI.)
       - name: Install Opengrep
-        run: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/v1.23.0/install.sh | bash
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/v1.23.0/install.sh | bash
+          echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
 
       # Blocking: --error makes opengrep exit non-zero on findings, and we no
       # longer swallow that with `|| true`. A real finding now fails CI.
