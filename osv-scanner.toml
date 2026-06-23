@@ -1,3 +1,9 @@
-[[IgnoredVulns]]
-id = "GHSA-48c2-rrv3-qjmp"
-reason = "yaml@2.7.1 stack overflow — transitive dev dep pinned by yaml-language-server. Fix requires upstream update."
+# osv-scanner suppression list.
+#
+# No active suppressions. The previous yaml dev-dependency finding
+# (GHSA-48c2-rrv3-qjmp — yaml 2.7.1 stack overflow, pulled transitively by
+# yaml-language-server) is now resolved by pinning yaml to 2.8.3 via the
+# `overrides` block in site/package.json, so no ignore is required.
+#
+# Add an [[IgnoredVulns]] entry below only for a finding that genuinely cannot
+# be remediated (with id + reason), and remove it once a fix is available.
