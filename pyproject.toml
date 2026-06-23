@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pmorun-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "pmo.run MCP server — classic PMO decision tools (PERT, Monte Carlo, TCO, EVM) over the Model Context Protocol."
 readme = "mcp_server/README.md"
 # Floor is 3.12, not lower: the shipped import graph uses PEP 695 type-parameter

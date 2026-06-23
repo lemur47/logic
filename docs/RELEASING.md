@@ -33,15 +33,21 @@ exchanges for scoped upload rights.
 1. Land all release content on `main` via PR (never tag a feature branch).
 2. Bump `version` in `pyproject.toml` if it has not already been set for this
    release, and merge that to `main`.
-3. Tag the release commit on `main` and push the tag:
+3. Update the **documented install version** to match: the pinned
+   `pmorun-mcp@<version>` / `pmorun-mcp==<version>` examples in
+   `mcp_server/README.md` (the PyPI long description), plus the living homepage
+   §03 and `docs/{en,ja}/mcp-server.md` install snippets. Leave the unpinned
+   `uvx pmorun-mcp` lines as-is. This keeps the storefront from stranding new
+   users on an older pin.
+4. Tag the release commit on `main` and push the tag:
    ```bash
    git checkout main && git pull
-   git tag v0.1.0      # match pyproject version, prefixed with v
-   git push origin v0.1.0
+   git tag v0.1.1      # match pyproject version, prefixed with v
+   git push origin v0.1.1
    ```
-4. The push triggers `release.yml`: it builds the sdist + wheel and publishes to
+5. The push triggers `release.yml`: it builds the sdist + wheel and publishes to
    PyPI via OIDC. Watch the run under the repo's **Actions** tab.
-5. Verify: `uvx pmorun-mcp` from a clean machine should start the stdio server.
+6. Verify: `uvx pmorun-mcp` from a clean machine should start the stdio server.
 
 > **PyPI versions are immutable.** A version number can never be re-uploaded or
 > reused once published — even after deletion. Double-check the version and that

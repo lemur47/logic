@@ -60,14 +60,19 @@ quickest path is to run it without installing — `uvx` fetches it into a throwa
 environment:
 
 ```bash
-uvx pmorun-mcp
+uvx pmorun-mcp           # latest release
+uvx pmorun-mcp@0.1.1     # pinned to this release (recommended)
 ```
+
+The pinned form (`@0.1.1`) resolves to an immutable PyPI artefact: a reproducible
+install that won't be auto-pulled onto a future top-level release. Drop the pin to
+always track the latest.
 
 Or install it into an environment of your own:
 
 ```bash
-uv pip install pmorun-mcp   # or: pip install pmorun-mcp
-pmorun-mcp                  # console script — same entry point as python -m mcp_server.server
+uv pip install "pmorun-mcp==0.1.1"   # or: pip install "pmorun-mcp==0.1.1"
+pmorun-mcp                           # console script — same entry point as python -m mcp_server.server
 ```
 
 To hack on the server itself, run it from a source checkout instead:
@@ -89,18 +94,20 @@ differs on Linux/Windows):
   "mcpServers": {
     "pmo-logic": {
       "command": "uvx",
-      "args": ["pmorun-mcp"]
+      "args": ["pmorun-mcp@0.1.1"]
     }
   }
 }
 ```
 
-Restart Claude Desktop; the four tools appear under the `pmo-logic` server.
+Pinning the args to `pmorun-mcp@0.1.1` is recommended; use `["pmorun-mcp"]` to
+track the latest release instead. Restart Claude Desktop; the four tools appear
+under the `pmo-logic` server.
 
 For Claude Code:
 
 ```bash
-claude mcp add pmo-logic -- uvx pmorun-mcp
+claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1   # or drop @0.1.1 to track latest
 ```
 
 > Running from a source checkout instead? Swap the command for
