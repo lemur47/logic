@@ -285,7 +285,7 @@ export const ui = {
     "home.hero.meta3": "EN · JA",
     "home.hero.meta4": "日本 · リモート",
     "home.hero.line1": "管理部門から",
-    "home.hero.line2": "インテリジェンス組織へ",
+    "home.hero.line2": "インテリジェンスへ",
     "home.hero.body":
       "PMOを半自動化するClaudeロジック。コンサルティングファームのための意思決定ツール。管理業務をインテリジェンス活動へと進化させる、オープンコア・プロダクトを提供します。",
     "home.hero.ctaPrimary": "MCPをインストール",
