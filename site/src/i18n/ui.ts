@@ -50,8 +50,8 @@ export const ui = {
     "home.hero.line1": "From a management unit",
     "home.hero.line2": "to an intelligence organisation.",
     "home.hero.body":
-      "Open-core decision tools for PMOs and consulting firms — give Claude and your team the method to turn project data into intelligence everyone can reproduce.",
-    "home.hero.ctaPrimary": "Read the docs",
+      "Claude logic that semi-automates the PMO. Decision tooling for consulting firms. An open-core product that evolves administrative work into intelligence activity.",
+    "home.hero.ctaPrimary": "Install MCP",
     "home.hero.ctaSecondary": "Install the skills",
     "home.metric.skills.label": "Skills",
     "home.metric.skills.value": "4",
@@ -67,15 +67,15 @@ export const ui = {
     "home.metric.methods.sub": "peer-reviewed",
 
     "home.premise.title":
-      "The administrative PMO won't survive agents. The intelligence-led PMO will run on them.",
+      "Semi-automate the administrative work with Claude. The PMO of the future becomes the organisation that supplies the insight and direction shaping decision quality.",
     "home.premise.body":
-      "We're not selling a replacement. We're shipping what the next generation of PMO work runs on — open-core, with premium plugins where data integration warrants it and consulting where the judgement is bespoke.",
+      "Not just automating spreadsheets — building a data foundation as your organisation's shared knowledge. As that knowledge updates from real delivery, the agenda your steering committee works through gets sharper.",
     "home.premise.quote":
-      "An AI agent can estimate a delivery date in seconds, but it can't judge which task to unblock next. pmo.run gives PMOs and their agents the maths to do both — with every number traceable.",
+      "An AI chat hands you different code and a different answer every time, and a human has to vet each one. Just as AI agents run autonomously inside a harness, your PMO team's Claude uses fixed, maths-based code as its tool — drawing different insight from the same logic as the data updates day by day.",
 
-    "home.methods.title": "Maths-proved logic, packaged as tools.",
+    "home.methods.title": "Vetted logic, turned into tools Claude can use.",
     "home.methods.lede":
-      "Each method ships as a Skill (for Claude), an MCP server (for any agent), and an HTTP API. Same logic, three surfaces.",
+      "Tighter estimates to ease project slippage, realistic sprint lengths derived from your historical data, and near-term risk simulated from a snapshot of where things stand today.",
     "home.methods.pert.title": "Program Evaluation & Review Technique",
     "home.methods.pert.body":
       "Weighted three-point estimates with critical-path detection. Surfaces float, slack, and which task to actually unblock.",
@@ -91,13 +91,13 @@ export const ui = {
     "home.methods.more":
       "+ earned-value, throughput accounting, queueing models, risk-adjusted NPV — see /docs",
 
-    "home.install.title": "Drop-in for Claude, Cursor, or any MCP client.",
+    "home.install.title": "Easy to set up on Claude, Cursor, or any MCP client.",
     "home.install.lede":
-      "No platform lock. Skills load into Claude. The same tools run as a local MCP server, or behind your gateway as an HTTP API.",
+      "Install the Skills into Claude or Claude Code. The MCP server runs locally — no account needed, and no data sent to or stored on pmo.run's servers.",
 
-    "home.opencore.title": "Three layers. One contract.",
+    "home.opencore.title": "An architecture you can extend.",
     "home.opencore.lede":
-      "The three-layer core is open source: the core logic and tools stay MIT-licensed. Paid plugins and consulting services add on top — your own proprietary layer.",
+      "The core is open source — drop it into your own environment. Extensions such as plugins are paid, or built by your team; product rollout and consulting are arranged under separate contract.",
     "home.opencore.col.layer": "Layer",
     "home.opencore.col.contents": "What's in it",
     "home.opencore.col.audience": "Who it's for",
@@ -116,18 +116,18 @@ export const ui = {
     "home.opencore.row3.audience":
       "Consulting firms, large transformation programmes.",
 
-    "home.audience.title": "For PMOs evolving from a management unit into an intelligence organisation.",
+    "home.audience.title": "Make your PMO work intelligence-led, starting today.",
     "home.audience.lede":
-      "The administrative half of the PMO role — status rollups, variance reports, schedule maintenance — will be done by agents. Our work is to give those agents the same rigorous tools your best analysts use, so the human half can move upstream into intelligence work.",
-    "home.audience.practitioner.label": "practitioner",
+      "Hand the status reports, plan-vs-actuals, and risk analysis you used to calculate by hand over to Claude. Install the local MCP server into Claude Code or Claude Desktop, connect your spreadsheets or Airtable, then analyse it conversationally.",
+    "home.audience.practitioner.label": "PMO",
     "home.audience.practitioner.body":
-      "Stop hand-rolling Monte Carlo in Excel. Drop the skill in Claude. Get the same numbers, defensible.",
+      "Pull plan-vs-actuals from the WBS and run PERT. Feed the results through the Monte Carlo tool, then use Claude as a sounding board for the risk analysis and recommendations.",
     "home.audience.sier.label": "SIer",
     "home.audience.sier.body":
-      "Plug into your client's Jira / ServiceNow / SAP. Ship licensed integrations under your brand if you need to.",
+      "Connect to your client's Jira or GitHub and analyse sprints and issues. Up and running the moment it's installed on a loaned laptop. OEM it into your own offering if you need to.",
     "home.audience.consulting.label": "consulting firm",
     "home.audience.consulting.body":
-      "Put your historical data to work with PMO logic and tools, and sharpen your firm's insight.",
+      "Leave the data analysis to Claude and focus on strategy and change management. Mine your own data platform's history for insight, and build proprietary features as plugins.",
 
     "home.start.title": "Clone the repo and start using it right away.",
     "home.start.docs": "Read the docs",
@@ -284,11 +284,11 @@ export const ui = {
     "home.hero.meta2": "MIT + 商用",
     "home.hero.meta3": "EN · JA",
     "home.hero.meta4": "日本 · リモート",
-    "home.hero.line1": "「管理部門」から",
-    "home.hero.line2": "「インテリジェンス組織」へ。",
+    "home.hero.line1": "管理部門から",
+    "home.hero.line2": "インテリジェンス組織へ",
     "home.hero.body":
-      "PMOとコンサルティングファームのためのオープンコアな意思決定ツール群。Claudeとチームに、プロジェクトのデータを誰もが再現できるインテリジェンスへと変える手法を。",
-    "home.hero.ctaPrimary": "ドキュメントを読む",
+      "PMOを半自動化するClaudeロジック。コンサルティングファームのための意思決定ツール。管理業務をインテリジェンス活動へと進化させる、オープンコア・プロダクトを提供します。",
+    "home.hero.ctaPrimary": "MCPをインストール",
     "home.hero.ctaSecondary": "Skillをインストール",
     "home.metric.skills.label": "Skills",
     "home.metric.skills.value": "4",
@@ -304,15 +304,15 @@ export const ui = {
     "home.metric.methods.sub": "査読済み",
 
     "home.premise.title":
-      "管理業務としてのPMOは消える。インテリジェンスを担うPMOには、エージェントが必要になる。",
+      "管理業務をClaudeと半自動化。これからのPMOは、意思決定の質を左右する洞察と示唆を提供する組織に。",
     "home.premise.body":
-      "代替を売るのではなく、次世代のPMO業務が動く土台を提供します。オープンコアを基盤に、データ連携は有償プラグイン、案件固有の判断は伴走型コンサルティングで。",
+      "単にスプレッドシートを自動化するのではなく、組織の共有知としてデータ基盤を構築。実績に基づいて共有知が更新され、ステアリングコミッティーが扱うアジェンダの質が向上します。",
     "home.premise.quote":
-      "AIエージェントは納期を数秒で見積もれますが、次にどのタスクを解放すべきかは判断できません。pmo.runは、PMOとそのエージェントに、その両方を担うための数理ロジックを — すべての数値を追跡可能な形で提供します。",
+      "AIチャットは毎回異なるコードと示唆を提供します。人間はその度に精査しなければなりません。AIエージェントがハーネスによって自律稼働するように、PMOチームのClaudeは数学に基づいた一定のコードを道具として、日々更新されるデータから同じロジックで異なる示唆を提供します。",
 
-    "home.methods.title": "数理に裏づけられたロジックを、ツールとして。",
+    "home.methods.title": "精査されたロジックを、Claudeのツールに変換。",
     "home.methods.lede":
-      "各手法はClaude向けのSkill、任意のエージェント向けMCPサーバー、HTTP APIとして提供。同じロジックを、三つの接点から。",
+      "プロジェクト遅延を緩和するための見積精度アップ、過去データから現実的なスプリントの日数を算出、現状のスナップショットから近未来のリスクをシミュレーション。",
     "home.methods.pert.title": "PERT — プログラム評価・レビュー手法",
     "home.methods.pert.body":
       "重みづけ三点見積もりとクリティカルパス検出。フロート、スラック、解放すべきタスクを可視化。",
@@ -328,13 +328,13 @@ export const ui = {
     "home.methods.more":
       "＋アーンドバリュー、スループット会計、待ち行列モデル、リスク調整NPV — /docs を参照",
 
-    "home.install.title": "Claude・Cursor・任意のMCPクライアントに、そのまま組み込み。",
+    "home.install.title": "Claude・Cursor・任意のMCPクライアントに、カンタンに設定可能。",
     "home.install.lede":
-      "プラットフォーム依存なし。SkillはClaudeに読み込む。同じツールがローカルMCPサーバーとしても、ゲートウェイ越しのHTTP APIとしても動きます。",
+      "SkillはClaudeやClaude Codeにインストール。MCPはローカルで稼働するため、アカウント登録不要で、pmo.runのサーバーにデータが送信・保存されることはありません。",
 
-    "home.opencore.title": "三層、ひとつの契約。",
+    "home.opencore.title": "拡張可能なシステム構成。",
     "home.opencore.lede":
-      "3層のコアはオープンソース。基幹ロジックとツールはMITライセンス。有償プラグインとコンサルティングサービスは貴社独自の層として追加可能です。",
+      "コアはオープンソース。お使いの環境に組み込み可能です。プラグインなど拡張機能は有料、もしくは貴社で開発。製品導入やコンサルティングは個別契約となります。",
     "home.opencore.col.layer": "層",
     "home.opencore.col.contents": "内容",
     "home.opencore.col.audience": "対象",
@@ -353,18 +353,18 @@ export const ui = {
     "home.opencore.row3.audience":
       "コンサルティングファーム、大規模変革プログラム。",
 
-    "home.audience.title": "「管理部門」から「インテリジェンス組織」へ進化するPMOのために。",
+    "home.audience.title": "今日からPMO業務をインテリジェンス化する。",
     "home.audience.lede":
-      "ステータス集約、差異報告、スケジュール維持といったPMOの管理業務はエージェントが担います。私たちの仕事は、優秀なアナリストが使うのと同じ厳密なツールをエージェントに渡し、人間の役割をより上流のインテリジェンス活動へ移すことです。",
-    "home.audience.practitioner.label": "実務者",
+      "手作業で計算していたステータス報告、予実管理、リスク分析をClaudeに任せましょう。ローカルで動作するMCPサーバーをClaude CodeもしくはClaude Desktopにインストールし、スプレッドシートやAirtableと接続。後は対話形式で分析してみましょう。",
+    "home.audience.practitioner.label": "PMO",
     "home.audience.practitioner.body":
-      "Excelで手作りのモンテカルロをやめる。ClaudeにSkillを入れる。根拠を示せる同じ数値が得られます。",
+      "WBSから予実を抽出し、PERT分析。分析データをモンテカルロ・ツールに通し、Claudeからリスク分析と示唆を得て、壁打ち。",
     "home.audience.sier.label": "SIer",
     "home.audience.sier.body":
-      "顧客のJira / ServiceNow / SAPに接続。必要ならOEMでライセンス統合も。",
+      "顧客のJiraやGitHubに接続し、スプリントやイシューを分析。貸与PCにインストールできれば即利用可能。貴社オファリングパッケージへのOEM提供も可能。",
     "home.audience.consulting.label": "コンサルティングファーム",
     "home.audience.consulting.body":
-      "PMOロジックとツールで過去データを活用。貴社のインサイトを強化します。",
+      "Claudeにデータ分析をまかせ、戦略や変更管理に集中。自社データ基盤の過去データから洞察や示唆を抽出。独自機能はプラグインとして開発可能。",
 
     "home.start.title": "リポジトリをクローンして、すぐに利用可能。",
     "home.start.docs": "ドキュメントを読む",
