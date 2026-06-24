@@ -106,7 +106,7 @@ export const ui = {
     "home.opencore.row1.contents":
       "Skills, MCP servers, APIs. PERT, Monte Carlo, Bayes, EVM, TCO, queueing.",
     "home.opencore.row1.audience":
-      "International PMO communities, individual practitioners, contributors.",
+      "PMO communities, contract PMOs.",
     "home.opencore.row2.contents":
       "Proprietary connectors: Jira Cloud, ServiceNow, SAP, MS Project, Salesforce. Industry datasets, benchmark libraries.",
     "home.opencore.row2.audience":
@@ -343,7 +343,7 @@ export const ui = {
     "home.opencore.row1.contents":
       "Skills・MCPサーバー・API。PERT、モンテカルロ、ベイズ、EVM、TCO、待ち行列。",
     "home.opencore.row1.audience":
-      "国際PMOコミュニティ、個人実務者、コントリビューター。",
+      "PMOコミュニティ、業務委託PMO。",
     "home.opencore.row2.contents":
       "独自コネクタ: Jira Cloud、ServiceNow、SAP、MS Project、Salesforce。業種別データセット、ベンチマーク。",
     "home.opencore.row2.audience":
