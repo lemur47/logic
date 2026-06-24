@@ -1,0 +1,43 @@
+# Dependabot configuration — keeps the committed locks and pinned Actions fresh.
+#
+# Two ecosystems, both on a weekly cadence so a static lock can't quietly age
+# into the Monday osv-scanner cron (see .github/workflows/security.yml):
+#
+#   1. uv      — the native uv ecosystem reads pyproject.toml + uv.lock directly
+#                (NOT the `pip` ecosystem, which mismatches a uv-locked tree).
+#   2. github-actions — refreshes the full-SHA pins in the workflows; Dependabot
+#                updates the SHA in place and keeps the trailing `# vX` comment.
+#
+# Bot PRs pass the same gate as any PR (frozen uv sync, osv-scanner, ruff,
+# pyright, frontend build). The CEO reviews them like any other PR — no
+# auto-merge here by design.
+version: 2
+updates:
+  # Python dependencies, resolved through uv.lock at the repo root.
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      # One grouped PR per week keeps review surface small and CI runs cheap.
+      python-dependencies:
+        patterns:
+          - "*"
+
+  # Third-party GitHub Actions, pinned to full commit SHAs in the workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(ci)"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
