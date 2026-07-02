@@ -3,10 +3,30 @@ Monte Carlo schedule simulation Pydantic schemas for request/response validation
 """
 
 from datetime import datetime
+from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from ..common.limits import MAX_LIST_ITEMS
 from ..common.schemas import PaginatedList
+from .core import MAX_SIMULATION_CELLS
+
+
+def _check_simulation_cells(n_tasks: int, num_simulations: int) -> None:
+    """Reject task-count × simulation-count products that would over-allocate.
+
+    Monte Carlo allocates several (n_tasks, num_simulations) float64 arrays, so
+    the product — not either factor alone — governs memory. Raising here surfaces
+    as a 422 at the API boundary, before any array is allocated.
+    """
+    if n_tasks * num_simulations > MAX_SIMULATION_CELLS:
+        msg = (
+            f"tasks × num_simulations ({n_tasks} × {num_simulations}) exceeds the "
+            f"limit of {MAX_SIMULATION_CELLS}. Reduce the task count or "
+            f"num_simulations."
+        )
+        raise ValueError(msg)
+
 
 # =============================================================================
 # Stateless Simulation Schemas
@@ -20,7 +40,11 @@ class TaskInput(BaseModel):
     optimistic: float = Field(..., ge=0, description="Best-case duration (O)")
     most_likely: float = Field(..., ge=0, description="Most probable duration (M)")
     pessimistic: float = Field(..., ge=0, description="Worst-case duration (P)")
-    depends_on: list[str] = Field(default_factory=list, description="Names of predecessor tasks")
+    depends_on: list[str] = Field(
+        default_factory=list,
+        max_length=MAX_LIST_ITEMS,
+        description="Names of predecessor tasks",
+    )
     risk_class: str | None = Field(
         default=None,
         max_length=255,
@@ -63,7 +87,7 @@ class RiskClassInput(BaseModel):
 class DriftConfigInput(BaseModel):
     """Drift configuration: risk classes and seed for the Dirichlet draw."""
 
-    risk_classes: list[RiskClassInput] = Field(..., min_length=1)
+    risk_classes: list[RiskClassInput] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
     seed: int | None = Field(
         default=None,
         description="Random seed for the drift draws. Falls back to config.seed if None.",
@@ -78,12 +102,17 @@ class SimulateInput(BaseModel):
     payloads — without `drift_config` — behave exactly as before.
     """
 
-    tasks: list[TaskInput] = Field(..., min_length=1)
+    tasks: list[TaskInput] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
     config: SimulationConfig = Field(default_factory=SimulationConfig)
     drift_config: DriftConfigInput | None = Field(
         default=None,
         description="Optional drift configuration. Triggers Dirichlet-drift simulation.",
     )
+
+    @model_validator(mode="after")
+    def _validate_cells(self) -> Self:
+        _check_simulation_cells(len(self.tasks), self.config.num_simulations)
+        return self
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -190,9 +219,14 @@ class ScenarioCreate(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
-    tasks: list[TaskInput] = Field(..., min_length=1)
+    tasks: list[TaskInput] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
     num_simulations: int = Field(default=10_000, ge=100, le=1_000_000)
     seed: int | None = Field(default=None, description="Random seed for reproducibility")
+
+    @model_validator(mode="after")
+    def _validate_cells(self) -> Self:
+        _check_simulation_cells(len(self.tasks), self.num_simulations)
+        return self
 
 
 class ScenarioUpdate(BaseModel):
@@ -200,9 +234,17 @@ class ScenarioUpdate(BaseModel):
 
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
-    tasks: list[TaskInput] | None = Field(default=None, min_length=1)
+    tasks: list[TaskInput] | None = Field(default=None, min_length=1, max_length=MAX_LIST_ITEMS)
     num_simulations: int | None = Field(default=None, ge=100, le=1_000_000)
     seed: int | None = None
+
+    @model_validator(mode="after")
+    def _validate_cells(self) -> Self:
+        # Only checkable when both factors are supplied in the same patch; the
+        # crud layer and core guard bound the mixed case (new tasks + stored count).
+        if self.tasks is not None and self.num_simulations is not None:
+            _check_simulation_cells(len(self.tasks), self.num_simulations)
+        return self
 
 
 class ScenarioResponse(BaseModel):

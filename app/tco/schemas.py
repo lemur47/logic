@@ -6,6 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..common.limits import MAX_LIST_ITEMS
 from ..common.schemas import PaginatedList
 
 # =============================================================================
@@ -67,7 +68,7 @@ class CompareOption(TCOInput):
 class CompareRequest(BaseModel):
     """Request for comparing multiple options."""
 
-    options: list[CompareOption] = Field(..., min_length=2)
+    options: list[CompareOption] = Field(..., min_length=2, max_length=MAX_LIST_ITEMS)
 
 
 class CompareResultItem(BaseModel):

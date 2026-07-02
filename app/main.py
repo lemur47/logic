@@ -30,6 +30,19 @@ async def lifespan(app: FastAPI):
     yield
 
 
+def resolve_cors_policy(raw_origins: str) -> tuple[list[str], bool]:
+    """Resolve the CORS origin list and whether credentials may be allowed.
+
+    A wildcard origin must never be combined with credentials: Starlette would
+    reflect the caller's ``Origin`` back with ``Access-Control-Allow-Credentials``,
+    i.e. universal credentialed cross-origin access. If a wildcard is configured
+    we honour it but disable credentials.
+    """
+    origins = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    allow_credentials = "*" not in origins
+    return origins, allow_credentials
+
+
 app = FastAPI(
     title="Logic API",
     description="""
@@ -49,13 +62,19 @@ Small tools for real problems, direct contribution to the world.
     lifespan=lifespan,
 )
 
+# Trust model: this app is a self-hostable prototype intended for localhost /
+# single-user use. It ships no authentication or rate limiting by design — do not
+# expose it to untrusted networks without adding those in front. CORS is pinned
+# rather than wildcarded so a misconfigured origin can't grant credentialed access.
+_cors_origins, _cors_allow_credentials = resolve_cors_policy(
+    os.getenv("CORS_ORIGINS", "http://localhost:4321")
+)
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=["*"],
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:4321").split(","),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_cors_origins,
+    allow_credentials=_cors_allow_credentials,
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # =============================================================================

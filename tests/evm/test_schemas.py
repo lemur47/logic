@@ -3,6 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
+from app.common.limits import MAX_LIST_ITEMS
 from app.evm.schemas import (
     ActualCompletion,
     BaselineCreate,
@@ -172,6 +173,25 @@ class TestBaselineCreate:
         )
         assert bl.description == "A description"
 
+    def test_work_packages_at_limit_ok(self):
+        bl = BaselineCreate(
+            name="Project",
+            work_packages=[
+                WorkPackageInput(name=f"WP{i}", planned_value=1) for i in range(MAX_LIST_ITEMS)
+            ],
+        )
+        assert len(bl.work_packages) == MAX_LIST_ITEMS
+
+    def test_work_packages_over_limit_rejected(self):
+        with pytest.raises(ValidationError):
+            BaselineCreate(
+                name="Project",
+                work_packages=[
+                    WorkPackageInput(name=f"WP{i}", planned_value=1)
+                    for i in range(MAX_LIST_ITEMS + 1)
+                ],
+            )
+
 
 # ── ActualCompletion ──────────────────────────────────────────────────────
 
@@ -213,6 +233,17 @@ class TestEvaluateInput:
     def test_empty_completions_defaults_to_list(self):
         inp = EvaluateInput(percent_planned=50, actual_cost=1000)
         assert inp.actual_completions == []
+
+    def test_actual_completions_over_limit_rejected(self):
+        with pytest.raises(ValidationError):
+            EvaluateInput(
+                percent_planned=50,
+                actual_cost=1000,
+                actual_completions=[
+                    ActualCompletion(name=f"WP{i}", percent_complete=10)
+                    for i in range(MAX_LIST_ITEMS + 1)
+                ],
+            )
 
 
 # ── SnapshotResponse ──────────────────────────────────────────────────────
