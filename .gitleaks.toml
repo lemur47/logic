@@ -31,6 +31,20 @@ regex = '''(?i)(api_key|secret|token|password)\s*=\s*["\'][a-zA-Z0-9\-_]{16,}["\
 path = '''\.py$'''
 tags = ["python", "secret"]
 
+# Airtable identifiers (base/table/field/record/view/select). These are the
+# internal CTO<->CC channel — they belong in Airtable itself, the KV, and the
+# gitignored CLAUDE-internal.md, never in tracked git artefacts (commits, code,
+# docs). Prefix + exactly 14 base62 chars + word boundary keeps it off ordinary
+# words; the entropy floor filters out pronounceable 17-char camelCase
+# identifiers (e.g. applicationConfig) that would otherwise collide.
+[[rules]]
+id = "airtable-id"
+description = "Airtable identifier (base/table/field/record/view/select id)"
+regex = '''\b((?:app|tbl|fld|rec|viw|sel)[A-Za-z0-9]{14})\b'''
+entropy = 3.5
+secretGroup = 1
+tags = ["airtable", "internal-id"]
+
 # Allowlist for false positives.
 #
 # Deliberately NARROW: markdown, docs and test files are NOT path-exempt — a
@@ -51,4 +65,6 @@ regexes = [
     '''your_.*_here''',
     '''REPLACE_WITH_.*''',
     '''<YOUR_.*>''',
+    # Airtable-ID placeholders in the CTO-brief template (recXXXXXXXXXXXXXX etc.)
+    '''(?:app|tbl|fld|rec|viw|sel)X{14}''',
 ]
