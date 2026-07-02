@@ -3,6 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
+from app.common.limits import MAX_LIST_ITEMS
 from app.tco.schemas import CompareRequest, ScenarioCreate, ScenarioUpdate, TCOInput
 
 # ── TCOInput ─────────────────────────────────────────────────────────────────
@@ -63,6 +64,24 @@ class TestCompareRequest:
     def test_single_option_rejected(self):
         with pytest.raises(ValidationError):
             CompareRequest(options=[{"name": "A", "initial_price": 100, "useful_life_years": 5}])
+
+    def test_options_at_limit_ok(self):
+        req = CompareRequest(
+            options=[
+                {"name": f"O{i}", "initial_price": 100, "useful_life_years": 5}
+                for i in range(MAX_LIST_ITEMS)
+            ]
+        )
+        assert len(req.options) == MAX_LIST_ITEMS
+
+    def test_options_over_limit_rejected(self):
+        with pytest.raises(ValidationError):
+            CompareRequest(
+                options=[
+                    {"name": f"O{i}", "initial_price": 100, "useful_life_years": 5}
+                    for i in range(MAX_LIST_ITEMS + 1)
+                ]
+            )
 
     def test_empty_name_rejected(self):
         with pytest.raises(ValidationError):

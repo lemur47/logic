@@ -21,6 +21,29 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy import stats
 
+# Monte Carlo allocates several (n_tasks, n_simulations) float64 arrays (up to ~7
+# on the drift path). Cap their product so a single call cannot over-allocate,
+# regardless of how the caller splits it between task count and simulation count.
+# 10_000_000 cells → ~80 MB per array, and still admits a 1000-task network at
+# the default 10_000 simulations. Kept here (the layer that allocates) so the
+# pure core enforces its own safety ceiling; the API schema imports it too.
+MAX_SIMULATION_CELLS = 10_000_000
+
+
+def _check_allocation(n_tasks: int, n_simulations: int) -> None:
+    """Guard against over-allocation before any array is created.
+
+    Defence in depth: the API schema rejects oversized requests at the boundary,
+    but this also covers the crud-update, MCP and direct-call paths.
+    """
+    if n_tasks * n_simulations > MAX_SIMULATION_CELLS:
+        msg = (
+            f"tasks × n_simulations ({n_tasks} × {n_simulations}) exceeds the "
+            f"limit of {MAX_SIMULATION_CELLS}"
+        )
+        raise ValueError(msg)
+
+
 # ── Core Data Structures ────────────────────────────────────────────────
 
 
@@ -185,6 +208,8 @@ def simulate_schedule(
     if not tasks:
         msg = "At least one task is required"
         raise ValueError(msg)
+
+    _check_allocation(len(tasks), n_simulations)
 
     rng = np.random.default_rng(seed)
 
@@ -514,6 +539,8 @@ def simulate_with_drift(
     if not tasks:
         msg = "At least one task is required"
         raise ValueError(msg)
+
+    _check_allocation(len(tasks), n_simulations)
 
     rng = np.random.default_rng(config.seed)
     classes = list(config.risk_classes)

@@ -3,6 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
+from app.common.limits import MAX_LIST_ITEMS
 from app.pert.schemas import ProjectInput, ProjectTaskInput, TagInput, TaskInput
 
 # ── TagInput ────────────────────────────────────────────────────────────────
@@ -114,5 +115,23 @@ class TestProjectInput:
             ProjectInput(
                 tasks=[
                     {"name": "x" * 256, "optimistic": 3, "most_likely": 5, "pessimistic": 10},
+                ]
+            )
+
+    def test_tasks_at_limit_ok(self):
+        project = ProjectInput(
+            tasks=[
+                ProjectTaskInput(name=f"T{i}", optimistic=3, most_likely=5, pessimistic=10)
+                for i in range(MAX_LIST_ITEMS)
+            ]
+        )
+        assert len(project.tasks) == MAX_LIST_ITEMS
+
+    def test_tasks_over_limit_rejected(self):
+        with pytest.raises(ValidationError):
+            ProjectInput(
+                tasks=[
+                    ProjectTaskInput(name=f"T{i}", optimistic=3, most_likely=5, pessimistic=10)
+                    for i in range(MAX_LIST_ITEMS + 1)
                 ]
             )

@@ -7,6 +7,7 @@ from math import isinf
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from ..common.limits import MAX_LIST_ITEMS
 from ..common.schemas import PaginatedList
 
 # =============================================================================
@@ -99,7 +100,7 @@ class BaselineCreate(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
-    work_packages: list[WorkPackageInput] = Field(..., min_length=1)
+    work_packages: list[WorkPackageInput] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
 
 
 class WorkPackageResponse(BaseModel):
@@ -146,7 +147,9 @@ class EvaluateInput(BaseModel):
     """Input for evaluating progress against a stored baseline."""
 
     percent_planned: float = Field(..., ge=0, le=100)
-    actual_completions: list[ActualCompletion] = Field(default_factory=list)
+    actual_completions: list[ActualCompletion] = Field(
+        default_factory=list, max_length=MAX_LIST_ITEMS
+    )
     actual_cost: float = Field(..., ge=0)
     thresholds: HealthThresholdsInput | None = None
 

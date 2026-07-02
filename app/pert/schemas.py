@@ -6,6 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..common.limits import MAX_LIST_ITEMS
 from ..common.schemas import PaginatedList
 
 # =============================================================================
@@ -49,7 +50,7 @@ class ProjectTaskInput(TaskInput):
 class ProjectInput(BaseModel):
     """Input for project-level PERT estimation."""
 
-    tasks: list[ProjectTaskInput] = Field(..., min_length=1)
+    tasks: list[ProjectTaskInput] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -155,7 +156,7 @@ class ScenarioCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
     tags: list[str] = Field(default_factory=list)
-    tasks: list[ScenarioTaskInput] = Field(..., min_length=1)
+    tasks: list[ScenarioTaskInput] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
 
 
 class ScenarioUpdate(BaseModel):
@@ -164,7 +165,9 @@ class ScenarioUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=1000)
     tags: list[str] | None = None
-    tasks: list[ScenarioTaskInput] | None = Field(default=None, min_length=1)
+    tasks: list[ScenarioTaskInput] | None = Field(
+        default=None, min_length=1, max_length=MAX_LIST_ITEMS
+    )
 
 
 class ScenarioTaskResult(BaseModel):

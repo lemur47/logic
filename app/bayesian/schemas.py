@@ -6,6 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..common.limits import MAX_LIST_ITEMS
 from ..common.schemas import PaginatedList
 
 # =============================================================================
@@ -31,7 +32,7 @@ class BayesianCalculateInput(BaseModel):
     """Input for direct Bayesian update calculation."""
 
     prior: PriorInput = Field(default_factory=PriorInput)
-    observations: list[ObservationInput] = Field(..., min_length=1)
+    observations: list[ObservationInput] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
     observation_noise: float = Field(
         default=0.15, gt=0, description="Assumed scatter in observations"
     )
@@ -146,7 +147,7 @@ class ObservationCreate(BaseModel):
 class ObservationBatchCreate(BaseModel):
     """Batch of observations to add to a context."""
 
-    observations: list[ObservationCreate] = Field(..., min_length=1)
+    observations: list[ObservationCreate] = Field(..., min_length=1, max_length=MAX_LIST_ITEMS)
 
 
 class ObservationResponse(BaseModel):
