@@ -44,15 +44,25 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      # Installer pinned to a release tag (not the mutable `main` branch) so the
-      # bootstrap script is immutable; it installs the matching opengrep release.
+      # Installer pinned to a release tag (immutable) AND checksum-verified before
+      # execution — downloaded to a file, SHA-256 checked, then run (no curl|bash
+      # pipe), so a hijacked URL or tampered script can't execute in CI. Keep
+      # OPENGREP_VERSION in step with the pinned version so CI == local. On bump,
+      # regenerate the checksum:
+      #   gh api repos/opengrep/opengrep/contents/install.sh?ref=<tag> --jq .content | base64 -d | sha256sum
       # The binary lands in ~/.opengrep/cli/latest, which is NOT on PATH, so we
       # add it to $GITHUB_PATH for the scan step. (Previously this was masked:
       # the scan step exited 127 "command not found" but `|| true` swallowed it,
       # so SAST never actually ran in CI.)
       - name: Install Opengrep
+        env:
+          OPENGREP_VERSION: v1.25.0
+          OPENGREP_INSTALLER_SHA256: 765f8eba6df9349a172ce3103d2e8f21966d3826b6cb2d84b97442b0883a6d5b
         run: |
-          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/v1.23.0/install.sh | bash
+          curl -fsSL "https://raw.githubusercontent.com/opengrep/opengrep/${OPENGREP_VERSION}/install.sh" -o install-opengrep.sh
+          echo "${OPENGREP_INSTALLER_SHA256}  install-opengrep.sh" | sha256sum -c -
+          bash install-opengrep.sh
+          rm -f install-opengrep.sh
           echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
 
       # Blocking: --error makes opengrep exit non-zero on findings, and we no
