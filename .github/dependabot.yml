@@ -19,6 +19,11 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    # Quarantine newly-published versions for a week before opening a PR — the
+    # same supply-chain buffer as site/.npmrc's min-release-age, so a malicious
+    # or yanked release has time to surface first.
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build(deps)"
@@ -34,6 +39,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build(ci)"
