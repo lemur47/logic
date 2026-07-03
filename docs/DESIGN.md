@@ -11,7 +11,7 @@ Architecture and technical decisions: six-layer stack, two-layer data architectu
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  CLIENT LAYER (View / Boundary)                         │
-│  Astro + Svelte (pmo.run)  |  Baserow (operational UI)  │
+│  Astro + Svelte (pmo.run)  |  plugin UI (bring your own)│
 │  EN/JA  |  Web Crypto API (client-side encryption)      │
 ├─────────────────────────────────────────────────────────┤
 │  AGENT LAYER                                            │
@@ -29,7 +29,7 @@ Architecture and technical decisions: six-layer stack, two-layer data architectu
 │  R2 (encrypted blobs, zero-knowledge — Zone 1)          │
 ├─────────────────────────────────────────────────────────┤
 │  INTEGRATION LAYER                                      │
-│  Baserow API  |  GitHub/GitLab webhooks  |  MCP Servers │
+│  Plugin connectors  |  GitHub/GitLab webhooks  |  MCP   │
 │  Browser Rendering                                      │
 ├─────────────────────────────────────────────────────────┤
 │  PRIVACY LAYER                                          │
@@ -41,17 +41,19 @@ Architecture and technical decisions: six-layer stack, two-layer data architectu
 
 ### Two-Layer Data Architecture
 
-Baserow is the View. D1 + R2 is the Model. The agent is the bridge.
+The plugin layer is the View. D1 + R2 is the Model — the proprietary data layer we run. The agent is the bridge.
+
+We do not build a visual UI. Enterprises plug in the visual app they already use — Airtable is the reference plugin (the one we dogfood), one option among many. (Earlier iterations fixed Baserow as the View; it was retired in July 2026 in favour of this plugin layer.)
 
 **D1 (Model/Entity)** stores everything — all work items including archived, all process events, all financial history, all estimation history, all audit logs. It grows indefinitely and is queryable via SQL for analytics and AI. It feeds Bayesian updating with full historical data.
 
 **R2 (Encrypted Blob Storage)** stores zero-knowledge encrypted documents, generated reports, audit archives, and proprietary calibration data. Client data in R2 is encrypted with the client's public key — we cannot read it.
 
-**Baserow (View/Boundary)** shows only what's currently relevant — active projects, open work items (WBS work packages), unresolved risks, recent decisions. It's a materialised view of D1, curated by the agent. When a project completes, the agent archives from Baserow but retains everything in D1.
+**Plugin layer (View/Boundary)** shows only what's currently relevant — active projects, open work items (WBS work packages), unresolved risks, recent decisions. Whatever visual app the client brings, it's a materialised view of D1, curated by the agent. When a project completes, the agent archives from the plugin UI but retains everything in D1.
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  VIEW / BOUNDARY (Baserow)                           │
+│  VIEW / BOUNDARY (plugin layer — BYO visual app)     │
 │  Filtered, aggregated, current-state only.           │
 │  Rows: hundreds, not thousands.                      │
 │  Tables: Active Work Items (WBS), Current Risks,     │
@@ -61,7 +63,7 @@ Baserow is the View. D1 + R2 is the Model. The agent is the bridge.
 ┌──────────────────────┴───────────────────────────────┐
 │  AGENT LAYER (Cloudflare Workers / Agents SDK)       │
 │  Queries D1, computes with logic modules,            │
-│  writes summaries to Baserow, syncs with GitHub.     │
+│  writes summaries to the plugin, syncs with GitHub.  │
 │  Translates between abstraction levels:              │
 │  work packages (managers) ↔ issues (developers)      │
 └──────────────────────┬───────────────────────────────┘
@@ -74,16 +76,16 @@ Baserow is the View. D1 + R2 is the Model. The agent is the bridge.
 └──────────────────────────────────────────────────────┘
 ```
 
-### Baserow Relational Schema
+### Canonical Work-Records Schema
 
-Baserow is a relational visual database. We use it *as* a relational database — not one flat table, but a proper entity graph that solves the core SIer/PMO problem: "nothing is related systematically."
+The work-records schema is canonical in D1; plugin UIs map onto it. It is a proper entity graph — not one flat table — and it solves the core SIer/PMO problem: "nothing is related systematically." A relational visual app (Airtable as the reference plugin) surfaces these tables for managers.
 
 **Design principle:** Work Items represent WBS work packages only — never activities or tasks. Activities are observed by the agent from GitHub events and stored in D1 analytics. Managers plan at work package level. Developers work at issue level. The agent bridges the gap.
 
 **Who manages activities? Nobody.** That's the point. Work packages are managed by humans. GitHub issues are created by developers at natural granularity. Activity-level analytics are computed by the agent from observed events. No human maintains the activity layer — it emerges from developer behaviour.
 
 ```
-BASEROW — Core Tables (managed by humans, viewed by managers)
+CORE TABLES (canonical in D1 · surfaced in the plugin UI · managed by humans)
 
 ┌─────────────┐     ┌──────────────────┐     ┌──────────────┐
 │  Projects   │────<│  Work Items      │>────│   People     │
@@ -139,10 +141,10 @@ Managers see aggregated GitHub signals on work packages (`github_issue_count: 5`
 
 ### D1 Schema
 
-D1 mirrors the Baserow core schema plus analytics and integration tables that Baserow never sees:
+D1 is the canonical store: the core work-records tables above, plus analytics and integration tables that plugin UIs never see:
 
 ```
-D1 Core (mirrors Baserow, plus archived/historical records)
+D1 Core (canonical — includes archived/historical records)
 ├── projects
 ├── work_items            ← includes archived, full PERT history
 ├── people
@@ -152,11 +154,11 @@ D1 Core (mirrors Baserow, plus archived/historical records)
 ├── clients               ← public_key, key_signature, key_fingerprint, key_created_at
 ├── project_members        ← team access control for encrypted reports
 
-D1 Integration (GitHub bridge — never in Baserow)
+D1 Integration (GitHub bridge — never surfaced in plugins)
 ├── github_issue_links     ← junction: work_item_id ↔ github_issue_id + repo + link_type
-├── sync_log               ← every Baserow/GitHub sync event
+├── sync_log               ← every plugin/GitHub sync event
 
-D1 Analytics (computed by agent — never in Baserow, never manually maintained)
+D1 Analytics (computed by agent — never surfaced in plugins, never manually maintained)
 ├── activity_analytics     ← computed from GitHub events per issue per work item
 │     work_item_id, github_issue_id, started_at, completed_at,
 │     duration_days, review_cycles, contributor_count, rework_flag
@@ -172,17 +174,17 @@ D1 Analytics (computed by agent — never in Baserow, never manually maintained)
 
 ### GitHub Integration: Input → Agent → Output
 
-Developers live in GitHub. Managers live in Baserow. Neither group changes their workflow. The agent bridges them — translating between abstraction levels.
+Developers live in GitHub. Managers live in their plugin UI. Neither group changes their workflow. The agent bridges them — translating between abstraction levels.
 
-**GitHub is the input.** Commits, PRs, issue transitions, and label changes generate webhook events. The agent processes these events, updates D1, and pushes aggregated signals to Baserow.
+**GitHub is the input.** Commits, PRs, issue transitions, and label changes generate webhook events. The agent processes these events, updates D1, and pushes aggregated signals to the plugin UI.
 
-**Baserow is the output.** Managers see real-time project status at work package level — EVM metrics, risk dashboards, aggregated completion signals. When a manager changes a priority in Baserow, the agent syncs back to GitHub as label/assignee changes.
+**The plugin UI is the output.** Managers see real-time project status at work package level — EVM metrics, risk dashboards, aggregated completion signals. When a manager changes a priority in their plugin, the agent syncs back to GitHub as label/assignee changes.
 
-**One canonical record at each level.** Work packages live in Baserow (manager's truth). GitHub issues live in GitHub (developer's truth). The `github_issue_links` junction table in D1 maps between them. The agent computes activity analytics from observed developer behaviour and rolls results up to work package level.
+**One canonical record at each level.** Work packages live in D1 and surface in the plugin UI (manager's truth). GitHub issues live in GitHub (developer's truth). The `github_issue_links` junction table in D1 maps between them. The agent computes activity analytics from observed developer behaviour and rolls results up to work package level.
 
 ```
 DEVELOPER WORLD                    MANAGER WORLD
-(lives in GitHub)                  (lives in Baserow)
+(lives in GitHub)                  (lives in the plugin UI)
 
  ┌──────────┐                      ┌──────────────┐
  │  Issues   │                     │  Work Items  │
@@ -202,11 +204,11 @@ DEVELOPER WORLD                    MANAGER WORLD
                   │   to pkg level
                   │ • pushes
                   │   aggregates
-                  │   to Baserow
+                  │   to plugin
                   └──────────┘
 ```
 
-**Conflict resolution:** The more specific context wins. Developer changes status via PR merge → GitHub wins (ground truth about code). Manager changes priority in Baserow → Baserow wins (ground truth about business value). Every sync is logged in `process_events` for audit.
+**Conflict resolution:** The more specific context wins. Developer changes status via PR merge → GitHub wins (ground truth about code). Manager changes priority in the plugin UI → the plugin wins (ground truth about business value). Every sync is logged in `process_events` for audit.
 
 ### Dual Codebase Strategy
 
@@ -297,13 +299,13 @@ A raw LLM gives essays. Our PMO Agent gives auditable decisions backed by determ
 
 - **Domain-encoded logic.** PERT, TCO, Bayesian — precise calculations, not probabilistic text.
 - **Human-in-the-loop as a feature.** Cloudflare Workflows `waitForApproval()` maps to real PMO governance: calculate → review → approve → execute.
-- **External tool orchestration.** Agent writes to Baserow (WBS/timeline), observes GitHub (developer activity), reads from D1 (metadata), triggers reports — automation that LLMs alone can't do.
+- **External tool orchestration.** Agent writes to the plugin UI (WBS/timeline), observes GitHub (developer activity), reads from D1 (metadata), triggers reports — automation that LLMs alone can't do.
 
 ### Where AI Enters: The Decomposition Boundary
 
 AI enters at the point where a vague human intention becomes structured, estimable work packages. This is the seam between natural language and deterministic math — the earliest point where AI adds irreplaceable value.
 
-The foundation (PERT, EVM, Baserow schema) is built first (March–April). AI is designed in parallel but ships when the math it depends on is solid (May). The wave isn't gone — PMOs are still figuring out how to use AI. We have time to be precise.
+The foundation (PERT, EVM, the canonical work-records schema) is built first (March–April). AI is designed in parallel but ships when the math it depends on is solid (May). The wave isn't gone — PMOs are still figuring out how to use AI. We have time to be precise.
 
 ```
 Human input: "implement user authentication" (natural language)
@@ -322,7 +324,7 @@ Human input: "implement user authentication" (natural language)
          │  deterministic results
          ▼
   ┌─────────────┐
-  │  Baserow /  │  Visual timeline, Kanban,
+  │  Plugin UI /│  Visual timeline, Kanban,
   │  D1 storage │  dependency graph, EVM baseline
   └─────────────┘
 ```
@@ -344,7 +346,7 @@ Client question
   → Agent reasons about intent (LLM via AI Gateway)
     → Calls TCO/PERT tools (our logic layer)
       → Stores results in D1 (structured metadata)
-        → Pushes WBS to Baserow (work package level)
+        → Pushes WBS to the plugin UI (work package level)
           → Developers create GitHub issues (natural granularity)
             → Agent observes, links, computes activity analytics
               → Pauses for human review (Workflow)
@@ -416,7 +418,7 @@ The real question isn't "is everything encrypted?" The real question is **"where
 - Process events (active retention window)
 - GitHub issue links, sync state, activity analytics
 - Agent action logs
-- Non-sensitive Baserow sync data
+- Non-sensitive plugin sync data
 
 ### Encryption Stack
 
@@ -497,7 +499,7 @@ PMO data exists on a spectrum from public (estimation formulas) to highly sensit
 ### Privacy Phasing (Market-Driven)
 
 - **Phase 1 (Consulting):** Server-side report generation with envelope encryption. Honest about Zone 2 transient exposure. Consulting clients accept this within the trust relationship.
-- **Phase 2 (Freemium SaaS):** Add client-side report generation option. Self-service users choose between convenience and stricter guarantees.
+- **Phase 2 (OSS distribution surfaces):** Add client-side report generation option. Self-hosting and OSS users choose between convenience and stricter guarantees.
 - **Phase 3 (Enterprise):** Full client-side computation for sensitive operations. Plaintext never exists on our infrastructure, even transiently.
 
 
@@ -514,7 +516,7 @@ PMO data exists on a spectrum from public (estimation formulas) to highly sensit
 | Operational data | D1 (structured metadata) | Zone 3: infrastructure-secured, agent-queryable |
 | Encrypted storage | R2 (blobs) | Zone 1: zero-knowledge, envelope encryption |
 | Encryption | RSA-OAEP + AES-256-GCM via Web Crypto API | Asymmetric key pairs, envelope pattern |
-| Operational UI | Baserow (View layer) | Relational visual database, WBS work packages only |
+| Operational UI | Plugin layer — bring your own visual app (Airtable = reference plugin) | WBS work packages only; we do not build a visual UI |
 | Dev tool sync | GitHub webhooks | Agent bridge: activity analytics computed, not managed |
 | Python vs TypeScript | Both | Python for community, TypeScript for product |
 

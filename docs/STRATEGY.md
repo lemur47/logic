@@ -140,7 +140,7 @@ plugins/         → Proprietary calibration data and models (closed, B2B licens
 
 ## Monetisation Strategy
 
-### Phase 1: Consulting + Free Tools + PoC Spike (Now → Q2 2026)
+### Phase 1: Consulting + Free Tools + PoC Spike (Q1 → Q2 2026)
 
 Revenue comes from consulting. Tools and content are free. The website and repo are the storefront.
 
