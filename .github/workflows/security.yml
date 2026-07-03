@@ -9,6 +9,14 @@
 
 name: CI
 
+# Least-privilege GITHUB_TOKEN: every job only reads the repo. Without this
+# block the token gets the default write scopes, so a compromised step (hijacked
+# action, malicious dependency) could push commits or post as the bot. Trade-off
+# accepted: gitleaks-action can no longer comment on PRs — findings fail CI,
+# which is the gate that matters.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
