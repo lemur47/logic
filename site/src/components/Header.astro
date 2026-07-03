@@ -28,7 +28,19 @@ const isCurrent = (match: string, exact = false) =>
     <span class="nav__brand-version">v0.4 · alpha</span>
   </a>
 
-  <div class="nav__links">
+  <button
+    class="nav__toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="nav-menu"
+    aria-label={t("nav.menu")}
+  >
+    <span class="nav__toggle-bar"></span>
+    <span class="nav__toggle-bar"></span>
+    <span class="nav__toggle-bar"></span>
+  </button>
+
+  <div class="nav__links" id="nav-menu">
     {links.map(({ href, label, match, exact }) => (
       <a href={href} aria-current={isCurrent(match, exact) ? "page" : undefined}>{label}</a>
     ))}
@@ -47,3 +59,13 @@ const isCurrent = (match: string, exact = false) =>
     <a href="https://github.com/lemur47/logic" class="btn btn--ghost btn--sm" target="_blank" rel="noopener">GitHub ↗</a>
   </div>
 </nav>
+
+<script>
+  // Mobile nav toggle. Bundled by Astro (same-origin /_astro), CSP-safe.
+  const nav = document.querySelector(".nav");
+  const toggle = document.querySelector(".nav__toggle");
+  toggle?.addEventListener("click", () => {
+    const open = nav?.classList.toggle("is-open") ?? false;
+    toggle.setAttribute("aria-expanded", String(open));
+  });
+</script>
