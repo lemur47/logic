@@ -5,7 +5,7 @@ Forward-looking strategy: mission, audiences, monetisation phases, IP positionin
 **Domain:** pmo.run
 **Repo:** github.com/lemur47/logic
 **Phase:** Awareness & Prototype → Agent PoC
-**Last updated:** 2026-05-04
+**Last updated:** 2026-07-03
 
 ---
 
@@ -56,7 +56,7 @@ This is not a growth hack. It's the ethical foundation of the business.
 | Language | Japanese-first | English-first |
 | What they need | Decisions answered ("Is this investment worth it?") | Tools to use ("TCO calculator with NPV") |
 | How they find us | Blog (JA), referrals, LinkedIn JP | GitHub, blog (EN), dev.to, Hacker News |
-| Revenue model | Consulting fees | API subscriptions (future) |
+| Revenue model | Consulting fees | Intelligence layer engagements (future) |
 
 ### Content Split
 
@@ -66,33 +66,40 @@ This is not a growth hack. It's the ethical foundation of the business.
 
 ---
 
-## IP Strategy: Open Core + Proprietary Plugins
+## IP Strategy: Open Core + Intelligence Layer
 
 ### Principle
 
 Logic and code are public. Data and calibration models are protected. The math stays open — what stays proprietary is the *reasoning that tells the math which variables matter*.
 
+There is no freemium tier. **The OSS itself is the free tier of value** — full-strength tools (pmorun-mcp, Skills, MCP servers, plugin interfaces), not a crippled trial. Distribution happens through OSS + Skills + MCP + Plugins, not a SaaS funnel. What we charge for is the **intelligence layer**: analysis and insights (consulting), proprietary calibration plugins, and a managed data layer we run.
+
 ### Three-Layer IP Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  OSS LAYER (trust + adoption)                           │
+│  OSS LAYER (trust + adoption — the free tier of value)  │
 │  MIT licensed. Pure math: PERT, TCO, NPV, Bayesian.     │
-│  FastAPI endpoints, CLI tools, Python imports.           │
+│  pmorun-mcp (PyPI), Skills, MCP servers,                │
+│  FastAPI endpoints, plugin interfaces, Python imports.  │
+│  Team Cognition MCP (standalone OSS repo).              │
 │  Anyone can use, audit, fork, self-host.                │
 ├─────────────────────────────────────────────────────────┤
-│  PRODUCT LAYER (platform + workflows)                   │
-│  Agent orchestration, Baserow integration,              │
-│  Three-zone privacy model, GitHub sync.                 │
-│  Cloudflare Workers, Workflows, AI Gateway.             │
-│  Freemium → paid SaaS.                                  │
+│  DISTRIBUTION LAYER (platform + workflows)              │
+│  Agent orchestration, three-zone privacy model,         │
+│  GitHub sync. Cloudflare Workers, Workflows,            │
+│  AI Gateway. Visual/operational UI arrives via the      │
+│  plugin layer — bring your own app; Airtable is the     │
+│  reference plugin we dogfood.                           │
 ├─────────────────────────────────────────────────────────┤
-│  PROPRIETARY PLUGIN LAYER (IP + exit value)             │
+│  INTELLIGENCE LAYER (proprietary IP + exit value)       │
+│  Analysis and insights + consulting.                    │
 │  Field-calibrated adjustment coefficients.              │
 │  Risk pattern recognition models.                       │
 │  Observation frameworks ("what to measure").             │
 │  Industry-specific delay/risk profiles.                 │
-│  Client data (Zone 1 encrypted, never accessible).      │
+│  Managed data layer (D1 + R2) holding client data       │
+│  (Zone 1 encrypted, never accessible).                  │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -119,11 +126,13 @@ plugins/         → Proprietary calibration data and models (closed, B2B licens
 | Layer | License | Rationale |
 |-------|---------|-----------|
 | Mathematical formulas (PERT, TCO, NPV, etc.) | MIT | Trust engine, community adoption, auditability |
-| FastAPI endpoints, CLI tools, schemas | MIT | Adoption surface, composability proof |
+| pmorun-mcp, Skills, FastAPI endpoints, CLI tools, schemas | MIT | Adoption surface, composability proof |
 | Plugin interface definitions | MIT | Enables ecosystem, lowers integration barrier |
+| Team Cognition MCP (standalone repo) | MIT | Shared team-cognition tooling, dogfooded internally |
 | Agent orchestration (Cloudflare Workers) | Source-available or MIT | Platform showcase, transparency |
 | Calibration coefficients and field models | Proprietary (B2B) | Core consulting IP, exit value |
 | Risk pattern recognition models | Proprietary (B2B) | Systems thinking encoded, highest-value asset |
+| Managed data layer (D1 + R2) | Proprietary service | Client-data stewardship — the plugins thesis extended to storage |
 | Client data | Zone 1 encrypted | Never accessible, even by us |
 
 
@@ -139,23 +148,28 @@ Revenue comes from consulting. Tools and content are free. The website and repo 
 
 **Key deliverables this phase:**
 - PERT + EVM modules (standalone → FastAPI → interactive page)
-- Baserow relational schema with logic module integration
+- Relational work-records schema with logic module integration (first built on Baserow, since retired in favour of the plugin layer — see Phase 2)
 - Cloudflare Agent PoC spike (TCO/PERT as tools + Workflow approval gate)
 - 5+ blog posts (bilingual, from R&D and consulting experience)
 - First direct consulting clients (JA market)
 
 **Pricing:** Project-based or retainer. Japanese SME market first.
 
-### Phase 2: PMO Agent MVP + Freemium SaaS (Q3-Q4 2026)
+### Phase 2: PMO Agent MVP + OSS Distribution Surfaces (Q3-Q4 2026)
 
-Free tools remain free. Agent goes live. Paid tier adds:
-- Saved scenarios and PDF report export (Zone 1 encrypted, team sharing)
-- Team sharing with role-based access
-- Zone 1 encrypted storage for sensitive documents
-- Baserow integration for WBS/timeline management
-- GitHub bidirectional sync with activity analytics
-- AI Gateway billing and analytics dashboard
-- API rate increases
+There is no paid tier to graduate into — the OSS is the free tier of value, and it stays full-strength. This phase widens the distribution surfaces and stands up the intelligence layer behind them.
+
+**OSS distribution surfaces:**
+- pmorun-mcp on PyPI (shipped) — decision logic over MCP, `uvx pmorun-mcp` away
+- Skills and plugin interfaces for agent workflows
+- Team Cognition MCP: the internal lemurkit tooling split into two repos — the private ops repo exports via R2 to a standalone public OSS repo
+- Visual/operational UI via the plugin layer: enterprises bring the app they already use (Airtable is the reference plugin we dogfood)
+
+**Intelligence layer (paid):**
+- Analysis and insights + consulting engagements
+- Proprietary calibration plugins (field-tested coefficients, risk profiles)
+- Managed data layer: D1 + R2 we run, holding clients' project data (Zone 1 encrypted) — stewardship, not a datastore we mandate
+- GitHub bidirectional sync with agent-computed activity analytics
 
 ### Phase 3: Platform + Full Privacy + Ecosystem (2027)
 
@@ -163,7 +177,7 @@ Free tools remain free. Agent goes live. Paid tier adds:
 - Vectorize for RAG over PMO knowledge base
 - MCP servers for third-party integrations
 - AI PMO Assistant (natural language queries over project data)
-- Enterprise custom plans (dedicated infrastructure option)
+- Enterprise intelligence-layer engagements (dedicated infrastructure option)
 - Process mining dashboard (anonymised decision analytics from D1)
 
 
@@ -188,8 +202,8 @@ From direct consulting experience — the pattern every enterprise PMO team suff
 |------|-----------|-------|
 | Estimation gaps | PERT (three-point estimation) | Logic |
 | No learning from past estimates | Bayesian updating (from D1 estimation_log) | Logic |
-| Manual WBS management | Baserow integration (WBS work packages) | Integration |
-| Disconnected tooling | GitHub ←→ Baserow sync via agent | Integration |
+| Manual WBS management | Plugin-layer work records (WBS work packages in the visual app you already use) | Integration |
+| Disconnected tooling | GitHub ←→ plugin sync via agent | Integration |
 | No decision analytics | AI Gateway + process mining (D1 activity_analytics) | Analytics |
 | Data security concerns | Three-zone privacy model | Privacy |
 | Documentation decay | Our own repo as the example | Meta |
@@ -216,7 +230,7 @@ CLAUDE.md-driven development workflow. PMO prompt library on GitHub. Domain-spec
 - **Dual language:** JA consulting + EN community
 - **Open source trust:** Credibility via radical transparency
 - **Composable modules:** Partial adoption lowers barrier, builds embedded presence
-- **Relational data model:** Baserow + D1 solves "nothing is connected" by design
+- **Relational data model:** the D1 + R2 managed data layer solves "nothing is connected" by design; visual apps plug into it
 - **Simplicity:** Activities computed, not managed. Developers and managers stay in their tools.
 
 
