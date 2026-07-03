@@ -427,6 +427,19 @@ p { text-wrap: pretty; }
   .trio { grid-template-columns: 1fr; }
 }
 
+/* Grid items default to min-width:auto, so wide content (e.g. a <pre>)
+   stretches its column past the viewport instead of scrolling inside it.
+   Allow items to shrink; inner overflow rules take it from there. */
+.sidegrid > *,
+.sidegrid--split > *,
+.duo > *,
+.trio > *,
+.grid-2 > *,
+.grid-3 > *,
+.grid-4 > * {
+  min-width: 0;
+}
+
 .cell {
   background: var(--paper);
   padding: 28px;
