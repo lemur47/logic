@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Boot note.** If `CLAUDE-internal.md` exists at the project root, read it before starting work. It holds operational notes (Work Item Protocol, sprint conventions, Airtable reference) that change independently of this file. It is gitignored, so it may be absent in fresh clones — that's fine, proceed without it.
+**Boot note.** If `CLAUDE-internal.md` exists at the project root, read it before starting work. It holds operational notes (operating model, Work Item Protocol, sprint conventions, Airtable reference) that change independently of this file. It is gitignored, so it may be absent in fresh clones — that's fine, proceed without it.
 
 ## Project Overview
 
@@ -91,12 +91,12 @@ This repo is one layer of a larger system. Understanding the full picture helps 
 
 - **This repo (logic):** Pure math modules + FastAPI endpoints. Python. MIT licensed. Community-facing.
 - **Cloudflare Agent (future):** TypeScript port of these modules. Agents SDK, Workers, D1/R2. Product-facing.
-- **Baserow:** Relational visual database. Operational UI for managers. Work Items represent WBS work packages only (never activities/tasks). Views: timeline, Kanban, dashboard.
-- **D1:** Structured metadata store. Mirrors Baserow core tables plus analytics tables (activity_analytics, process_events, estimation_log) that Baserow never sees.
+- **Plugin layer (visual UI):** We do not build a visual UI. Enterprises plug in the visual app they already use; Airtable is the reference plugin (the one we dogfood). Work Items represent WBS work packages only (never activities/tasks). Views: timeline, Kanban, dashboard.
+- **D1:** Canonical structured store — part of the proprietary data layer we run. Core work-records tables plus analytics tables (activity_analytics, process_events, estimation_log) that plugin UIs never see.
 - **R2:** Encrypted blob storage (Zone 1, zero-knowledge). Client uploads, generated reports, audit archives.
 - **GitHub webhooks:** Developer activity feeds into D1 via agent. Activity-level analytics are computed by the agent from GitHub events — never manually maintained.
 
-The agent bridges Baserow (manager world) and GitHub (developer world), translating between abstraction levels. Managers plan at work package level. Developers work at issue level. The agent computes activity analytics from observed events.
+The agent bridges the plugin UI (manager world) and GitHub (developer world), translating between abstraction levels. Managers plan at work package level. Developers work at issue level. The agent computes activity analytics from observed events.
 
 ### Privacy: Three-Zone Model
 

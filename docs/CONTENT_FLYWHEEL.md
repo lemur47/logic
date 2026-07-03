@@ -36,7 +36,7 @@ More real problems → More content → More trust
 | 6 | "The time value of money, explained with Python" | Pythonで理解するお金の時間的価値 | NPV module |
 | 7 | "Transparent privacy for PMO data: a three-zone model" | PMOデータの透明なプライバシーモデル | Privacy architecture |
 | 8 | "PMO tools on Cloudflare Agents: a PoC" | Cloudflare Agentsで動くPMOツール | Agent architecture |
-| 9 | "Connecting Baserow to automated cost analysis" | Baserowで自動コスト分析を構築する | Integration PoC |
+| 9 | "Bring your own PMO dashboard: Airtable as a plugin" | 使い慣れたツールをPMOダッシュボードに：Airtableプラグイン | Plugin-layer PoC |
 | 10 | "How AI + human PMO services actually work" | AI×人間のPMOサービスとは何か | Service marketing |
 | 11 | "Open source tools for PMO: why we build in public" | なぜ私たちはオープンソースでPMOツールを作るのか | Brand story |
 | 12 | "Cloud migration TCO: numbers your vendor won't show" | クラウド移行のTCO：ベンダーが見せない数字 | TCO tool |

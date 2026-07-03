@@ -7,6 +7,8 @@ Turning abstract ideas into executable functions.
 
 A modular toolkit built with FastAPI and SQLAlchemy. Open source decision-making tools for the global PM/PMO community — every experiment, every formula, every line of code becomes a public deliverable.
 
+**The OSS is the free tier of value.** Full-strength tools — importable Python, Claude Skills, an MCP server ([`pmorun-mcp` on PyPI](https://pypi.org/project/pmorun-mcp/)) and open plugin interfaces — not a crippled trial. What sits behind a contract is the intelligence layer: analysis and insights, proprietary calibration plugins, and a managed data layer. The maths is never behind a paywall.
+
 ## Philosophy
 
 - **Executable:** Ideas are just hypotheses until they're code.
@@ -156,6 +158,17 @@ pre-commit run --all-files      # Run all pre-commit hooks
 ```
 
 Full commands, code style, and conventions are in [`CLAUDE.md`](CLAUDE.md).
+
+## MCP Server
+
+The decision modules ship as a lean stdio MCP server — runs locally, no account, no data leaves your machine:
+
+```bash
+uvx pmorun-mcp                                # run the published server
+claude mcp add pmo-logic -- uvx pmorun-mcp    # or one line into Claude Code
+```
+
+Four tools over stdio: task duration estimation (PERT), schedule risk (Monte Carlo), investment comparison (TCO) and project health (EVM). See [`mcp_server/README.md`](mcp_server/README.md) for pinning and client configuration.
 
 ## Claude Skills
 
