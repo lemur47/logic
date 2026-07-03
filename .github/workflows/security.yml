@@ -52,26 +52,29 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      # Installer pinned to a release tag (immutable) AND checksum-verified before
-      # execution — downloaded to a file, SHA-256 checked, then run (no curl|bash
-      # pipe), so a hijacked URL or tampered script can't execute in CI. Keep
-      # OPENGREP_VERSION in step with the pinned version so CI == local. On bump,
-      # regenerate the checksum:
-      #   gh api repos/opengrep/opengrep/contents/install.sh?ref=<tag> --jq .content | base64 -d | sha256sum
-      # The binary lands in ~/.opengrep/cli/latest, which is NOT on PATH, so we
-      # add it to $GITHUB_PATH for the scan step. (Previously this was masked:
-      # the scan step exited 127 "command not found" but `|| true` swallowed it,
-      # so SAST never actually ran in CI.)
+      # Direct release-asset download, pinned by version AND binary SHA-256 —
+      # no installer script. The upstream install.sh resolves versions through
+      # an unauthenticated api.github.com call (rate-limited per shared runner
+      # IP → random CI failures) and, called without a version argument,
+      # installs LATEST — so the old OPENGREP_VERSION pin only chose the
+      # installer, not the binary. Release assets come from GitHub's CDN (no
+      # API rate limit), and the checksum now covers the binary itself. Keep
+      # OPENGREP_VERSION in step with the local install so CI == local. On
+      # bump, regenerate the checksum:
+      #   curl -fsSL "https://github.com/opengrep/opengrep/releases/download/<tag>/opengrep_manylinux_x86" | sha256sum
       - name: Install Opengrep
         env:
           OPENGREP_VERSION: v1.25.0
-          OPENGREP_INSTALLER_SHA256: 765f8eba6df9349a172ce3103d2e8f21966d3826b6cb2d84b97442b0883a6d5b
+          OPENGREP_BIN_SHA256: 9ac4aebb47ba3f7b0d8fc641ac8749cb6c2f253f616131a67d9631e00d4bea33
         run: |
-          curl -fsSL "https://raw.githubusercontent.com/opengrep/opengrep/${OPENGREP_VERSION}/install.sh" -o install-opengrep.sh
-          echo "${OPENGREP_INSTALLER_SHA256}  install-opengrep.sh" | sha256sum -c -
-          bash install-opengrep.sh
-          rm -f install-opengrep.sh
-          echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
+          install_dir="$HOME/.opengrep/bin"
+          mkdir -p "$install_dir"
+          curl -fsSL -o "$install_dir/opengrep" \
+            "https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86"
+          echo "${OPENGREP_BIN_SHA256}  $install_dir/opengrep" | sha256sum -c -
+          chmod +x "$install_dir/opengrep"
+          echo "$install_dir" >> "$GITHUB_PATH"
+          "$install_dir/opengrep" --version
 
       # Blocking: --error makes opengrep exit non-zero on findings, and we no
       # longer swallow that with `|| true`. A real finding now fails CI.
