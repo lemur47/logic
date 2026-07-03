@@ -100,7 +100,7 @@ const tcoSegs: TcoSeg[] = [];
       title={t("home.premise.title")}
       lede={t("home.premise.body")}
     />
-    <div style="display:grid;grid-template-columns:200px 1fr;gap:32px;align-items:start;">
+    <div class="sidegrid sidegrid--start">
       <div></div>
       <blockquote class="serif" style="margin:0;font-family:var(--serif);font-size:22px;line-height:1.45;color:var(--ink);letter-spacing:-0.005em;max-width:46ch;">
         {t("home.premise.quote")}
@@ -228,7 +228,7 @@ const tcoSegs: TcoSeg[] = [];
       title={t("home.install.title")}
       lede={t("home.install.lede")}
     />
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="duo">
       <div class="spec">
         <div class="spec__bar">
           <span>~/.claude/skills</span>
@@ -282,6 +282,7 @@ $ claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1
       title={t("home.opencore.title")}
       lede={t("home.opencore.lede")}
     />
+    <div class="tbl-wrap">
     <table class="tbl">
       <thead>
         <tr>
@@ -316,18 +317,19 @@ $ claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1
         </tr>
       </tbody>
     </table>
+    </div>
   </section>
 
   {/* §05 For whom (dark) */}
   <section class="section section--dark">
-    <div style="display:grid;grid-template-columns:200px 1fr;gap:32px;">
+    <div class="sidegrid">
       <div class="label">§05 / for whom</div>
       <div>
         <h2 class="section__title" style="color:var(--paper);max-width:22ch;">
           {t("home.audience.title")}
         </h2>
         <p class="section__lede">{t("home.audience.lede")}</p>
-        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+        <div class="trio" style="margin-top:40px;">
           <div>
             <div class="label label--accent">{t("home.audience.practitioner.label")}</div>
             <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("home.audience.practitioner.body")}</p>
@@ -347,7 +349,7 @@ $ claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1
 
   {/* §06 Start */}
   <section class="section">
-    <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:32px;">
+    <div class="sidegrid sidegrid--split">
       <div class="label">§06 / start</div>
       <div>
         <h2 class="section__title" style="max-width:16ch;">

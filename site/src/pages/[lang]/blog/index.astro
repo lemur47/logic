@@ -41,7 +41,7 @@ const posts = allPosts.sort(
           const isFirst = i === 0;
           const tagSummary = (post.data.tags ?? []).slice(0, 2).join(" · ");
           return (
-            <li style={`border-top:1px solid ${isFirst ? "var(--ink)" : "var(--rule)"};padding:28px 0;display:grid;grid-template-columns:120px 1fr;gap:24px;`}>
+            <li class="post-row" style={`border-top:1px solid ${isFirst ? "var(--ink)" : "var(--rule)"};`}>
               <div>
                 <div class="label">{dateStr}</div>
                 {tagSummary && <div class="label" style="margin-top:6px;color:var(--ink-3);">{tagSummary}</div>}

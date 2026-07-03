@@ -182,6 +182,58 @@ p { text-wrap: pretty; }
 }
 .nav__lang a.is-on { background: var(--ink); color: var(--paper); }
 
+/* Mobile nav toggle — hidden on desktop */
+.nav__toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 36px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.nav__toggle-bar {
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  background: var(--ink);
+}
+.nav__toggle[aria-expanded="true"] { border-color: var(--ink); }
+
+@media (max-width: 720px) {
+  .nav { gap: 12px; }
+  .nav__toggle { display: flex; }
+  .nav__links,
+  .nav__cta { display: none; }
+  .nav.is-open .nav__links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+    order: 3;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    font-size: 16px;
+  }
+  .nav.is-open .nav__links a {
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+  }
+  .nav.is-open .nav__cta {
+    display: flex;
+    width: 100%;
+    order: 4;
+    justify-content: space-between;
+    padding: 10px 0 4px;
+  }
+}
+
 /* ─── buttons ───────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -346,6 +398,46 @@ p { text-wrap: pretty; }
 
 @media (max-width: 720px) {
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Sidebar-label layouts (200px gutter + content), used by page sections */
+.sidegrid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 32px;
+}
+.sidegrid--start { align-items: start; }
+.sidegrid--split { grid-template-columns: 200px 1fr 1fr; }
+.trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 960px) {
+  .duo { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .sidegrid,
+  .sidegrid--split { grid-template-columns: 1fr; gap: 16px; }
+  .trio { grid-template-columns: 1fr; }
+}
+
+/* Grid items default to min-width:auto, so wide content (e.g. a <pre>)
+   stretches its column past the viewport instead of scrolling inside it.
+   Allow items to shrink; inner overflow rules take it from there. */
+.sidegrid > *,
+.sidegrid--split > *,
+.duo > *,
+.trio > *,
+.grid-2 > *,
+.grid-3 > *,
+.grid-4 > * {
+  min-width: 0;
 }
 
 .cell {
@@ -541,6 +633,23 @@ p { text-wrap: pretty; }
 }
 .tbl td.num { font-family: var(--mono); color: var(--ink); }
 
+/* Horizontal-scroll fallback for wide tables on small screens */
+.tbl-wrap { overflow-x: auto; }
+@media (max-width: 720px) {
+  .tbl-wrap .tbl { min-width: 560px; }
+}
+
+/* Blog index rows (date gutter + entry) */
+.post-row {
+  padding: 28px 0;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 24px;
+}
+@media (max-width: 540px) {
+  .post-row { grid-template-columns: 1fr; gap: 10px; padding: 22px 0; }
+}
+
 /* ─── diagram base ──────────────────────────────────────────── */
 .diagram { width: 100%; height: auto; }
 .diagram .axis { stroke: var(--rule); stroke-width: 1; }
@@ -624,4 +733,10 @@ p { text-wrap: pretty; }
   background: transparent;
   padding: 0;
   border-radius: 0;
+}
+@media (max-width: 720px) {
+  .prose table {
+    display: block;
+    overflow-x: auto;
+  }
 }

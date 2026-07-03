@@ -66,14 +66,14 @@ const t = useTranslations(lang);
 
   {/* §03 Contact (dark) */}
   <section class="section section--dark">
-    <div style="display:grid;grid-template-columns:200px 1fr;gap:32px;">
+    <div class="sidegrid">
       <div class="label">§03 / contact</div>
       <div>
         <h2 class="section__title" style="color:var(--paper);max-width:24ch;">
           {t("about.contact.title")}
         </h2>
         <p class="section__lede">{t("about.contact.lede")}</p>
-        <div style="margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+        <div class="trio" style="margin-top:40px;">
           <div style="border-left:2px solid var(--accent);padding-left:14px;">
             <div class="label label--accent">{t("about.contact.method1.label")}</div>
             <p style="margin-top:8px;font-size:14px;line-height:1.55;">{t("about.contact.method1.body")}</p>
