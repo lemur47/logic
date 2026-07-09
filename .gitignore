@@ -147,6 +147,9 @@ site/dist/
 site/.astro/
 site/.wrangler/
 
+# Remote MCP PoC (examples/remote-mcp/)
+examples/remote-mcp/node_modules/
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Opengrep
 # ═══════════════════════════════════════════════════════════════════════════════

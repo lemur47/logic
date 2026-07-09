@@ -1,0 +1,415 @@
+{
+  "generated_by": "app/pert/core.py calculate_task (tags=None)",
+  "cases": [
+    {
+      "args": {
+        "optimistic": 1,
+        "most_likely": 2,
+        "pessimistic": 3
+      },
+      "expected": {
+        "input": {
+          "optimistic": 1,
+          "most_likely": 2,
+          "pessimistic": 3
+        },
+        "textbook": {
+          "expected": 2.0,
+          "std_dev": 0.33,
+          "variance": 0.11,
+          "range_68": [
+            1.67,
+            2.33
+          ],
+          "range_95": [
+            1.33,
+            2.67
+          ],
+          "range_99": [
+            1.0,
+            3.0
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0,
+        "most_likely": 0,
+        "pessimistic": 0
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0,
+          "most_likely": 0,
+          "pessimistic": 0
+        },
+        "textbook": {
+          "expected": 0.0,
+          "std_dev": 0.0,
+          "variance": 0.0,
+          "range_68": [
+            0.0,
+            0.0
+          ],
+          "range_95": [
+            0.0,
+            0.0
+          ],
+          "range_99": [
+            0.0,
+            0.0
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 2,
+        "most_likely": 4,
+        "pessimistic": 8
+      },
+      "expected": {
+        "input": {
+          "optimistic": 2,
+          "most_likely": 4,
+          "pessimistic": 8
+        },
+        "textbook": {
+          "expected": 4.33,
+          "std_dev": 1.0,
+          "variance": 1.0,
+          "range_68": [
+            3.33,
+            5.33
+          ],
+          "range_95": [
+            2.33,
+            6.33
+          ],
+          "range_99": [
+            1.33,
+            7.33
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0.5,
+        "most_likely": 1.25,
+        "pessimistic": 2.75
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0.5,
+          "most_likely": 1.25,
+          "pessimistic": 2.75
+        },
+        "textbook": {
+          "expected": 1.38,
+          "std_dev": 0.38,
+          "variance": 0.14,
+          "range_68": [
+            1.0,
+            1.75
+          ],
+          "range_95": [
+            0.62,
+            2.12
+          ],
+          "range_99": [
+            0.25,
+            2.5
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 3.3,
+        "most_likely": 3.3,
+        "pessimistic": 3.3
+      },
+      "expected": {
+        "input": {
+          "optimistic": 3.3,
+          "most_likely": 3.3,
+          "pessimistic": 3.3
+        },
+        "textbook": {
+          "expected": 3.3,
+          "std_dev": 0.0,
+          "variance": 0.0,
+          "range_68": [
+            3.3,
+            3.3
+          ],
+          "range_95": [
+            3.3,
+            3.3
+          ],
+          "range_99": [
+            3.3,
+            3.3
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 1.05,
+        "most_likely": 2.675,
+        "pessimistic": 4.125
+      },
+      "expected": {
+        "input": {
+          "optimistic": 1.05,
+          "most_likely": 2.675,
+          "pessimistic": 4.125
+        },
+        "textbook": {
+          "expected": 2.65,
+          "std_dev": 0.51,
+          "variance": 0.26,
+          "range_68": [
+            2.13,
+            3.16
+          ],
+          "range_95": [
+            1.62,
+            3.67
+          ],
+          "range_99": [
+            1.11,
+            4.18
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0.1,
+        "most_likely": 0.25,
+        "pessimistic": 0.5
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0.1,
+          "most_likely": 0.25,
+          "pessimistic": 0.5
+        },
+        "textbook": {
+          "expected": 0.27,
+          "std_dev": 0.07,
+          "variance": 0.0,
+          "range_68": [
+            0.2,
+            0.33
+          ],
+          "range_95": [
+            0.13,
+            0.4
+          ],
+          "range_99": [
+            0.07,
+            0.47
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 5,
+        "most_likely": 10,
+        "pessimistic": 30
+      },
+      "expected": {
+        "input": {
+          "optimistic": 5,
+          "most_likely": 10,
+          "pessimistic": 30
+        },
+        "textbook": {
+          "expected": 12.5,
+          "std_dev": 4.17,
+          "variance": 17.36,
+          "range_68": [
+            8.33,
+            16.67
+          ],
+          "range_95": [
+            4.17,
+            20.83
+          ],
+          "range_99": [
+            0.0,
+            25.0
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0,
+        "most_likely": 2.5,
+        "pessimistic": 10
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0,
+          "most_likely": 2.5,
+          "pessimistic": 10
+        },
+        "textbook": {
+          "expected": 3.33,
+          "std_dev": 1.67,
+          "variance": 2.78,
+          "range_68": [
+            1.67,
+            5.0
+          ],
+          "range_95": [
+            0.0,
+            6.67
+          ],
+          "range_99": [
+            -1.67,
+            8.33
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 7.77,
+        "most_likely": 8.88,
+        "pessimistic": 9.99
+      },
+      "expected": {
+        "input": {
+          "optimistic": 7.77,
+          "most_likely": 8.88,
+          "pessimistic": 9.99
+        },
+        "textbook": {
+          "expected": 8.88,
+          "std_dev": 0.37,
+          "variance": 0.14,
+          "range_68": [
+            8.51,
+            9.25
+          ],
+          "range_95": [
+            8.14,
+            9.62
+          ],
+          "range_99": [
+            7.77,
+            9.99
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 100,
+        "most_likely": 250,
+        "pessimistic": 800
+      },
+      "expected": {
+        "input": {
+          "optimistic": 100,
+          "most_likely": 250,
+          "pessimistic": 800
+        },
+        "textbook": {
+          "expected": 316.67,
+          "std_dev": 116.67,
+          "variance": 13611.11,
+          "range_68": [
+            200.0,
+            433.33
+          ],
+          "range_95": [
+            83.33,
+            550.0
+          ],
+          "range_99": [
+            -33.33,
+            666.67
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0.01,
+        "most_likely": 0.02,
+        "pessimistic": 0.03
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0.01,
+          "most_likely": 0.02,
+          "pessimistic": 0.03
+        },
+        "textbook": {
+          "expected": 0.02,
+          "std_dev": 0.0,
+          "variance": 0.0,
+          "range_68": [
+            0.02,
+            0.02
+          ],
+          "range_95": [
+            0.01,
+            0.03
+          ],
+          "range_99": [
+            0.01,
+            0.03
+          ]
+        },
+        "adjusted": null
+      }
+    }
+  ],
+  "errors": [
+    {
+      "args": {
+        "optimistic": -1,
+        "most_likely": 2,
+        "pessimistic": 3
+      },
+      "message": "All estimates must be non-negative"
+    },
+    {
+      "args": {
+        "optimistic": 3,
+        "most_likely": 2,
+        "pessimistic": 4
+      },
+      "message": "Optimistic (3) cannot exceed most likely (2)"
+    },
+    {
+      "args": {
+        "optimistic": 1,
+        "most_likely": 5,
+        "pessimistic": 4
+      },
+      "message": "Most likely (5) cannot exceed pessimistic (4)"
+    }
+  ]
+}
