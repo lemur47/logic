@@ -77,15 +77,17 @@ analysis = [
 ]
 
 [tool.setuptools.packages.find]
-# Ship the MCP server plus only the logic packages the four registered tools
-# import. app.bayesian is deliberately excluded (not registered in v0.1).
-# app.common is included for app.common.schemas (PaginatedList), reused by every
-# module's schemas. Note: this is package-granularity — the shipped logic
-# packages still carry their router/crud/models modules, but those are never
-# imported by the stdio server, so they pull no runtime deps.
+# Ship the MCP server plus only the logic packages the registered tools import.
+# app.bayesian is pure Python (no extra deps) and is required by the opt-in
+# calibration-memory tools (mcp_server.calibration_tools). app.common is
+# included for app.common.schemas (PaginatedList), reused by every module's
+# schemas. Note: this is package-granularity — the shipped logic packages still
+# carry their router/crud/models modules, but those are never imported by the
+# stdio server, so they pull no runtime deps.
 include = [
     "mcp_server*",
     "app",
+    "app.bayesian",
     "app.common",
     "app.evm",
     "app.montecarlo",

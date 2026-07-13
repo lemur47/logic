@@ -7,8 +7,10 @@ models, seed-42 determinism on the stochastic tool, and the structured-error
 contract (typed tags, no tracebacks on the wire).
 
 Implementation-grade maths sweeps live in tests/{pert,montecarlo,tco,evm}/ —
-we do not duplicate them here. `estimate_from_history` is parked for v0.1
-(see the banner in mcp_server/tools.py) and is intentionally untested here.
+we do not duplicate them here. The opt-in calibration memory (including the
+log-grounded `estimate_from_history`) is covered by test_calibration.py; with
+PMORUN_DB unset — this module's world — the four v0.1 tools are the whole
+surface.
 """
 
 import pytest
