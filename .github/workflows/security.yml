@@ -24,6 +24,9 @@ on:
     branches: [main]
   schedule:
     - cron: "0 6 * * 1" # Weekly Monday 6am UTC
+  # Manual re-run — re-verify the full-history scan on demand (e.g. after a
+  # .gitleaksignore update) instead of waiting a week for the next cron.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
