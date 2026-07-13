@@ -264,16 +264,14 @@ def evaluate_project_health(evm: EvmCalculateInput) -> EvmCalculateResponse:
 
 
 # ═════════════════════════════════════════════════════════════════════
-# PARKED — not registered in v0.1 (see server.py)
+# UNPARKED behind the calibration-memory flag (see calibration_tools.py)
 # ═════════════════════════════════════════════════════════════════════
-# `estimate_from_history` is the two-layer, calibration-driven estimator. It is
-# parked for v0.1 under the same rationale that parked the Bayesian and
-# Dirichlet-drift tools in the v0.1 MCP scoping Decision: the calibration is
-# conservative and unvalidated (no field data yet), so its PMO story is not sharp
-# enough to ship as a single-call LLM tool at the v0.1 quality bar. The code is
-# kept intact, not deleted. Re-enable it (re-register in server.py, restore its
-# tests) once the estimation_log data source exists to ground the Layer 2
-# constants — earliest Sprint 10.
+# `estimate_from_history` is the two-layer, calibration-driven estimator. It was
+# parked for v0.1 pending "the estimation_log data source ... to ground the
+# Layer 2 constants" — that source now exists: when PMORUN_DB is set, the
+# log-grounded wrapper in calibration_tools.py registers under this tool's name
+# and feeds it recorded actuals per task category. The pure implementation stays
+# here, stateless and directly callable; it is never registered from this module.
 # ─────────────────────────────────────────────────────────────────────
 
 # Layer 2 calibration constants. Conservative defaults agreed with CTO; to be

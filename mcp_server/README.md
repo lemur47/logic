@@ -6,11 +6,12 @@ pattern that makes pmo.run useful: a data-source MCP (Airtable, GitHub) feeds
 records in; this server runs the maths; Claude orchestrates and narrates the
 result.
 
-> **Status: v0.1.** Four classic PMO tools, stdio transport, structured errors.
-> Published to PyPI as [`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/) — install
-> it or run it from a source checkout (see [Install](#install)). The hosted lane
-> (Streamable HTTP + auth) and the calibration-driven tools are parked for v0.2 —
-> see [Out of scope](#out-of-scope-v02).
+> **Status: v0.1.** Four classic PMO tools, stdio transport, structured errors,
+> plus an **opt-in calibration memory** (a local SQLite estimation log — see
+> [Calibration memory](#calibration-memory-opt-in)). Published to PyPI as
+> [`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/) — install it or run it
+> from a source checkout (see [Install](#install)). The hosted lane (Streamable
+> HTTP + auth) is parked for v0.2 — see [Out of scope](#out-of-scope-v02).
 
 ## What's in the box
 
@@ -190,6 +191,45 @@ A project a little behind and over budget:
 Returns SPI **0.9**, CPI **≈ 0.82**, the forecast `eac`/`etc`/`vac`/`tcpi`, and a
 health verdict of **off_track** with the reasons spelled out.
 
+## Calibration memory (opt-in)
+
+By default the server is fully stateless — nothing is written anywhere, and the
+four tools above are the whole surface. Set the `PMORUN_DB` environment variable
+to a writable file path and four more tools register, backed by a **local SQLite
+estimation log**:
+
+```jsonc
+// Claude Desktop / claude mcp add — opt in via env
+{
+  "command": "uvx",
+  "args": ["pmorun-mcp"],
+  "env": { "PMORUN_DB": "/path/to/calibration.db" }
+}
+```
+
+| Tool | Decision question | Wraps |
+|---|---|---|
+| `record_estimate` | "Log this three-point estimate so we can learn from it later." | `app.pert.core.calculate_task` + the log |
+| `record_actual` | "The task is done — what did it actually take, and how wrong were we?" | the log |
+| `summarise_calibration` | "How biased are our estimates, and what should this new estimate really be?" | `app.bayesian.core.update_belief` / `adjust_estimate` |
+| `estimate_from_history` | "Given what similar tasks actually took, how long will this one take?" | the two-layer estimator in `tools.py`, grounded in the log |
+
+The loop: `record_estimate` when you commit to an estimate → `record_actual`
+when the task completes → `summarise_calibration` learns the systematic delay
+factor from every completed pair via conjugate Bayesian updating (prior
+N(1.0, 0.25)); pass it a fresh `pert_expected` and it returns the
+bias-adjusted estimate with credible intervals. `estimate_from_history` — parked
+since v0.1 pending exactly this data source — reads the recorded actuals per
+task category and derives a calibrated three-point estimate from them.
+
+Estimates are unit-agnostic (record the `unit`; "sessions", "days" and "hours"
+are all fine — the log stores, it never converts). The schema is deliberately
+**D1-portable** (plain SQLite DDL, ISO-8601 text timestamps): the local log is
+the reference data model for the hosted calibration memory.
+
+Privacy note: the log is a plain local file you own. Nothing leaves the
+machine; delete the file and the memory is gone.
+
 ## Errors
 
 Every tool returns **structured, tagged errors** — never a Python traceback.
@@ -214,20 +254,21 @@ Tests live in `tests/mcp_server/`:
 pytest tests/mcp_server/
 ```
 
-They cover registration (exactly the four tools, each leading with a decision
-question, each exposing input and output schemas), one worked example per tool,
-seed-42 determinism on the Monte Carlo tool, and the structured-error contract.
-Implementation-grade maths sweeps live in `tests/{pert,montecarlo,tco,evm}/`
-already — we do not duplicate them here.
+They cover registration (exactly the four tools by default; the calibration
+tools join only when `PMORUN_DB` is set), one worked example per tool, seed-42
+determinism on the Monte Carlo tool, the calibration round-trip and its Bayesian
+summary maths, and the structured-error contract. Implementation-grade maths
+sweeps live in `tests/{pert,montecarlo,tco,evm,bayesian}/` already — we do not
+duplicate them here.
 
 ## Out of scope (v0.2+)
 
 - **Streamable HTTP transport, OAuth, hosting, rate limiting, audit logging** —
   the paid hosted lane. v0.1 is stdio-only and local-trust.
-- **Calibration-driven and stochastic-mix tools** — `estimate_from_history`
-  (two-layer calibration) is parked in `tools.py`; the Bayesian and
-  Dirichlet-drift tools are parked too. All wait on field data to ground their
-  calibration before they meet the v0.1 quality bar.
+- **Stochastic-mix tools** — the Dirichlet-drift tools remain parked, waiting
+  on field data to ground their calibration. (`estimate_from_history` and the
+  Bayesian calibration summary shipped with the opt-in calibration memory —
+  their data-source precondition is now met by the estimation log.)
 
 ## Licence
 
