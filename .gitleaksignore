@@ -1,0 +1,8 @@
+# Historical airtable-id findings in immutable commits (deleted or since-cleaned
+# files; HEAD is clean). Fingerprints are commit-scoped: they suppress exactly
+# these findings in the full-history scheduled scan without weakening the
+# airtable-id rule for new commits.
+e9849137e7929a2f90f7aee3dae9f3ec4f4e1710:docs/SPRINT_HISTORY.md:airtable-id:33
+d4b1c80a14de6eb6d088c99254b828fb64bcecf8:docs/PMO_RUN_STRATEGY.md:airtable-id:650
+895161de9437e0033714aa60d0410bc6f9756de3:CLAUDE.md:airtable-id:144
+895161de9437e0033714aa60d0410bc6f9756de3:CLAUDE.md:airtable-id:174
