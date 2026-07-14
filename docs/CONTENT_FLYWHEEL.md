@@ -1,28 +1,33 @@
 # pmo.run — Content Flywheel
 
-How R&D, consulting, and code become content, community, and value. Cross-references: [`STRATEGY.md`](STRATEGY.md) for the business model this loop feeds; [`DESIGN.md`](DESIGN.md) for the modules each post explains.
+How R&D, consulting, and code become content, community, and value. Cross-references: [`STRATEGY.md`](STRATEGY.md) for the business model this loop feeds; [`DESIGN.md`](DESIGN.md) for the modules each post explains; [`../skills/operational/content-cadence/SKILL.md`](../skills/operational/content-cadence/SKILL.md) for the executable pipeline.
 
 ---
 
-## Content Flywheel
+## Content Cadence
 
-Every R&D experiment and consulting engagement produces content:
+Each R&D artefact feeds **one** post — a briefing *or* a deep dive — and that post feeds **one** LinkedIn derivative:
 
 ```
 R&D / Consulting / Real PMO Problems
       ↓
-PoC Script (committed to logic repo, MIT)
+R&D artefact (PR, PoC, analysis — committed to logic repo, MIT)
+      ↓  choose ONE frame
+Briefing  |  Deep Dive  (blog post, EN + JA, same slug)
       ↓
-Blog Post (EN + JA) explaining the problem, math, and solution
+LinkedIn derivative
       ↓
-Tool Page on pmo.run (interactive Svelte component)
+Traffic → Consulting inquiries + tool users
       ↓
-Social sharing (LinkedIn JP, dev.to EN, Hacker News)
-      ↓
-Traffic → Consulting inquiries + API/tool users
-      ↓
-More real problems → More content → More trust
+More real problems → More artefacts → More trust
 ```
+
+### The Two Frames
+
+- **Briefing** — short, decision-first. Five sections, each heading carrying a tagline: Key Judgements, Situation, Analysis, Evaluation, Recommendation. For findings the reader should act on now.
+- **Deep dive** — long-form, method-first, titled `<title>: <tagline>`. Executive Summary, Situation (or Problems), Analysis (data, industry base rates, systems analysis), Evaluation (leverage points via feedback loops and iceberg analysis), Recommendation (which leverage points first, and how). For evergreen reference material.
+
+One artefact, one frame, never both. Frame choice, section templates, editorial conventions (British English, APA 7th title case, EN-only slugs and tags), and the binding anonymisation and image-reference gates are encoded in the [content-cadence skill](../skills/operational/content-cadence/SKILL.md).
 
 ### Blog Post Pipeline
 
