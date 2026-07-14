@@ -7,6 +7,7 @@ The skills in [`../`](../README.md) (PERT, EVM, TCO, Monte Carlo) encode executa
 | Skill | Purpose |
 |-------|---------|
 | [anonymisation](anonymisation/SKILL.md) | Extract lessons from real engagement experience without exposing the parties, before anything reaches a public surface. |
+| [content-cadence](content-cadence/SKILL.md) | Turn one R&D artefact into one post (briefing or deep dive) plus a LinkedIn derivative, with the anonymisation gate and editorial conventions enforced. |
 
 ## Org calibration via local overlay
 
