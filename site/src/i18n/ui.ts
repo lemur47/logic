@@ -246,6 +246,8 @@ export const ui = {
     "blog.cta.pert.desc": "See how reality adjustments change your estimates.",
     "blog.cta.tco": "Try the TCO Calculator",
     "blog.cta.tco.desc": "Compare the real cost of your options.",
+    "blog.cta.mcp": "Install the MCP Server",
+    "blog.cta.mcp.desc": "One command puts calibrated estimation maths inside your AI assistant.",
   },
   ja: {
     "site.title": "pmo.run",
@@ -482,5 +484,7 @@ export const ui = {
     "blog.cta.pert.desc": "現実の調整がどう見積もりを変えるか、試してみてください。",
     "blog.cta.tco": "TCO計算ツールを試す",
     "blog.cta.tco.desc": "選択肢の本当のコストを比較してみてください。",
+    "blog.cta.mcp": "MCPサーバーを導入する",
+    "blog.cta.mcp.desc": "コマンド1つで、較正済みの見積りの数理をあなたのAIアシスタントに。",
   },
 } as const;

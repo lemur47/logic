@@ -1,6 +1,6 @@
 <svg width="100%" viewBox="0 0 680 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">Per-person AI use versus an organisation-owned decision layer</title>
-  <desc id="desc">Left: three team members each talk to their own general AI assistant, re-explaining the same context and receiving generated answers. Right: the same assistants all call one shared endpoint holding the organisation's decision logic, so everyone gets the same calculated, auditable answer.</desc>
+  <title id="title">Individual AI use versus shared intelligence between humans and AI</title>
+  <desc id="desc">Left: three team members each bring context and prompt packs to their own general AI assistant and receive generated answers. Right: the same assistants all call one endpoint holding the organisation's decision logic, so everyone gets the same calculated, auditable answer.</desc>
   <style>
     text { font-family: "Anthropic Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1a1d24; }
     .divider { stroke: #1a1d24; stroke-width: 1; opacity: 0.30; stroke-dasharray: 4 4; }
@@ -26,8 +26,8 @@
   <line class="divider" x1="340" y1="58" x2="340" y2="330"/>
 
   <!-- Headings -->
-  <text class="heading" x="170" y="40" text-anchor="middle">Skills on general AI</text>
-  <text class="heading" x="510" y="40" text-anchor="middle">Shared decision layer</text>
+  <text class="heading" x="170" y="40" text-anchor="middle">Individual AI use</text>
+  <text class="heading" x="510" y="40" text-anchor="middle">Shared intelligence</text>
 
   <!-- Left: three person/AI pairs -->
   <rect class="box" x="36" y="84" width="106" height="34" rx="6"/>
@@ -48,7 +48,7 @@
   <text class="boxtext" x="252" y="241" text-anchor="middle">General AI</text>
   <line class="flowL" x1="148" y1="237" x2="194" y2="237" marker-start="url(#arwL)" marker-end="url(#arwL)"/>
 
-  <text class="caption" x="170" y="300" text-anchor="middle">Same context re-explained per person;</text>
+  <text class="caption" x="170" y="300" text-anchor="middle">Context and prompt packs copied per person;</text>
   <text class="caption" x="170" y="318" text-anchor="middle">numbers generated, not calculated</text>
 
   <!-- Right: three assistants converging on one endpoint -->
@@ -67,6 +67,6 @@
   <line class="flowR" x1="486" y1="169" x2="530" y2="169" marker-end="url(#arwR)"/>
   <path class="flowR" d="M486 237 C 510 237, 512 190, 530 184" marker-end="url(#arwR)"/>
 
-  <text class="caption" x="510" y="300" text-anchor="middle">Same governed maths for everyone;</text>
+  <text class="caption" x="510" y="300" text-anchor="middle">One governed source for everyone;</text>
   <text class="caption" x="510" y="318" text-anchor="middle">answers calculated and auditable</text>
 </svg>
