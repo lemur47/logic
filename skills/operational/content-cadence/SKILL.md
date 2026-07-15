@@ -5,13 +5,15 @@ description: Pipeline for turning one R&D artefact (PR, PoC, analysis) into one 
 
 # Content Cadence
 
-Every R&D artefact worth publishing feeds **one** post — a briefing *or* a deep dive, never both — and that post feeds **one** LinkedIn derivative. This skill encodes the cadence, the two post frames, and the gates a draft must pass before it moves toward a public surface.
+Every R&D artefact worth publishing feeds **one** post — a briefing *or* a deep dive, never both — and that post feeds **one** LinkedIn derivative. Drafting starts only once the sign-off owner has stated a content requirement; the artefact supplies the evidence, the requirement supplies the angle. This skill encodes the cadence, the two post frames, and the gates a draft must pass before it moves toward a public surface.
 
 ```
 R&D artefact (PR, PoC, analysis)
-      ↓  choose ONE frame
-Briefing  |  Deep Dive        (EN + JA, same slug)
       ↓
+Content requirement            (from the sign-off owner: angle, audience, expectation)
+      ↓  choose ONE frame
+Briefing  |  Deep Dive        (EN + JA, same slug; diagrams/images where they clarify)
+      ↓  PR = human-in-the-loop review gate
 LinkedIn derivative           (delivered to the publisher, not committed)
 ```
 
@@ -21,13 +23,24 @@ LinkedIn derivative           (delivered to the publisher, not committed)
 
 ## Inputs
 
-One R&D artefact per run. Acceptable inputs:
+Two inputs per run — an artefact and a requirement. Drafting needs both.
+
+**1. One R&D artefact.** Acceptable inputs:
 
 - A merged PR or shipped feature (link + diff context).
 - A standalone PoC (`examples/` directory or equivalent).
 - An analysis or investigation with a conclusion (retro finding, benchmark, calibration result).
 
 If the artefact has no conclusion yet, stop — content follows the work, it does not precede it.
+
+**2. A content requirement from the sign-off owner.** The requirement states, at minimum:
+
+- **Discussion point** — the question the post answers.
+- **Perspective** — the angle and the audience's frame (e.g. investment and ROI, not implementation detail).
+- **Expectation** — what the finished piece should do for the reader.
+- Optionally: current problems observed, and references to draw on.
+
+If no requirement has been stated, request one before drafting — do not infer it from the artefact alone. A technically faithful post written without the requirement routinely misses the audience (this rule exists because it happened). The requirement owner is named in the calibration overlay; absent an overlay, it is whoever requested the draft.
 
 ## Choosing the Frame
 
@@ -39,6 +52,15 @@ If the artefact has no conclusion yet, stop — content follows the work, it doe
 | Evergreen reference the audience will return to | **Deep dive** |
 
 One artefact, one frame. If both seem to fit, ship the briefing now; a deep dive can be a *separate future artefact* with new material, not a same-week rerun.
+
+## Diagrams and Images
+
+Include a diagram or image when it clarifies the argument — a contrast, a flow, a market map — not as decoration. Conventions:
+
+- Hand-authored SVG committed under the site's public blog assets, in a per-slug directory (for this repo: `site/public/blog/<slug>/<name>.svg`), matching the visual style of existing post diagrams.
+- One SVG serves both language versions; the EN and JA posts each carry their own descriptive alt text.
+- Keep labels few and legible — a diagram that needs small fonts to fit its labels is carrying too much.
+- Every reference must pass gate 2 (image references resolve to committed files).
 
 ## Section Taglines
 
@@ -103,17 +125,22 @@ Long-form, method-first. The title itself carries a tagline — `<title>: <tagli
 |----------|-------------|
 | EN post draft | `site/src/content/blog/en/<slug>.md` |
 | JA post draft | `site/src/content/blog/ja/<slug>.md` |
-| LinkedIn derivative | Delivered to the publisher in-conversation; not committed to the repo |
+| LinkedIn derivative (text + optional simple image) | Delivered to the publisher in-conversation; not committed to the repo |
 
-The LinkedIn derivative is a compression of the post, not a teaser: lead with the strongest judgement, one supporting point, and a link to the post. It passes the same anonymisation gate.
+The LinkedIn derivative is a compression of the post, not a teaser: lead with the strongest judgement, one supporting point, and a link to the post. It passes the same anonymisation gate. It may carry **one simple image** — a single bold visual with few, large labels (the post's diagram simplified often works). Never a dense graphic with many small-font labels; on a feed it renders unreadable. The image is delivered alongside the text for attachment at publish time, not committed.
+
+## Review Gate: The PR Is the Human in the Loop
+
+Drafts reach the sign-off owner as a **pull request** — never a direct commit to the publishing branch. The PR is the structural review gate: the sign-off owner reads the rendered drafts, edits or requests changes, and the merge is the publish decision. The skill's own gates (below) are what a draft must pass *before* it may enter that PR; they do not replace the human review, they make it worth the reviewer's time.
 
 ## Procedure
 
 1. Ingest the artefact; extract the finding, the evidence, and who it serves.
-2. Choose the frame (table above); record the choice and the reason in the handover notes that accompany the draft (for this repo: the Work Item report).
-3. Draft the EN post in the chosen frame, following the editorial conventions; write each section's tagline after drafting the section (it is the conclusion, not the topic).
-4. Run gate 1 (anonymisation) on the EN draft; rewrite or drop failing paragraphs.
-5. Write the JA post as a native rewrite of the gated EN draft.
-6. Write the LinkedIn derivative from the gated post.
-7. Run all three gates end to end; fix or escalate anything failing.
-8. Hand the drafts over for review — publishing is a separate decision, outside this skill.
+2. Ingest the content requirement (Inputs above); if none has been stated, request it from the sign-off owner and stop until it arrives. The requirement's discussion point and perspective govern every drafting choice that follows.
+3. Choose the frame (table above); record the choice and the reason in the handover notes that accompany the draft (for this repo: the Work Item report).
+4. Draft the EN post in the chosen frame, following the editorial conventions and answering the requirement's discussion point for its stated audience; write each section's tagline after drafting the section (it is the conclusion, not the topic). Add a diagram or image where it clarifies (conventions above).
+5. Run gate 1 (anonymisation) on the EN draft; rewrite or drop failing paragraphs.
+6. Write the JA post as a native rewrite of the gated EN draft.
+7. Write the LinkedIn derivative from the gated post, with an optional simple image.
+8. Run all three gates end to end; fix or escalate anything failing.
+9. Open (or update) the PR — the human-in-the-loop review gate. Publishing is the sign-off owner's merge decision, outside this skill.

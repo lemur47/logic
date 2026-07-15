@@ -11,17 +11,34 @@ const { lang, tags } = Astro.props;
 const t = useTranslations(lang);
 
 const tool = tags.includes("pert")
-  ? { href: `/${lang}/tools/pert/`, title: t("blog.cta.pert"), desc: t("blog.cta.pert.desc") }
+  ? {
+      href: `/${lang}/tools/pert/`,
+      label: "pmo.pert",
+      title: t("blog.cta.pert"),
+      desc: t("blog.cta.pert.desc"),
+    }
   : tags.includes("tco")
-    ? { href: `/${lang}/tools/tco/`, title: t("blog.cta.tco"), desc: t("blog.cta.tco.desc") }
-    : null;
+    ? {
+        href: `/${lang}/tools/tco/`,
+        label: "pmo.tco",
+        title: t("blog.cta.tco"),
+        desc: t("blog.cta.tco.desc"),
+      }
+    : tags.includes("mcp")
+      ? {
+          href: "https://pypi.org/project/pmorun-mcp/",
+          label: "pmorun-mcp",
+          title: t("blog.cta.mcp"),
+          desc: t("blog.cta.mcp.desc"),
+        }
+      : null;
 ---
 
 {tool && (
   <aside class="not-prose spec" style="margin-top:56px;">
     <div class="spec__bar">
       <span>try it</span>
-      <span>{tags.includes("pert") ? "pmo.pert" : "pmo.tco"}</span>
+      <span>{tool.label}</span>
     </div>
     <div class="spec__body" style="text-align:center;">
       <p style="margin:0;font-size:17px;font-weight:500;">{tool.title}</p>
