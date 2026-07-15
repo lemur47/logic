@@ -8,7 +8,7 @@
  * `application/json`, which the Streamable HTTP transport permits.
  */
 
-import { calculateTask } from "./pert";
+import { runEstimateTaskDuration } from "./tools";
 
 const SERVER_INFO = { name: "pmorun-mcp-poc", version: "0.1.0" };
 
@@ -85,29 +85,15 @@ function handleToolsCall(msg: JsonRpcRequest): Response {
   }
 
   const args = (msg.params?.arguments ?? {}) as Record<string, unknown>;
-  for (const field of ["optimistic", "most_likely", "pessimistic"]) {
-    if (typeof args[field] !== "number") {
-      return toolError(id, `Invalid arguments: '${field}' must be a number.`);
-    }
+  const outcome = runEstimateTaskDuration(args);
+  if (!outcome.ok) {
+    return toolError(id, outcome.message);
   }
-
-  try {
-    const result = calculateTask(
-      args.optimistic as number,
-      args.most_likely as number,
-      args.pessimistic as number,
-    );
-    return rpcResult(id, {
-      content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-      structuredContent: result,
-      isError: false,
-    });
-  } catch (err) {
-    if (err instanceof RangeError) {
-      return toolError(id, `Invalid estimate: ${err.message}`);
-    }
-    throw err;
-  }
+  return rpcResult(id, {
+    content: [{ type: "text", text: JSON.stringify(outcome.result, null, 2) }],
+    structuredContent: outcome.result,
+    isError: false,
+  });
 }
 
 /** Handle one Streamable HTTP POST carrying a single JSON-RPC message. */
