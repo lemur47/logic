@@ -28,6 +28,18 @@ function rpc(method: string, params: Record<string, unknown> = {}, id: number = 
   return { jsonrpc: "2.0", id, method, params };
 }
 
+function restRequest(body: unknown, token: string | null = SECRET, method = "POST"): Request {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token !== null) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return new Request(`${BASE}/api/pert`, {
+    method,
+    headers,
+    body: method === "GET" ? undefined : JSON.stringify(body),
+  });
+}
+
 describe("bearer-token gate", () => {
   it("rejects requests without a token", async () => {
     const res = await worker.fetch(mcpRequest(rpc("tools/list"), null), ENV);
@@ -159,5 +171,86 @@ describe("MCP protocol surface", () => {
     });
     const res = await worker.fetch(req, ENV);
     expect(res.status).toBe(405);
+  });
+});
+
+describe("REST surface", () => {
+  const VALID = { optimistic: 2, most_likely: 4, pessimistic: 8 };
+
+  it("rejects requests without a token", async () => {
+    const res = await worker.fetch(restRequest(VALID, null), ENV);
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects requests with a wrong token", async () => {
+    const res = await worker.fetch(restRequest(VALID, "wrong-token"), ENV);
+    expect(res.status).toBe(401);
+  });
+
+  it("fails closed when the secret is not configured", async () => {
+    const res = await worker.fetch(restRequest(VALID), {});
+    expect(res.status).toBe(503);
+  });
+
+  it("computes a PERT estimate on POST /api/pert", async () => {
+    const res = await worker.fetch(restRequest(VALID), ENV);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      input: { optimistic: number };
+      textbook: { expected: number };
+      adjusted: null;
+    };
+    expect(body.input.optimistic).toBe(2);
+    expect(body.textbook.expected).toBeCloseTo(4.33, 2);
+    expect(body.adjusted).toBeNull();
+  });
+
+  it("returns 400 with the validation message for invalid estimates", async () => {
+    const res = await worker.fetch(
+      restRequest({ optimistic: 5, most_likely: 2, pessimistic: 8 }),
+      ENV,
+    );
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain("cannot exceed");
+  });
+
+  it("returns 400 for non-numeric fields", async () => {
+    const res = await worker.fetch(
+      restRequest({ optimistic: "two", most_likely: 4, pessimistic: 8 }),
+      ENV,
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for a non-object body", async () => {
+    const res = await worker.fetch(restRequest([1, 2, 3]), ENV);
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for malformed JSON", async () => {
+    const req = new Request(`${BASE}/api/pert`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${SECRET}`, "Content-Type": "application/json" },
+      body: "{not json",
+    });
+    const res = await worker.fetch(req, ENV);
+    expect(res.status).toBe(400);
+  });
+
+  it("answers GET /api/pert with 405", async () => {
+    const res = await worker.fetch(restRequest(null, SECRET, "GET"), ENV);
+    expect(res.status).toBe(405);
+    expect(res.headers.get("Allow")).toBe("POST");
+  });
+
+  it("keeps unknown /api/ paths at 404", async () => {
+    const req = new Request(`${BASE}/api/montecarlo`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${SECRET}`, "Content-Type": "application/json" },
+      body: JSON.stringify(VALID),
+    });
+    const res = await worker.fetch(req, ENV);
+    expect(res.status).toBe(404);
   });
 });

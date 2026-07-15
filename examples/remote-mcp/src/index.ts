@@ -8,6 +8,7 @@
  */
 
 import { handleMcpPost } from "./mcp";
+import { handleRestPert } from "./rest";
 
 export interface Env {
   AUTH_TOKEN?: string;
@@ -47,14 +48,17 @@ export default {
           name: "pmorun-mcp-poc",
           notice:
             "Proof of concept, no SLA. Open-source core of pmo.run served over remote MCP " +
-            "(Streamable HTTP). MCP endpoint: POST /mcp (bearer token required). " +
+            "(Streamable HTTP) and plain REST from one core. MCP endpoint: POST /mcp; " +
+            "REST endpoint: POST /api/pert (bearer token required for both). " +
             "Self-host it yourself: https://github.com/lemur47/logic",
         }),
         { headers: { "Content-Type": "application/json" } },
       );
     }
 
-    if (url.pathname === "/mcp") {
+    // Both surfaces sit behind the same gate: identical fail-closed behaviour,
+    // identical constant-time bearer check. Only the payload shape differs.
+    if (url.pathname === "/mcp" || url.pathname === "/api/pert") {
       // Fail closed: an undeployed/unset secret must never mean an open endpoint.
       if (!env.AUTH_TOKEN) {
         return new Response(JSON.stringify({ error: "Server not configured" }), {
@@ -67,6 +71,9 @@ export default {
           status: 401,
           headers: { "Content-Type": "application/json" },
         });
+      }
+      if (url.pathname === "/api/pert") {
+        return handleRestPert(request);
       }
       if (request.method === "POST") {
         return handleMcpPost(request);
