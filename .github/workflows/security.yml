@@ -170,8 +170,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Fails on anything at moderate or above, except advisories explicitly
+      # allowlisted (with a reason and a review-by date) in the gate script.
+      # npm audit cannot read osv-scanner.toml, so the deferral has to be
+      # restated here; keep the two lists in step.
       - name: Audit dependencies
-        run: npm audit --audit-level=moderate --omit=dev
+        run: npm audit --json --omit=dev | node scripts/npm-audit-gate.mjs
 
   # Remote MCP PoC checks (Cloudflare Workers + TypeScript)
   remote-mcp:
