@@ -16,5 +16,8 @@
     "typescript": "7.0.2",
     "vitest": "4.1.10",
     "wrangler": "4.107.1"
+  },
+  "overrides": {
+    "sharp": "0.35.0"
   }
 }
