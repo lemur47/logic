@@ -1,7 +1,8 @@
 # GitHub Actions CI Workflow
 # Runs on push to main, all PRs, and weekly Monday scan
 #
-# Jobs: gitleaks scan, opengrep SAST, osv-scanner SCA, ruff lint, pyright typecheck, frontend checks
+# Jobs: gitleaks scan, opengrep SAST, osv-scanner SCA, ruff lint, pyright typecheck,
+#       pytest suite, frontend checks, remote-mcp PoC checks
 #
 # Third-party actions are pinned to a full commit SHA (human-readable version in
 # a trailing comment) so a moved or hijacked tag can't swap an action out from
@@ -145,6 +146,40 @@ jobs:
 
       - name: Run Pyright
         run: uv run pyright
+
+  # Canonical test suite — the merge gate. Until now pytest ran only as a local
+  # pre-commit hook, so any push whose hook did not fire could merge a red suite.
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - name: Install dependencies from lockfile
+        run: uv sync --frozen --extra dev
+
+      # Runs testpaths = ["tests"] from pyproject.toml. Deliberately BEFORE the
+      # analysis extra is installed: `.[dev]` is the documented full-dev install,
+      # so the canonical suite must pass without pandas/matplotlib. Installing
+      # them first would let a test silently acquire an analysis-only import and
+      # still go green here while failing for everyone following the docs.
+      - name: Run tests
+        run: uv run pytest
+
+      # The standalone examples are outside testpaths, so the step above skips
+      # them. They are covered rather than left implicit: the parity-net work
+      # ships security tests into exactly this directory, and an untested
+      # example is an example that rots. They need the analysis extra for the
+      # optional pandas/matplotlib visualisation paths.
+      - name: Install analysis extra for the standalone examples
+        run: uv sync --frozen --extra dev --extra analysis
+
+      - name: Run standalone example tests
+        run: uv run pytest examples/standalone/
 
   # Frontend checks (Astro + Svelte + TypeScript)
   frontend:
