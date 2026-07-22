@@ -33,7 +33,7 @@ tags = ["python", "secret"]
 
 # Airtable identifiers (base/table/field/record/view/select). These are the
 # internal CTO<->CC channel — they belong in Airtable itself, the KV, and the
-# gitignored CLAUDE-internal.md, never in tracked git artefacts (commits, code,
+# gitignored CLAUDE.local.md, never in tracked git artefacts (commits, code,
 # docs). Prefix + exactly 14 base62 chars + word boundary keeps it off ordinary
 # words; the entropy floor filters out pronounceable 17-char camelCase
 # identifiers (e.g. applicationConfig) that would otherwise collide.
