@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Staleness sweep across durable-claim surfaces — README, agent instruction files, docs, and shared memory — before a retro, before sprint planning, or after a run of merges. Finds claims that reality has moved past, and either corrects them or records them as unverified.
+description: Staleness sweep across durable-claim surfaces — README, agent instruction files, docs, and shared memory — before a retro, before sprint planning, or after a run of merges. Finds claims that reality has moved past, then corrects them, marks them unverified, or retires them.
 ---
 
 # Cleanup — Staleness Sweep
@@ -91,14 +91,41 @@ than overwrite.
 The test: does this text claim *"this is how things are"* or *"this is what
 happened"*? Only the first is in scope.
 
-### 5. Fix, or mark unverified
+### 5. Correct, mark unverified, or retire
 
-Where the truth is known, correct it and say what changed.
+Three dispositions, in order of preference.
 
-Where it cannot be verified now, **say so in the document**. A claim labelled
-unverified is safe; the same claim stated plainly is a trap. This is the single
-highest-value output of a sweep — most damage comes from confident staleness,
-not absence.
+**Correct it.** Where the truth is known, fix it and say what changed.
+
+**Mark it unverified.** Where the truth cannot be established now, say so *in
+the document*. A claim labelled unverified is safe; the same claim stated
+plainly is a trap. This is the single highest-value output of a sweep — most
+damage comes from confident staleness, not from absence.
+
+**Retire it.** A fragment that is wholly superseded and carries no historical
+value should be deleted, not left to rot. A knowledge store that only ever
+grows becomes a store nobody reads, and an unread store is one nobody notices
+is wrong.
+
+Deletion is the only irreversible action in a sweep, so the bar is high. Retire
+only when **all** of these hold:
+
+- **Wholly superseded** — every claim in it is either false now or restated
+  somewhere current. If any part is still uniquely true, correct it instead.
+- **Not a record.** See step 4. Plans, seeds and retros describing what was
+  decided at a point in time are history, however finished the work is.
+- **No inbound references.** Search the store for links to it first; deleting a
+  linked fragment turns a useful pointer into a dead end. Update the referrers
+  in the same pass, or do not delete.
+- **Its lesson is preserved.** If the fragment recorded a mistake worth not
+  repeating, that lesson moves somewhere durable before the fragment goes.
+
+When in doubt, prefer correcting. A short, accurate fragment costs almost
+nothing to keep; a deletion that loses the only record of why something is the
+way it is cannot be undone.
+
+The store's deletion facility is named in `CALIBRATION.local.md` — it differs
+per organisation, and naming it here would tie a universal method to one vendor.
 
 ### 6. Report
 
