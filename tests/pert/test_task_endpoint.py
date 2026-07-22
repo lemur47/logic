@@ -45,7 +45,30 @@ async def test_task_unknown_tag_returns_400(client: AsyncClient, basic_task_inpu
     basic_task_input["tags"] = [{"name": "NONEXISTENT_TAG"}]
     resp = await client.post("/pert/task", json=basic_task_input)
     assert resp.status_code == 400
-    assert "Unknown tag" in resp.json()["detail"]
+    # Wording now comes from the shared core resolver. It was "Unknown tag" here
+    # and "Unknown insight tag" on the MCP surface; one resolver means one message,
+    # and MCP's is the shipped one with an installed base, so it wins.
+    assert "Unknown insight tag" in resp.json()["detail"]
+
+
+async def test_task_tag_name_is_case_insensitive(client: AsyncClient, basic_task_input):
+    """REST previously rejected lower-case tag names that MCP accepted.
+
+    Both surfaces now share one resolver, so the same input works on both. This is
+    a widening — nothing that was accepted before is rejected now.
+    """
+    basic_task_input["tags"] = [{"name": "hidden_dependencies", "severity": 0.5}]
+    resp = await client.post("/pert/task", json=basic_task_input)
+
+    assert resp.status_code == 200
+    applied = resp.json()["adjusted"]["tags_applied"]
+    assert [t["name"] for t in applied] == ["HIDDEN_DEPENDENCIES"]
+
+
+async def test_task_tag_mixed_case_matches_too(client: AsyncClient, basic_task_input):
+    basic_task_input["tags"] = [{"name": "Hidden_Dependencies", "severity": 0.5}]
+    resp = await client.post("/pert/task", json=basic_task_input)
+    assert resp.status_code == 200
 
 
 async def test_task_invalid_ordering_returns_400(client: AsyncClient):

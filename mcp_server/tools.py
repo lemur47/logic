@@ -24,8 +24,6 @@ annotations let FastMCP resolve the tool schema without cross-module globals loo
 import statistics
 from typing import Any, Literal
 
-import numpy as np
-
 from app.evm.core import evm_metrics, health_signal
 from app.evm.schemas import (
     EvmCalculateInput,
@@ -35,13 +33,12 @@ from app.evm.schemas import (
 )
 from app.montecarlo.core import Task, simulate_schedule
 from app.montecarlo.schemas import (
-    HistogramResult,
-    PercentileResult,
     SimulationConfig,
     SimulationResult,
+    simulation_result_from_core,
 )
 from app.montecarlo.schemas import TaskInput as MonteCarloTaskInput
-from app.pert.core import DEFAULT_TAGS, InsightTag, calculate_task
+from app.pert.core import InsightTag, calculate_task, resolve_insight_tags
 from app.pert.schemas import TaskEstimation
 from app.pert.schemas import TaskInput as PertTaskInput
 from app.tco.core import compare_options
@@ -67,19 +64,19 @@ def _resolve_task_tags(
 
     Names are matched case-insensitively against the known catalogue. An unknown
     name fails loudly — better than silently applying nothing.
+
+    Resolution policy lives in the core and is shared with the REST surface; this
+    only adapts models to plain pairs and translates the core's transport-agnostic
+    ValueError into this surface's error vocabulary. Without that translation the
+    generic handler in ``errors.py`` would map ValueError to ToolComputationError,
+    silently reclassifying a validation failure for callers.
     """
     if not task.tags:
         return None
-    resolved: list[InsightTag | tuple[InsightTag, float]] = []
-    for tag_input in task.tags:
-        tag = DEFAULT_TAGS.get(tag_input.name.upper())
-        if tag is None:
-            available = ", ".join(sorted(DEFAULT_TAGS.keys()))
-            raise ToolValidationError(
-                f"Unknown insight tag '{tag_input.name}'. Available: {available}"
-            )
-        resolved.append((tag, tag_input.severity))
-    return resolved
+    try:
+        return resolve_insight_tags((t.name, t.severity) for t in task.tags)
+    except ValueError as exc:
+        raise ToolValidationError(str(exc)) from exc
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -179,19 +176,7 @@ def identify_schedule_risk(
     ]
     result = simulate_schedule(core_tasks, n_simulations=run_config.num_simulations, seed=seed)
 
-    return SimulationResult(
-        n_simulations=result.n_simulations,
-        percentiles=PercentileResult(**result.percentiles),
-        histogram=HistogramResult(
-            bin_edges=result.histogram["bin_edges"],
-            counts=[int(c) for c in result.histogram["counts"]],
-        ),
-        critical_path_frequency=result.critical_path_frequency,
-        mean=round(float(np.mean(result.durations)), 2),
-        std_dev=round(float(np.std(result.durations)), 2),
-        min_duration=round(float(np.min(result.durations)), 2),
-        max_duration=round(float(np.max(result.durations)), 2),
-    )
+    return simulation_result_from_core(result)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -288,17 +273,18 @@ def _resolve_insight_tags(
 
     Unknown tag names raise. Severities are clamped to ``[0.0, 1.0]`` by the
     underlying PERT helper.
+
+    Shares the core resolver with the other call site. This one previously let a
+    bare ValueError escape, which ``errors.py`` maps to ToolComputationError — so
+    the same mistake (an unknown tag) was reported as a validation failure by one
+    tool and a computation failure by another. Both now raise ToolValidationError.
     """
     if not insight_tags:
         return None
-    resolved: list[InsightTag | tuple[InsightTag, float]] = []
-    for name, severity in insight_tags.items():
-        key = name.upper()
-        if key not in DEFAULT_TAGS:
-            available = ", ".join(sorted(DEFAULT_TAGS.keys()))
-            raise ValueError(f"Unknown insight tag '{name}'. Available: {available}")
-        resolved.append((DEFAULT_TAGS[key], severity))
-    return resolved
+    try:
+        return resolve_insight_tags(insight_tags.items())
+    except ValueError as exc:
+        raise ToolValidationError(str(exc)) from exc
 
 
 def estimate_from_history(

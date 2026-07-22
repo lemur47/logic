@@ -6,7 +6,6 @@ All Monte Carlo endpoints are defined here and mounted to /montecarlo in main.py
 
 from typing import Annotated
 
-import numpy as np
 from fastapi import APIRouter, HTTPException, Query
 
 from ..common.dependencies import DbSession
@@ -59,19 +58,7 @@ async def simulate(input_data: schemas.SimulateInput):
                 n_simulations=input_data.config.num_simulations,
                 seed=input_data.config.seed,
             )
-            return schemas.SimulationResult(
-                n_simulations=result.n_simulations,
-                percentiles=schemas.PercentileResult(**result.percentiles),
-                histogram=schemas.HistogramResult(
-                    bin_edges=result.histogram["bin_edges"],
-                    counts=[int(c) for c in result.histogram["counts"]],
-                ),
-                critical_path_frequency=result.critical_path_frequency,
-                mean=round(float(np.mean(result.durations)), 2),
-                std_dev=round(float(np.std(result.durations)), 2),
-                min_duration=round(float(np.min(result.durations)), 2),
-                max_duration=round(float(np.max(result.durations)), 2),
-            )
+            return schemas.simulation_result_from_core(result)
 
         drift_tasks = [
             DriftTask(
@@ -107,31 +94,7 @@ async def simulate(input_data: schemas.SimulateInput):
             drift_cfg,
             n_simulations=input_data.config.num_simulations,
         )
-        return schemas.DriftResult(
-            n_simulations=drift_result.n_simulations,
-            percentiles=schemas.PercentileResult(**drift_result.percentiles),
-            histogram=schemas.HistogramResult(
-                bin_edges=drift_result.histogram["bin_edges"],
-                counts=[int(c) for c in drift_result.histogram["counts"]],
-            ),
-            critical_path_frequency=drift_result.critical_path_frequency,
-            mean=round(float(np.mean(drift_result.durations)), 2),
-            std_dev=round(float(np.std(drift_result.durations)), 2),
-            min_duration=round(float(np.min(drift_result.durations)), 2),
-            max_duration=round(float(np.max(drift_result.durations)), 2),
-            class_contribution={
-                name: schemas.ClassContribution(
-                    mean_weight=stats["mean_weight"],
-                    mean_mu=stats["mean_mu"],
-                    n_tasks_bound=int(stats["n_tasks_bound"]),
-                    weight_std_dev=stats["weight_std_dev"],
-                    weight_p10=stats["weight_p10"],
-                    weight_p50=stats["weight_p50"],
-                    weight_p90=stats["weight_p90"],
-                )
-                for name, stats in drift_result.class_contribution.items()
-            },
-        )
+        return schemas.drift_result_from_core(drift_result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

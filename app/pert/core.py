@@ -6,6 +6,7 @@ Pure functions - no dependencies on FastAPI or SQLAlchemy.
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 
@@ -50,6 +51,45 @@ DEFAULT_TAGS: dict[str, InsightTag] = {
     "MULTIPLE_STAKEHOLDERS": MULTIPLE_STAKEHOLDERS,
     "HIDDEN_DEPENDENCIES": HIDDEN_DEPENDENCIES,
 }
+
+
+def resolve_insight_tags(
+    tags: Iterable[tuple[str, float]],
+) -> list[InsightTag | tuple[InsightTag, float]] | None:
+    """Resolve ``(name, severity)`` pairs into ``(InsightTag, severity)`` pairs.
+
+    The single tag-resolution policy for every transport. REST and MCP each used
+    to carry their own copy, and the copies disagreed: REST matched names
+    case-sensitively while MCP upper-cased first, so the same tag name was
+    accepted by one surface and rejected by the other. Matching is
+    case-insensitive here — the widening direction, so nothing that worked before
+    stops working.
+
+    Takes plain pairs rather than Pydantic models on purpose: this module is pure
+    calculation and must not import a transport's schemas.
+
+    Args:
+        tags: ``(name, severity)`` pairs. Names match the catalogue
+            case-insensitively.
+
+    Returns:
+        Resolved pairs, or None when no tags were supplied — the shape
+        ``calculate_task`` expects for "no adjustment".
+
+    Raises:
+        ValueError: if any name is not in the catalogue. Failing loudly beats
+            silently applying nothing, which would understate the estimate.
+            Transports translate this into their own error vocabulary.
+    """
+    resolved: list[InsightTag | tuple[InsightTag, float]] = []
+    for name, severity in tags:
+        tag = DEFAULT_TAGS.get(name.upper())
+        if tag is None:
+            available = ", ".join(sorted(DEFAULT_TAGS.keys()))
+            msg = f"Unknown insight tag '{name}'. Available: {available}"
+            raise ValueError(msg)
+        resolved.append((tag, severity))
+    return resolved or None
 
 
 def _apply_tags(
