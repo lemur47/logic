@@ -7,7 +7,7 @@ from math import isinf
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from ..common.limits import MAX_LIST_ITEMS
+from ..common.limits import MAX_LIST_ITEMS, MAX_NAME_LENGTH
 from ..common.schemas import PaginatedList
 
 # =============================================================================
@@ -139,7 +139,7 @@ BaselineList = PaginatedList[BaselineResponse]
 class ActualCompletion(BaseModel):
     """Completion status for a single work package."""
 
-    name: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1, max_length=MAX_NAME_LENGTH)
     percent_complete: float = Field(..., ge=0, le=100)
 
 

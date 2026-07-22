@@ -30,15 +30,26 @@ from scipy import stats
 MAX_SIMULATION_CELLS = 10_000_000
 
 
-def _check_allocation(n_tasks: int, n_simulations: int) -> None:
+def _check_allocation(n_tasks: int, n_simulations: int, n_classes: int = 0) -> None:
     """Guard against over-allocation before any array is created.
 
     Defence in depth: the API schema rejects oversized requests at the boundary,
     but this also covers the crud-update, MCP and direct-call paths.
+
+    The drift path also allocates `weights` and `mu_draws`, both
+    (n_simulations, n_classes) — so task count alone does not bound the
+    allocation. One task, a million simulations and a thousand risk classes
+    clears any tasks-only check while asking for two 8 GB arrays. Whichever of
+    the two dimensions is larger therefore governs, and the error names it so
+    the caller knows which number to reduce.
     """
-    if n_tasks * n_simulations > MAX_SIMULATION_CELLS:
+    dimension, extent = "tasks", n_tasks
+    if n_classes > n_tasks:
+        dimension, extent = "risk_classes", n_classes
+
+    if extent * n_simulations > MAX_SIMULATION_CELLS:
         msg = (
-            f"tasks × n_simulations ({n_tasks} × {n_simulations}) exceeds the "
+            f"{dimension} × n_simulations ({extent} × {n_simulations}) exceeds the "
             f"limit of {MAX_SIMULATION_CELLS}"
         )
         raise ValueError(msg)
@@ -504,7 +515,6 @@ class DriftResult:
     critical_path_frequency: dict[str, float]
     tasks: list[DriftTask]
     class_contribution: dict[str, dict[str, float]]
-    dirichlet_weights_used: np.ndarray
 
     class Config:
         arbitrary_types_allowed = True
@@ -540,11 +550,12 @@ def simulate_with_drift(
         msg = "At least one task is required"
         raise ValueError(msg)
 
-    _check_allocation(len(tasks), n_simulations)
-
-    rng = np.random.default_rng(config.seed)
     classes = list(config.risk_classes)
     n_classes = len(classes)
+
+    _check_allocation(len(tasks), n_simulations, n_classes)
+
+    rng = np.random.default_rng(config.seed)
     class_names = [c.name for c in classes]
     class_index = {name: i for i, name in enumerate(class_names)}
 
@@ -655,13 +666,24 @@ def simulate_with_drift(
             "counts": [int(c) for c in counts],
         }
 
+    # Summary statistics, not the draws themselves. The full Dirichlet weights
+    # matrix is (n_simulations, n_classes) and was previously returned verbatim,
+    # so a legitimate request could echo back hundreds of megabytes. These
+    # summaries answer the same diagnostic question — how much did each class
+    # weigh, and how much did that weight vary across draws — in O(n_classes).
     class_contribution: dict[str, dict[str, float]] = {}
     for k, name in enumerate(class_names):
         n_bound = sum(1 for t in tasks if t.risk_class == name)
+        class_weights = weights[:, k]
+        p10, p50, p90 = np.percentile(class_weights, [10, 50, 90])
         class_contribution[name] = {
-            "mean_weight": round(float(np.mean(weights[:, k])), 4),
+            "mean_weight": round(float(np.mean(class_weights)), 4),
             "mean_mu": round(float(np.mean(mu_draws[:, k])), 4),
             "n_tasks_bound": n_bound,
+            "weight_std_dev": round(float(np.std(class_weights)), 4),
+            "weight_p10": round(float(p10), 4),
+            "weight_p50": round(float(p50), 4),
+            "weight_p90": round(float(p90), 4),
         }
 
     return DriftResult(
@@ -672,7 +694,6 @@ def simulate_with_drift(
         critical_path_frequency={k: round(v, 4) for k, v in critical_path_freq.items()},
         tasks=list(tasks),
         class_contribution=class_contribution,
-        dirichlet_weights_used=weights,
     )
 
 
