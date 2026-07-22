@@ -9,6 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from ..common.dependencies import DbSession
+from ..common.limits import MAX_SEARCH_LENGTH
 from . import calculate_project, calculate_task, crud
 from .core import DEFAULT_TAGS
 from .schemas import (
@@ -106,7 +107,7 @@ async def list_scenarios(
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     per_page: Annotated[int, Query(ge=1, le=100)] = 20,
-    search: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query(max_length=MAX_SEARCH_LENGTH)] = None,
 ):
     """List all saved scenarios with pagination."""
     scenarios, total = crud.get_scenarios(db, page=page, per_page=per_page, search=search)

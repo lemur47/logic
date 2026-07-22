@@ -207,6 +207,13 @@ estimation log**:
 }
 ```
 
+> **The database is stored unencrypted.** It is a plain local SQLite file, and
+> the task names, categories and estimates you record are readable by anything
+> that can read that path. Choose a location covered by your existing disk
+> encryption and file permissions, and treat it as you would any other working
+> file — do not point `PMORUN_DB` at a shared or synced directory if the task
+> names themselves are sensitive.
+
 | Tool | Decision question | Wraps |
 |---|---|---|
 | `record_estimate` | "Log this three-point estimate so we can learn from it later." | `app.pert.core.calculate_task` + the log |

@@ -9,6 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from ..common.dependencies import DbSession
+from ..common.limits import MAX_SEARCH_LENGTH
 from . import crud, schemas
 from .core import (
     Observation,
@@ -77,7 +78,7 @@ async def list_contexts(
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     per_page: Annotated[int, Query(ge=1, le=100)] = 20,
-    search: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query(max_length=MAX_SEARCH_LENGTH)] = None,
 ):
     """List all estimation contexts with pagination."""
     contexts, total = crud.get_contexts(db, page=page, per_page=per_page, search=search)

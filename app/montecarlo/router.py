@@ -10,6 +10,7 @@ import numpy as np
 from fastapi import APIRouter, HTTPException, Query
 
 from ..common.dependencies import DbSession
+from ..common.limits import MAX_SEARCH_LENGTH
 from . import crud, schemas
 from .core import (
     DriftConfig,
@@ -123,10 +124,13 @@ async def simulate(input_data: schemas.SimulateInput):
                     mean_weight=stats["mean_weight"],
                     mean_mu=stats["mean_mu"],
                     n_tasks_bound=int(stats["n_tasks_bound"]),
+                    weight_std_dev=stats["weight_std_dev"],
+                    weight_p10=stats["weight_p10"],
+                    weight_p50=stats["weight_p50"],
+                    weight_p90=stats["weight_p90"],
                 )
                 for name, stats in drift_result.class_contribution.items()
             },
-            dirichlet_weights_used=drift_result.dirichlet_weights_used.tolist(),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -182,7 +186,7 @@ async def list_scenarios(
     db: DbSession,
     page: Annotated[int, Query(ge=1)] = 1,
     per_page: Annotated[int, Query(ge=1, le=100)] = 20,
-    search: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query(max_length=MAX_SEARCH_LENGTH)] = None,
 ):
     """List all saved scenarios with pagination."""
     scenarios, total = crud.get_scenarios(db, page=page, per_page=per_page, search=search)

@@ -148,7 +148,15 @@ class TestSimulateWithDrift:
         result = simulate_with_drift(tasks, _neutral_config("x"), n_simulations=500)
         assert isinstance(result, DriftResult)
         assert result.n_simulations == 500
-        assert result.dirichlet_weights_used.shape == (500, 1)
+        # Diagnostics are per-class summaries, never the raw draw matrix.
+        assert set(result.class_contribution) == {"x"}
+        assert result.class_contribution["x"].keys() >= {
+            "mean_weight",
+            "weight_std_dev",
+            "weight_p10",
+            "weight_p50",
+            "weight_p90",
+        }
 
     def test_class_contribution_records_bound_count(self):
         tasks = [
@@ -160,11 +168,51 @@ class TestSimulateWithDrift:
         assert result.class_contribution["x"]["n_tasks_bound"] == 2
 
     def test_dirichlet_weights_sum_to_one(self):
-        """Each per-iteration Dirichlet draw should sum to ~1 by definition."""
+        """Each per-iteration Dirichlet draw sums to ~1 by definition.
+
+        The raw draw matrix is no longer returned (it scaled with
+        n_simulations), so the invariant is checked through the summary that
+        replaced it: every row summing to 1 implies the per-class mean weights
+        sum to 1 as well, since mean is linear.
+        """
         tasks = [DriftTask("A", 2, 5, 10)]
         result = simulate_with_drift(tasks, _neutral_config("a", "b", "c"), n_simulations=1000)
-        row_sums = result.dirichlet_weights_used.sum(axis=1)
-        np.testing.assert_allclose(row_sums, np.ones_like(row_sums), atol=1e-10)
+        total_mean_weight = sum(
+            stats["mean_weight"] for stats in result.class_contribution.values()
+        )
+        assert total_mean_weight == pytest.approx(1.0, abs=1e-3)
+
+    def test_class_contribution_reports_weight_spread(self):
+        """The summary must convey dispersion, not just the mean.
+
+        This is what makes dropping the full weights matrix a fair trade: the
+        question it answered — how much did this class's weight vary across
+        draws — is still answerable.
+        """
+        tasks = [DriftTask("A", 2, 5, 10)]
+        result = simulate_with_drift(tasks, _neutral_config("a", "b"), n_simulations=2000)
+        stats = result.class_contribution["a"]
+        assert stats["weight_std_dev"] > 0  # a real Dirichlet draw varies
+        assert 0.0 <= stats["weight_p10"] <= stats["weight_p50"] <= stats["weight_p90"] <= 1.0
+
+    def test_no_diagnostic_scales_with_simulation_count(self):
+        """No field may grow with n_simulations — the DoS this WI closes.
+
+        Running the same request at two simulation counts must produce
+        identically-shaped diagnostics; if any field were still O(n_simulations)
+        the two would differ.
+        """
+        tasks = [DriftTask("A", 2, 5, 10)]
+        small = simulate_with_drift(tasks, _neutral_config("a", "b"), n_simulations=100)
+        large = simulate_with_drift(tasks, _neutral_config("a", "b"), n_simulations=10_000)
+
+        def shape(result):
+            return {name: sorted(stats.keys()) for name, stats in result.class_contribution.items()}
+
+        assert shape(small) == shape(large)
+        assert len(repr(large.class_contribution)) == pytest.approx(
+            len(repr(small.class_contribution)), rel=0.5
+        )
 
 
 # =============================================================================
@@ -455,11 +503,20 @@ class TestSimulateRouterDriftPath:
         assert resp.status_code == 200
         data = resp.json()
         assert "class_contribution" in data
-        assert "dirichlet_weights_used" in data
         assert "auth" in data["class_contribution"]
         assert data["class_contribution"]["auth"]["n_tasks_bound"] == 2
-        assert len(data["dirichlet_weights_used"]) == 500
-        assert len(data["dirichlet_weights_used"][0]) == 1
+        # The raw draw matrix is gone: nothing in the response may scale with
+        # num_simulations, however many simulations were requested.
+        assert "dirichlet_weights_used" not in data
+        assert set(data["class_contribution"]["auth"]) == {
+            "mean_weight",
+            "mean_mu",
+            "n_tasks_bound",
+            "weight_std_dev",
+            "weight_p10",
+            "weight_p50",
+            "weight_p90",
+        }
 
     async def test_drift_mean_shift_visible_via_router(self, client: AsyncClient):
         """Posterior mu=1.4 → mean ~40% higher than neutral path, end-to-end."""
@@ -645,3 +702,42 @@ class TestSimulateRouterDriftPath:
         )
         assert resp.status_code == 200
         assert "vague" in resp.json()["class_contribution"]
+
+    async def test_oversized_risk_class_count_rejected_at_boundary(self, client: AsyncClient):
+        """1 task x 1M sims x 1000 classes must be refused before allocating.
+
+        The task-count guard alone passes this (1 x 1M = 1M cells, under the
+        10M ceiling) while the drift path would allocate two
+        (1M, 1000) float64 arrays -- about 8 GB each -- from a ~60 KB request.
+        The rejection must be a 422 from schema validation, not a 400 raised
+        out of core after the request has already been accepted.
+        """
+        resp = await client.post(
+            "/montecarlo/simulate",
+            json={
+                "tasks": [
+                    {"name": "A", "optimistic": 1, "most_likely": 2, "pessimistic": 3},
+                ],
+                "config": {"num_simulations": 1_000_000, "seed": 42},
+                "drift_config": {
+                    "risk_classes": [{"name": f"c{i}"} for i in range(1000)],
+                },
+            },
+        )
+        assert resp.status_code == 422
+        assert "risk_classes" in str(resp.json()).lower()
+
+    async def test_large_task_count_still_bounded(self, client: AsyncClient):
+        """The original task-count bound must survive the widening."""
+        resp = await client.post(
+            "/montecarlo/simulate",
+            json={
+                "tasks": [
+                    {"name": f"T{i}", "optimistic": 1, "most_likely": 2, "pessimistic": 3}
+                    for i in range(1000)
+                ],
+                "config": {"num_simulations": 1_000_000, "seed": 42},
+            },
+        )
+        assert resp.status_code == 422
+        assert "tasks" in str(resp.json()).lower()

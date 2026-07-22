@@ -3,27 +3,36 @@ Monte Carlo schedule simulation Pydantic schemas for request/response validation
 """
 
 from datetime import datetime
-from typing import Self
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
-from ..common.limits import MAX_LIST_ITEMS
+from ..common.limits import MAX_LIST_ITEMS, MAX_NAME_LENGTH
 from ..common.schemas import PaginatedList
 from .core import MAX_SIMULATION_CELLS
 
 
-def _check_simulation_cells(n_tasks: int, num_simulations: int) -> None:
-    """Reject task-count × simulation-count products that would over-allocate.
+def _check_simulation_cells(n_tasks: int, num_simulations: int, n_classes: int = 0) -> None:
+    """Reject simulation-count products that would over-allocate.
 
     Monte Carlo allocates several (n_tasks, num_simulations) float64 arrays, so
     the product — not either factor alone — governs memory. Raising here surfaces
     as a 422 at the API boundary, before any array is allocated.
+
+    The drift path adds (num_simulations, n_classes) arrays, so risk-class count
+    bounds the allocation just as task count does. This mirrors
+    `core._check_allocation`; both exist deliberately, and both must be widened
+    together — widening only the core copy would move the rejection from a 422
+    here to a 400 raised out of the router's ValueError handler.
     """
-    if n_tasks * num_simulations > MAX_SIMULATION_CELLS:
+    dimension, extent = "tasks", n_tasks
+    if n_classes > n_tasks:
+        dimension, extent = "risk_classes", n_classes
+
+    if extent * num_simulations > MAX_SIMULATION_CELLS:
         msg = (
-            f"tasks × num_simulations ({n_tasks} × {num_simulations}) exceeds the "
-            f"limit of {MAX_SIMULATION_CELLS}. Reduce the task count or "
-            f"num_simulations."
+            f"{dimension} × num_simulations ({extent} × {num_simulations}) exceeds the "
+            f"limit of {MAX_SIMULATION_CELLS}. Reduce {dimension} or num_simulations."
         )
         raise ValueError(msg)
 
@@ -40,7 +49,7 @@ class TaskInput(BaseModel):
     optimistic: float = Field(..., ge=0, description="Best-case duration (O)")
     most_likely: float = Field(..., ge=0, description="Most probable duration (M)")
     pessimistic: float = Field(..., ge=0, description="Worst-case duration (P)")
-    depends_on: list[str] = Field(
+    depends_on: list[Annotated[str, StringConstraints(max_length=MAX_NAME_LENGTH)]] = Field(
         default_factory=list,
         max_length=MAX_LIST_ITEMS,
         description="Names of predecessor tasks",
@@ -111,7 +120,8 @@ class SimulateInput(BaseModel):
 
     @model_validator(mode="after")
     def _validate_cells(self) -> Self:
-        _check_simulation_cells(len(self.tasks), self.config.num_simulations)
+        n_classes = len(self.drift_config.risk_classes) if self.drift_config else 0
+        _check_simulation_cells(len(self.tasks), self.config.num_simulations, n_classes)
         return self
 
     model_config = ConfigDict(
@@ -170,11 +180,19 @@ class SimulationResult(BaseModel):
 
 
 class ClassContribution(BaseModel):
-    """Per-class diagnostic for drift simulations."""
+    """Per-class diagnostic for drift simulations.
+
+    Every field is O(1) per class, so the response size scales with the number
+    of risk classes and never with the number of simulations.
+    """
 
     mean_weight: float
     mean_mu: float
     n_tasks_bound: int
+    weight_std_dev: float
+    weight_p10: float
+    weight_p50: float
+    weight_p90: float
 
 
 class DriftResult(SimulationResult):
@@ -182,10 +200,14 @@ class DriftResult(SimulationResult):
 
     Extends `SimulationResult` with class-mix diagnostics. Returned by the
     `/simulate` endpoint when the request includes `drift_config`.
+
+    Note: `dirichlet_weights_used` — the full (num_simulations, n_classes) draw
+    matrix — was removed. It made response size scale with num_simulations, so
+    a valid request could echo back hundreds of megabytes. `class_contribution`
+    now carries the spread statistics that made it useful.
     """
 
     class_contribution: dict[str, ClassContribution]
-    dirichlet_weights_used: list[list[float]]
 
 
 class TargetProbabilityInput(BaseModel):

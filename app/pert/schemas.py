@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ..common.limits import MAX_LIST_ITEMS
+from ..common.limits import MAX_LIST_ITEMS, MAX_NAME_LENGTH
 from ..common.schemas import PaginatedList
 
 # =============================================================================
@@ -17,7 +17,7 @@ from ..common.schemas import PaginatedList
 class TagInput(BaseModel):
     """A tag to apply to a task's pessimistic estimate."""
 
-    name: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1, max_length=MAX_NAME_LENGTH)
     severity: float = Field(default=0.5, ge=0.0, le=1.0)
 
 
