@@ -16,6 +16,7 @@ License: MIT
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -192,6 +193,108 @@ def sample_pert_duration(
     return optimistic + samples * range_
 
 
+def _forward_pass(
+    sorted_tasks: Sequence[Task],
+    samples: np.ndarray,
+    has_dependencies: bool,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict[str, int]]:
+    """Accumulate task start/finish times in dependency order.
+
+    Shared by the plain and drift simulators — they differ only in how `samples`
+    was produced (raw beta-PERT draws vs drift-multiplied ones), never in how
+    those samples propagate through the schedule.
+
+    Args:
+        sorted_tasks: Tasks already in topological order when dependencies exist.
+        samples: Per-task duration draws, shape (n_tasks, n_simulations).
+        has_dependencies: Whether any task declares a predecessor. When False the
+            schedule is treated as strictly sequential.
+
+    Returns:
+        (finish_times, start_times, project_durations, task_index).
+    """
+    n_tasks, n_simulations = samples.shape
+    task_index = {t.name: i for i, t in enumerate(sorted_tasks)}
+    finish_times = np.zeros((n_tasks, n_simulations))
+    start_times = np.zeros((n_tasks, n_simulations))
+
+    if has_dependencies:
+        for i, task in enumerate(sorted_tasks):
+            if task.depends_on:
+                pred_finishes = np.array([finish_times[task_index[dep]] for dep in task.depends_on])
+                start_times[i] = np.max(pred_finishes, axis=0)
+            finish_times[i] = start_times[i] + samples[i]
+    else:
+        for i in range(n_tasks):
+            if i == 0:
+                finish_times[i] = samples[i]
+            else:
+                finish_times[i] = finish_times[i - 1] + samples[i]
+            start_times[i] = finish_times[i] - samples[i]
+
+    project_durations = np.max(finish_times, axis=0)
+    return finish_times, start_times, project_durations, task_index
+
+
+def _summarise(
+    sorted_tasks: Sequence[Task],
+    task_index: dict[str, int],
+    finish_times: np.ndarray,
+    start_times: np.ndarray,
+    samples: np.ndarray,
+    project_durations: np.ndarray,
+    has_dependencies: bool,
+) -> tuple[dict[str, float], dict[str, list[float]], dict[str, float]]:
+    """Reduce a simulated schedule to its reported summary.
+
+    Shared by both simulators so a guard added here applies to both. That is the
+    point: the degenerate-histogram guard below previously existed only on the
+    drift path, and the plain path — the more heavily used of the two — reported
+    a fabricated spread for zero-variance schedules.
+
+    Returns:
+        (percentiles, histogram, critical_path_frequency), already rounded for
+        presentation exactly as both call sites previously rounded them.
+    """
+    n_simulations = samples.shape[1]
+
+    percentiles = {
+        f"P{p}": round(float(np.percentile(project_durations, p)), 2) for p in (50, 75, 85, 95)
+    }
+
+    # A degenerate schedule (every task O==M==P, so zero range) is a point mass,
+    # not a distribution. np.histogram with a fixed bin count would spread it
+    # across an invented +/-0.5 window, reporting uncertainty the data does not
+    # contain. Collapse to a single spike bin instead.
+    if np.ptp(project_durations) < 1e-10:
+        value = round(float(np.mean(project_durations)), 2)
+        histogram: dict[str, list[float]] = {
+            "bin_edges": [value, value],
+            "counts": [int(n_simulations)],
+        }
+    else:
+        counts, bin_edges = np.histogram(project_durations, bins=50)
+        histogram = {
+            "bin_edges": [round(float(e), 2) for e in bin_edges],
+            "counts": [int(c) for c in counts],
+        }
+
+    critical_path_freq = {
+        k: round(v, 4)
+        for k, v in _compute_critical_path_frequency(
+            sorted_tasks,
+            task_index,
+            finish_times,
+            start_times,
+            samples,
+            project_durations,
+            has_dependencies,
+        ).items()
+    }
+
+    return percentiles, histogram, critical_path_freq
+
+
 def simulate_schedule(
     tasks: list[Task],
     n_simulations: int = 10_000,
@@ -232,7 +335,6 @@ def simulate_schedule(
     else:
         sorted_tasks = tasks
 
-    task_index = {t.name: i for i, t in enumerate(sorted_tasks)}
     n_tasks = len(sorted_tasks)
 
     # Pre-sample all durations: shape (n_tasks, n_simulations)
@@ -246,29 +348,11 @@ def simulate_schedule(
             rng=rng,
         )
 
-    # Forward pass: compute finish times
-    finish_times = np.zeros((n_tasks, n_simulations))
-    start_times = np.zeros((n_tasks, n_simulations))
+    finish_times, start_times, project_durations, task_index = _forward_pass(
+        sorted_tasks, all_samples, has_dependencies
+    )
 
-    if has_dependencies:
-        for i, task in enumerate(sorted_tasks):
-            if task.depends_on:
-                pred_finishes = np.array([finish_times[task_index[dep]] for dep in task.depends_on])
-                start_times[i] = np.max(pred_finishes, axis=0)
-            finish_times[i] = start_times[i] + all_samples[i]
-    else:
-        for i in range(n_tasks):
-            if i == 0:
-                finish_times[i] = all_samples[i]
-            else:
-                finish_times[i] = finish_times[i - 1] + all_samples[i]
-            start_times[i] = finish_times[i] - all_samples[i]
-
-    # Project duration = max finish time across all tasks per simulation
-    project_durations = np.max(finish_times, axis=0)
-
-    # Critical-path frequency analysis
-    critical_path_freq = _compute_critical_path_frequency(
+    percentiles, histogram, critical_path_freq = _summarise(
         sorted_tasks,
         task_index,
         finish_times,
@@ -278,27 +362,12 @@ def simulate_schedule(
         has_dependencies,
     )
 
-    # Compute percentiles
-    percentiles = {
-        "P50": float(np.percentile(project_durations, 50)),
-        "P75": float(np.percentile(project_durations, 75)),
-        "P85": float(np.percentile(project_durations, 85)),
-        "P95": float(np.percentile(project_durations, 95)),
-    }
-
-    # Histogram data
-    counts, bin_edges = np.histogram(project_durations, bins=50)
-    histogram = {
-        "bin_edges": [round(float(e), 2) for e in bin_edges],
-        "counts": [int(c) for c in counts],
-    }
-
     return SimulationResult(
         durations=project_durations,
         n_simulations=n_simulations,
-        percentiles={k: round(v, 2) for k, v in percentiles.items()},
+        percentiles=percentiles,
         histogram=histogram,
-        critical_path_frequency={k: round(v, 4) for k, v in critical_path_freq.items()},
+        critical_path_frequency=critical_path_freq,
         tasks=tasks,
     )
 
@@ -613,28 +682,12 @@ def simulate_with_drift(
 
     drifted = base_samples * drift
 
-    task_index = {t.name: i for i, t in enumerate(sorted_tasks)}
-    finish_times = np.zeros((n_tasks, n_simulations))
-    start_times = np.zeros((n_tasks, n_simulations))
+    finish_times, start_times, project_durations, task_index = _forward_pass(
+        sorted_tasks, drifted, has_dependencies
+    )
 
-    if has_dependencies:
-        for i, task in enumerate(sorted_tasks):
-            if task.depends_on:
-                pred_finishes = np.array([finish_times[task_index[dep]] for dep in task.depends_on])
-                start_times[i] = np.max(pred_finishes, axis=0)
-            finish_times[i] = start_times[i] + drifted[i]
-    else:
-        for i in range(n_tasks):
-            if i == 0:
-                finish_times[i] = drifted[i]
-            else:
-                finish_times[i] = finish_times[i - 1] + drifted[i]
-            start_times[i] = finish_times[i] - drifted[i]
-
-    project_durations = np.max(finish_times, axis=0)
-
-    critical_path_freq = _compute_critical_path_frequency(
-        sorted_tasks,  # type: ignore[arg-type]
+    percentiles, histogram, critical_path_freq = _summarise(
+        sorted_tasks,
         task_index,
         finish_times,
         start_times,
@@ -642,29 +695,6 @@ def simulate_with_drift(
         project_durations,
         has_dependencies,
     )
-
-    percentiles = {
-        "P50": float(np.percentile(project_durations, 50)),
-        "P75": float(np.percentile(project_durations, 75)),
-        "P85": float(np.percentile(project_durations, 85)),
-        "P95": float(np.percentile(project_durations, 95)),
-    }
-
-    # Degenerate distributions (constant or near-constant durations) have zero
-    # range, which np.histogram with a fixed bin count rejects. Collapse to a
-    # single spike bin in that case.
-    if np.ptp(project_durations) < 1e-10:
-        val = float(np.mean(project_durations))
-        histogram: dict[str, list[float]] = {
-            "bin_edges": [round(val, 2), round(val, 2)],
-            "counts": [int(n_simulations)],
-        }
-    else:
-        counts, bin_edges = np.histogram(project_durations, bins=50)
-        histogram = {
-            "bin_edges": [round(float(e), 2) for e in bin_edges],
-            "counts": [int(c) for c in counts],
-        }
 
     # Summary statistics, not the draws themselves. The full Dirichlet weights
     # matrix is (n_simulations, n_classes) and was previously returned verbatim,
@@ -689,16 +719,19 @@ def simulate_with_drift(
     return DriftResult(
         durations=project_durations,
         n_simulations=n_simulations,
-        percentiles={k: round(v, 2) for k, v in percentiles.items()},
+        percentiles=percentiles,
         histogram=histogram,
-        critical_path_frequency={k: round(v, 4) for k, v in critical_path_freq.items()},
+        critical_path_frequency=critical_path_freq,
         tasks=list(tasks),
         class_contribution=class_contribution,
     )
 
 
 def _compute_critical_path_frequency(
-    sorted_tasks: list[Task],
+    # Sequence, not list: list is invariant, so a list[DriftTask] would not be
+    # assignable and the drift caller needed a type: ignore. This function only
+    # iterates, so the covariant type is both correct and suppression-free.
+    sorted_tasks: Sequence[Task],
     task_index: dict[str, int],
     finish_times: np.ndarray,
     start_times: np.ndarray,
