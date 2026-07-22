@@ -5,10 +5,12 @@ Monte Carlo schedule simulation Pydantic schemas for request/response validation
 from datetime import datetime
 from typing import Annotated, Self
 
+import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from ..common.limits import MAX_LIST_ITEMS, MAX_NAME_LENGTH
 from ..common.schemas import PaginatedList
+from . import core
 from .core import MAX_SIMULATION_CELLS
 
 
@@ -208,6 +210,61 @@ class DriftResult(SimulationResult):
     """
 
     class_contribution: dict[str, ClassContribution]
+
+
+def _shared_result_fields(result: core.SimulationResult | core.DriftResult) -> dict:
+    """Project a core result onto the fields both response models share.
+
+    This block was written out four times — twice in the Monte Carlo router, once
+    in the MCP tool, and partially again for the drift response — so the derived
+    statistics (mean, std dev, min, max) were each computed independently and
+    could drift apart in rounding or definition.
+
+    Lives here rather than in core.py because it builds Pydantic models, which
+    core must not know about; and here rather than in a transport, because both
+    transports need it.
+    """
+    return {
+        "n_simulations": result.n_simulations,
+        "percentiles": PercentileResult(**result.percentiles),
+        "histogram": HistogramResult(
+            bin_edges=result.histogram["bin_edges"],
+            counts=[int(c) for c in result.histogram["counts"]],
+        ),
+        "critical_path_frequency": result.critical_path_frequency,
+        "mean": round(float(np.mean(result.durations)), 2),
+        "std_dev": round(float(np.std(result.durations)), 2),
+        "min_duration": round(float(np.min(result.durations)), 2),
+        "max_duration": round(float(np.max(result.durations)), 2),
+    }
+
+
+def simulation_result_from_core(result: core.SimulationResult) -> SimulationResult:
+    """Convert a core simulation result into the API/MCP response model."""
+    return SimulationResult(**_shared_result_fields(result))
+
+
+def drift_result_from_core(result: core.DriftResult) -> DriftResult:
+    """Convert a core drift result into the API response model.
+
+    Extends the shared fields with the per-class diagnostics. `n_tasks_bound` is
+    cast because the core carries the whole contribution map as dict[str, float].
+    """
+    return DriftResult(
+        **_shared_result_fields(result),
+        class_contribution={
+            name: ClassContribution(
+                mean_weight=stats["mean_weight"],
+                mean_mu=stats["mean_mu"],
+                n_tasks_bound=int(stats["n_tasks_bound"]),
+                weight_std_dev=stats["weight_std_dev"],
+                weight_p10=stats["weight_p10"],
+                weight_p50=stats["weight_p50"],
+                weight_p90=stats["weight_p90"],
+            )
+            for name, stats in result.class_contribution.items()
+        },
+    )
 
 
 class TargetProbabilityInput(BaseModel):

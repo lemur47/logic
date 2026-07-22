@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 from ..common.dependencies import DbSession
 from ..common.limits import MAX_SEARCH_LENGTH
 from . import calculate_project, calculate_task, crud
-from .core import DEFAULT_TAGS
+from .core import resolve_insight_tags
 from .schemas import (
     ProjectEstimation,
     ProjectInput,
@@ -27,18 +27,15 @@ router = APIRouter()
 
 
 def _resolve_tags(task_input: TaskInput) -> list | None:
-    """Resolve tag names from input to (InsightTag, severity) tuples."""
+    """Adapt this transport's tag models to the shared core resolver.
+
+    The resolution policy itself lives in `app.pert.core.resolve_insight_tags`,
+    shared with the MCP surface. All this does is unwrap Pydantic models into the
+    plain pairs the core accepts — the core must not import transport schemas.
+    """
     if not task_input.tags:
         return None
-
-    resolved = []
-    for tag_input in task_input.tags:
-        tag = DEFAULT_TAGS.get(tag_input.name)
-        if tag is None:
-            valid = ", ".join(sorted(DEFAULT_TAGS.keys()))
-            raise ValueError(f"Unknown tag '{tag_input.name}'. Valid tags: {valid}")
-        resolved.append((tag, tag_input.severity))
-    return resolved
+    return resolve_insight_tags((t.name, t.severity) for t in task_input.tags)
 
 
 @router.post("/task", response_model=TaskEstimation)
