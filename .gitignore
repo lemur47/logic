@@ -11,7 +11,6 @@
 secrets/
 credentials/
 .claude/
-CLAUDE-internal.md
 
 # Cryptographic material
 *.key
@@ -162,5 +161,9 @@ plugins/
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Local operational overlays (org-specific calibration, never public)
+#
+# Covers CLAUDE.local.md — the operational notes Claude Code auto-loads at
+# session boot. This glob is the only thing keeping those notes out of the
+# public repo, so do not narrow it without providing an explicit replacement.
 # ═══════════════════════════════════════════════════════════════════════════════
 *.local.md

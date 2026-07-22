@@ -2,8 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Boot note.** If `CLAUDE-internal.md` exists at the project root, read it before starting work. It holds operational notes (operating model, Work Item Protocol, sprint conventions, Airtable reference) that change independently of this file. It is gitignored, so it may be absent in fresh clones — that's fine, proceed without it.
-
 ## Project Overview
 
 Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Five live modules: TCO, PERT, Monte Carlo, EVM, and Bayesian estimation calibration.
