@@ -1,0 +1,1084 @@
+{
+  "generated_by": "site/scripts/generate_parity_fixtures.py from app/pert/core.py and app/tco/core.py \u2014 do not hand-edit",
+  "tolerance": 0.005,
+  "rounding": [
+    {
+      "value": 0.625,
+      "dp": 2,
+      "expected": 0.62
+    },
+    {
+      "value": 0.635,
+      "dp": 2,
+      "expected": 0.64
+    },
+    {
+      "value": 2.675,
+      "dp": 2,
+      "expected": 2.67
+    },
+    {
+      "value": 51.585,
+      "dp": 2,
+      "expected": 51.59
+    },
+    {
+      "value": -7.195,
+      "dp": 2,
+      "expected": -7.2
+    },
+    {
+      "value": -0.625,
+      "dp": 2,
+      "expected": -0.62
+    },
+    {
+      "value": 1.005,
+      "dp": 2,
+      "expected": 1.0
+    },
+    {
+      "value": 0.5,
+      "dp": 0,
+      "expected": 0.0
+    },
+    {
+      "value": 1.5,
+      "dp": 0,
+      "expected": 2.0
+    },
+    {
+      "value": 2.5,
+      "dp": 0,
+      "expected": 2.0
+    },
+    {
+      "value": 1.7195,
+      "dp": 4,
+      "expected": 1.7195
+    },
+    {
+      "value": 1.14925,
+      "dp": 4,
+      "expected": 1.1493
+    },
+    {
+      "value": 1.00005,
+      "dp": 4,
+      "expected": 1.0001
+    },
+    {
+      "value": 0.0,
+      "dp": 2,
+      "expected": 0.0
+    },
+    {
+      "value": 123456.789,
+      "dp": 2,
+      "expected": 123456.79
+    }
+  ],
+  "tag_catalogue": [
+    {
+      "name": "FRAGMENTED_COMMUNICATION",
+      "description": "Chat/meetings/manual workflows increase overhead",
+      "min_multiplier": 1.1,
+      "max_multiplier": 1.5
+    },
+    {
+      "name": "HIDDEN_DEPENDENCIES",
+      "description": "Undocumented task relationships, upstream blockers",
+      "min_multiplier": 1.1,
+      "max_multiplier": 1.5
+    },
+    {
+      "name": "MULTIPLE_STAKEHOLDERS",
+      "description": "Misaligned interests across orgs (strategic, political)",
+      "min_multiplier": 1.15,
+      "max_multiplier": 2.0
+    }
+  ],
+  "pert": [
+    {
+      "args": {
+        "optimistic": 1,
+        "most_likely": 2,
+        "pessimistic": 3
+      },
+      "expected": {
+        "input": {
+          "optimistic": 1,
+          "most_likely": 2,
+          "pessimistic": 3
+        },
+        "textbook": {
+          "expected": 2.0,
+          "std_dev": 0.33,
+          "variance": 0.11,
+          "range_68": [
+            1.67,
+            2.33
+          ],
+          "range_95": [
+            1.33,
+            2.67
+          ],
+          "range_99": [
+            1.0,
+            3.0
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0,
+        "most_likely": 0,
+        "pessimistic": 0
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0,
+          "most_likely": 0,
+          "pessimistic": 0
+        },
+        "textbook": {
+          "expected": 0.0,
+          "std_dev": 0.0,
+          "variance": 0.0,
+          "range_68": [
+            0.0,
+            0.0
+          ],
+          "range_95": [
+            0.0,
+            0.0
+          ],
+          "range_99": [
+            0.0,
+            0.0
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 2,
+        "most_likely": 4,
+        "pessimistic": 8
+      },
+      "expected": {
+        "input": {
+          "optimistic": 2,
+          "most_likely": 4,
+          "pessimistic": 8
+        },
+        "textbook": {
+          "expected": 4.33,
+          "std_dev": 1.0,
+          "variance": 1.0,
+          "range_68": [
+            3.33,
+            5.33
+          ],
+          "range_95": [
+            2.33,
+            6.33
+          ],
+          "range_99": [
+            1.33,
+            7.33
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0.5,
+        "most_likely": 1.25,
+        "pessimistic": 2.75
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0.5,
+          "most_likely": 1.25,
+          "pessimistic": 2.75
+        },
+        "textbook": {
+          "expected": 1.38,
+          "std_dev": 0.38,
+          "variance": 0.14,
+          "range_68": [
+            1.0,
+            1.75
+          ],
+          "range_95": [
+            0.62,
+            2.12
+          ],
+          "range_99": [
+            0.25,
+            2.5
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 3.3,
+        "most_likely": 3.3,
+        "pessimistic": 3.3
+      },
+      "expected": {
+        "input": {
+          "optimistic": 3.3,
+          "most_likely": 3.3,
+          "pessimistic": 3.3
+        },
+        "textbook": {
+          "expected": 3.3,
+          "std_dev": 0.0,
+          "variance": 0.0,
+          "range_68": [
+            3.3,
+            3.3
+          ],
+          "range_95": [
+            3.3,
+            3.3
+          ],
+          "range_99": [
+            3.3,
+            3.3
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 1.05,
+        "most_likely": 2.675,
+        "pessimistic": 4.125
+      },
+      "expected": {
+        "input": {
+          "optimistic": 1.05,
+          "most_likely": 2.675,
+          "pessimistic": 4.125
+        },
+        "textbook": {
+          "expected": 2.65,
+          "std_dev": 0.51,
+          "variance": 0.26,
+          "range_68": [
+            2.13,
+            3.16
+          ],
+          "range_95": [
+            1.62,
+            3.67
+          ],
+          "range_99": [
+            1.11,
+            4.18
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0.1,
+        "most_likely": 0.25,
+        "pessimistic": 0.5
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0.1,
+          "most_likely": 0.25,
+          "pessimistic": 0.5
+        },
+        "textbook": {
+          "expected": 0.27,
+          "std_dev": 0.07,
+          "variance": 0.0,
+          "range_68": [
+            0.2,
+            0.33
+          ],
+          "range_95": [
+            0.13,
+            0.4
+          ],
+          "range_99": [
+            0.07,
+            0.47
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 5,
+        "most_likely": 10,
+        "pessimistic": 30
+      },
+      "expected": {
+        "input": {
+          "optimistic": 5,
+          "most_likely": 10,
+          "pessimistic": 30
+        },
+        "textbook": {
+          "expected": 12.5,
+          "std_dev": 4.17,
+          "variance": 17.36,
+          "range_68": [
+            8.33,
+            16.67
+          ],
+          "range_95": [
+            4.17,
+            20.83
+          ],
+          "range_99": [
+            0.0,
+            25.0
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 100,
+        "most_likely": 250,
+        "pessimistic": 800
+      },
+      "expected": {
+        "input": {
+          "optimistic": 100,
+          "most_likely": 250,
+          "pessimistic": 800
+        },
+        "textbook": {
+          "expected": 316.67,
+          "std_dev": 116.67,
+          "variance": 13611.11,
+          "range_68": [
+            200.0,
+            433.33
+          ],
+          "range_95": [
+            83.33,
+            550.0
+          ],
+          "range_99": [
+            -33.33,
+            666.67
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0.01,
+        "most_likely": 0.02,
+        "pessimistic": 0.03
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0.01,
+          "most_likely": 0.02,
+          "pessimistic": 0.03
+        },
+        "textbook": {
+          "expected": 0.02,
+          "std_dev": 0.0,
+          "variance": 0.0,
+          "range_68": [
+            0.02,
+            0.02
+          ],
+          "range_95": [
+            0.01,
+            0.03
+          ],
+          "range_99": [
+            0.01,
+            0.03
+          ]
+        },
+        "adjusted": null
+      }
+    }
+  ],
+  "pert_tagged": [
+    {
+      "args": {
+        "optimistic": 2,
+        "most_likely": 4,
+        "pessimistic": 8,
+        "tags": [
+          {
+            "name": "HIDDEN_DEPENDENCIES",
+            "severity": 0.5
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 2,
+          "most_likely": 4,
+          "pessimistic": 8
+        },
+        "textbook": {
+          "expected": 4.33,
+          "std_dev": 1.0,
+          "variance": 1.0,
+          "range_68": [
+            3.33,
+            5.33
+          ],
+          "range_95": [
+            2.33,
+            6.33
+          ],
+          "range_99": [
+            1.33,
+            7.33
+          ]
+        },
+        "adjusted": {
+          "expected": 4.73,
+          "std_dev": 1.4,
+          "variance": 1.96,
+          "range_68": [
+            3.33,
+            6.13
+          ],
+          "range_95": [
+            1.93,
+            7.53
+          ],
+          "range_99": [
+            0.53,
+            8.93
+          ],
+          "pessimistic": 10.4,
+          "tags_applied": [
+            {
+              "name": "HIDDEN_DEPENDENCIES",
+              "severity": 0.5,
+              "multiplier": 1.3
+            }
+          ],
+          "combined_multiplier": 1.3
+        }
+      }
+    },
+    {
+      "args": {
+        "optimistic": 2,
+        "most_likely": 4,
+        "pessimistic": 8,
+        "tags": [
+          {
+            "name": "HIDDEN_DEPENDENCIES",
+            "severity": 0.0
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 2,
+          "most_likely": 4,
+          "pessimistic": 8
+        },
+        "textbook": {
+          "expected": 4.33,
+          "std_dev": 1.0,
+          "variance": 1.0,
+          "range_68": [
+            3.33,
+            5.33
+          ],
+          "range_95": [
+            2.33,
+            6.33
+          ],
+          "range_99": [
+            1.33,
+            7.33
+          ]
+        },
+        "adjusted": {
+          "expected": 4.47,
+          "std_dev": 1.13,
+          "variance": 1.28,
+          "range_68": [
+            3.33,
+            5.6
+          ],
+          "range_95": [
+            2.2,
+            6.73
+          ],
+          "range_99": [
+            1.07,
+            7.87
+          ],
+          "pessimistic": 8.8,
+          "tags_applied": [
+            {
+              "name": "HIDDEN_DEPENDENCIES",
+              "severity": 0.0,
+              "multiplier": 1.1
+            }
+          ],
+          "combined_multiplier": 1.1
+        }
+      }
+    },
+    {
+      "args": {
+        "optimistic": 2,
+        "most_likely": 4,
+        "pessimistic": 8,
+        "tags": [
+          {
+            "name": "HIDDEN_DEPENDENCIES",
+            "severity": 1.0
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 2,
+          "most_likely": 4,
+          "pessimistic": 8
+        },
+        "textbook": {
+          "expected": 4.33,
+          "std_dev": 1.0,
+          "variance": 1.0,
+          "range_68": [
+            3.33,
+            5.33
+          ],
+          "range_95": [
+            2.33,
+            6.33
+          ],
+          "range_99": [
+            1.33,
+            7.33
+          ]
+        },
+        "adjusted": {
+          "expected": 5.0,
+          "std_dev": 1.67,
+          "variance": 2.78,
+          "range_68": [
+            3.33,
+            6.67
+          ],
+          "range_95": [
+            1.67,
+            8.33
+          ],
+          "range_99": [
+            0.0,
+            10.0
+          ],
+          "pessimistic": 12.0,
+          "tags_applied": [
+            {
+              "name": "HIDDEN_DEPENDENCIES",
+              "severity": 1.0,
+              "multiplier": 1.5
+            }
+          ],
+          "combined_multiplier": 1.5
+        }
+      }
+    },
+    {
+      "args": {
+        "optimistic": 5,
+        "most_likely": 10,
+        "pessimistic": 30,
+        "tags": [
+          {
+            "name": "FRAGMENTED_COMMUNICATION",
+            "severity": 0.33
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 5,
+          "most_likely": 10,
+          "pessimistic": 30
+        },
+        "textbook": {
+          "expected": 12.5,
+          "std_dev": 4.17,
+          "variance": 17.36,
+          "range_68": [
+            8.33,
+            16.67
+          ],
+          "range_95": [
+            4.17,
+            20.83
+          ],
+          "range_99": [
+            0.0,
+            25.0
+          ]
+        },
+        "adjusted": {
+          "expected": 13.66,
+          "std_dev": 5.33,
+          "variance": 28.37,
+          "range_68": [
+            8.33,
+            18.99
+          ],
+          "range_95": [
+            3.01,
+            24.31
+          ],
+          "range_99": [
+            -2.32,
+            29.64
+          ],
+          "pessimistic": 36.96,
+          "tags_applied": [
+            {
+              "name": "FRAGMENTED_COMMUNICATION",
+              "severity": 0.33,
+              "multiplier": 1.232
+            }
+          ],
+          "combined_multiplier": 1.232
+        }
+      }
+    },
+    {
+      "args": {
+        "optimistic": 5,
+        "most_likely": 10,
+        "pessimistic": 30,
+        "tags": [
+          {
+            "name": "MULTIPLE_STAKEHOLDERS",
+            "severity": 0.67
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 5,
+          "most_likely": 10,
+          "pessimistic": 30
+        },
+        "textbook": {
+          "expected": 12.5,
+          "std_dev": 4.17,
+          "variance": 17.36,
+          "range_68": [
+            8.33,
+            16.67
+          ],
+          "range_95": [
+            4.17,
+            20.83
+          ],
+          "range_99": [
+            0.0,
+            25.0
+          ]
+        },
+        "adjusted": {
+          "expected": 16.1,
+          "std_dev": 7.76,
+          "variance": 60.28,
+          "range_68": [
+            8.33,
+            23.86
+          ],
+          "range_95": [
+            0.57,
+            31.63
+          ],
+          "range_99": [
+            -7.2,
+            39.39
+          ],
+          "pessimistic": 51.59,
+          "tags_applied": [
+            {
+              "name": "MULTIPLE_STAKEHOLDERS",
+              "severity": 0.67,
+              "multiplier": 1.7195
+            }
+          ],
+          "combined_multiplier": 1.7195
+        }
+      }
+    },
+    {
+      "args": {
+        "optimistic": 1,
+        "most_likely": 2,
+        "pessimistic": 3,
+        "tags": [
+          {
+            "name": "FRAGMENTED_COMMUNICATION",
+            "severity": 0.5
+          },
+          {
+            "name": "MULTIPLE_STAKEHOLDERS",
+            "severity": 0.5
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 1,
+          "most_likely": 2,
+          "pessimistic": 3
+        },
+        "textbook": {
+          "expected": 2.0,
+          "std_dev": 0.33,
+          "variance": 0.11,
+          "range_68": [
+            1.67,
+            2.33
+          ],
+          "range_95": [
+            1.33,
+            2.67
+          ],
+          "range_99": [
+            1.0,
+            3.0
+          ]
+        },
+        "adjusted": {
+          "expected": 2.52,
+          "std_dev": 0.86,
+          "variance": 0.73,
+          "range_68": [
+            1.67,
+            3.38
+          ],
+          "range_95": [
+            0.81,
+            4.24
+          ],
+          "range_99": [
+            -0.05,
+            5.1
+          ],
+          "pessimistic": 6.14,
+          "tags_applied": [
+            {
+              "name": "FRAGMENTED_COMMUNICATION",
+              "severity": 0.5,
+              "multiplier": 1.3
+            },
+            {
+              "name": "MULTIPLE_STAKEHOLDERS",
+              "severity": 0.5,
+              "multiplier": 1.575
+            }
+          ],
+          "combined_multiplier": 2.0475
+        }
+      }
+    },
+    {
+      "args": {
+        "optimistic": 1.05,
+        "most_likely": 2.675,
+        "pessimistic": 4.125,
+        "tags": [
+          {
+            "name": "HIDDEN_DEPENDENCIES",
+            "severity": 0.123
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 1.05,
+          "most_likely": 2.675,
+          "pessimistic": 4.125
+        },
+        "textbook": {
+          "expected": 2.65,
+          "std_dev": 0.51,
+          "variance": 0.26,
+          "range_68": [
+            2.13,
+            3.16
+          ],
+          "range_95": [
+            1.62,
+            3.67
+          ],
+          "range_99": [
+            1.11,
+            4.18
+          ]
+        },
+        "adjusted": {
+          "expected": 2.75,
+          "std_dev": 0.62,
+          "variance": 0.38,
+          "range_68": [
+            2.13,
+            3.36
+          ],
+          "range_95": [
+            1.52,
+            3.98
+          ],
+          "range_99": [
+            0.9,
+            4.59
+          ],
+          "pessimistic": 4.74,
+          "tags_applied": [
+            {
+              "name": "HIDDEN_DEPENDENCIES",
+              "severity": 0.123,
+              "multiplier": 1.1492
+            }
+          ],
+          "combined_multiplier": 1.1492
+        }
+      }
+    },
+    {
+      "args": {
+        "optimistic": 100,
+        "most_likely": 250,
+        "pessimistic": 800,
+        "tags": [
+          {
+            "name": "FRAGMENTED_COMMUNICATION",
+            "severity": 0.9
+          },
+          {
+            "name": "MULTIPLE_STAKEHOLDERS",
+            "severity": 0.1
+          },
+          {
+            "name": "HIDDEN_DEPENDENCIES",
+            "severity": 0.45
+          }
+        ]
+      },
+      "expected": {
+        "input": {
+          "optimistic": 100,
+          "most_likely": 250,
+          "pessimistic": 800
+        },
+        "textbook": {
+          "expected": 316.67,
+          "std_dev": 116.67,
+          "variance": 13611.11,
+          "range_68": [
+            200.0,
+            433.33
+          ],
+          "range_95": [
+            83.33,
+            550.0
+          ],
+          "range_99": [
+            -33.33,
+            666.67
+          ]
+        },
+        "adjusted": {
+          "expected": 491.06,
+          "std_dev": 291.06,
+          "variance": 84717.32,
+          "range_68": [
+            200.0,
+            782.12
+          ],
+          "range_95": [
+            -91.06,
+            1073.19
+          ],
+          "range_99": [
+            -382.12,
+            1364.25
+          ],
+          "pessimistic": 1846.37,
+          "tags_applied": [
+            {
+              "name": "FRAGMENTED_COMMUNICATION",
+              "severity": 0.9,
+              "multiplier": 1.46
+            },
+            {
+              "name": "MULTIPLE_STAKEHOLDERS",
+              "severity": 0.1,
+              "multiplier": 1.235
+            },
+            {
+              "name": "HIDDEN_DEPENDENCIES",
+              "severity": 0.45,
+              "multiplier": 1.28
+            }
+          ],
+          "combined_multiplier": 2.308
+        }
+      }
+    }
+  ],
+  "tco": [
+    {
+      "args": {
+        "initial_price": 10000,
+        "useful_life_years": 5,
+        "residual_value": 0,
+        "annual_maintenance": 0,
+        "annual_operating_cost": 0,
+        "discount_rate": 0.03
+      },
+      "expected": {
+        "total_cost": 10000,
+        "annual_cost": 2000.0,
+        "monthly_cost": 166.67,
+        "cost_per_day": 5.48,
+        "npv_tco": 10000.0,
+        "npv_annual": 2000.0
+      }
+    },
+    {
+      "args": {
+        "initial_price": 10000,
+        "useful_life_years": 5,
+        "residual_value": 2000,
+        "annual_maintenance": 500,
+        "annual_operating_cost": 1200,
+        "discount_rate": 0.03
+      },
+      "expected": {
+        "total_cost": 16500,
+        "annual_cost": 3300.0,
+        "monthly_cost": 275.0,
+        "cost_per_day": 9.04,
+        "npv_tco": 16060.28,
+        "npv_annual": 3212.06
+      }
+    },
+    {
+      "args": {
+        "initial_price": 250000,
+        "useful_life_years": 10,
+        "residual_value": 25000,
+        "annual_maintenance": 12000,
+        "annual_operating_cost": 30000,
+        "discount_rate": 0.05
+      },
+      "expected": {
+        "total_cost": 645000,
+        "annual_cost": 64500.0,
+        "monthly_cost": 5375.0,
+        "cost_per_day": 176.71,
+        "npv_tco": 558965.04,
+        "npv_annual": 55896.5
+      }
+    },
+    {
+      "args": {
+        "initial_price": 1500,
+        "useful_life_years": 3,
+        "residual_value": 0,
+        "annual_maintenance": 100,
+        "annual_operating_cost": 250,
+        "discount_rate": 0.0
+      },
+      "expected": {
+        "total_cost": 2550,
+        "annual_cost": 850.0,
+        "monthly_cost": 70.83,
+        "cost_per_day": 2.33,
+        "npv_tco": 2550.0,
+        "npv_annual": 850.0
+      }
+    },
+    {
+      "args": {
+        "initial_price": 99999.99,
+        "useful_life_years": 7,
+        "residual_value": 12345.67,
+        "annual_maintenance": 1111.11,
+        "annual_operating_cost": 2222.22,
+        "discount_rate": 0.075
+      },
+      "expected": {
+        "total_cost": 110987.63,
+        "annual_cost": 15855.38,
+        "monthly_cost": 1321.28,
+        "cost_per_day": 43.44,
+        "npv_tco": 110213.9,
+        "npv_annual": 15744.84
+      }
+    },
+    {
+      "args": {
+        "initial_price": 500,
+        "useful_life_years": 1,
+        "residual_value": 0,
+        "annual_maintenance": 0,
+        "annual_operating_cost": 0,
+        "discount_rate": 0.03
+      },
+      "expected": {
+        "total_cost": 500,
+        "annual_cost": 500.0,
+        "monthly_cost": 41.67,
+        "cost_per_day": 1.37,
+        "npv_tco": 500.0,
+        "npv_annual": 500.0
+      }
+    },
+    {
+      "args": {
+        "initial_price": 0,
+        "useful_life_years": 4,
+        "residual_value": 0,
+        "annual_maintenance": 1000,
+        "annual_operating_cost": 0,
+        "discount_rate": 0.02
+      },
+      "expected": {
+        "total_cost": 4000,
+        "annual_cost": 1000.0,
+        "monthly_cost": 83.33,
+        "cost_per_day": 2.74,
+        "npv_tco": 3807.73,
+        "npv_annual": 951.93
+      }
+    }
+  ]
+}

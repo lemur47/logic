@@ -202,6 +202,13 @@ jobs:
       - name: Type check
         run: npx astro check
 
+      # Parity net: the site's calculators against fixtures generated from the
+      # Python core. Runs inside the existing frontend job rather than as a new
+      # one, so no ruleset change is needed and the required-check list is
+      # unchanged.
+      - name: Parity tests
+        run: npm test
+
       - name: Build
         run: npm run build
 

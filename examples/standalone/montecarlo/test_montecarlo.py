@@ -332,3 +332,43 @@ class TestBetaPertSampler:
         """When O == M == P, all samples equal that value."""
         samples = sample_pert_duration(7.0, 7.0, 7.0, size=100)
         np.testing.assert_array_equal(samples, 7.0)
+
+
+class TestAllocationGuard:
+    """The example must not allocate unbounded memory from a small input.
+
+    This module is public example code that someone may copy into their own
+    project, so an unguarded allocation is a defect here in its own right —
+    not merely a divergence from `app/montecarlo/core.py`.
+
+    These tests run in CI: the pytest job covers `examples/standalone/` as a
+    second step, so this is an executed guarantee rather than a documented one.
+    """
+
+    def test_rejects_oversized_request_before_allocating(self):
+        from montecarlo import MAX_SIMULATION_CELLS, _check_allocation
+
+        n_tasks = 1000
+        n_sims = MAX_SIMULATION_CELLS // n_tasks + 1
+        with pytest.raises(ValueError, match="exceeds the limit"):
+            _check_allocation(n_tasks, n_sims)
+
+    def test_error_names_both_dimensions(self):
+        from montecarlo import _check_allocation
+
+        with pytest.raises(ValueError) as excinfo:
+            _check_allocation(5000, 5000)
+        assert "5000" in str(excinfo.value)
+
+    def test_allows_a_realistic_network(self):
+        """A 1000-task network at the default 10,000 runs must still work."""
+        from montecarlo import MAX_SIMULATION_CELLS, _check_allocation
+
+        _check_allocation(1000, 10_000)  # must not raise
+        assert MAX_SIMULATION_CELLS >= 1000 * 10_000
+
+    def test_simulate_schedule_enforces_the_guard(self):
+        """The guard is wired into the entry point, not merely defined."""
+        tasks = [Task(f"T{i}", 1.0, 2.0, 3.0) for i in range(100)]
+        with pytest.raises(ValueError, match="exceeds the limit"):
+            simulate_schedule(tasks, n_simulations=1_000_000)

@@ -19,6 +19,21 @@ Concepts:
     AC   = Actual Cost (actual cost of work performed)
 
     From these three inputs + BAC, everything else is computed.
+
+
+Frozen teaching snapshot — NOT a mirror of the production core.
+
+This module exists to make the maths readable on its own: a single file you can
+open, run, and reason about without installing a web stack. It is deliberately
+allowed to diverge in STRUCTURE from `app/evm/core.py`, which is canonical and
+is what the API, the MCP server and the site are built on.
+
+So: do not sync this file field-for-field with the core, and do not treat a
+structural difference here as a bug. Genuine defects — an unbounded allocation,
+a wrong formula — are still fixed here, because this is public example code
+someone may copy.
+
+Canonical implementation: app/evm/core.py
 """
 
 from __future__ import annotations

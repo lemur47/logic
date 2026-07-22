@@ -17,6 +17,21 @@ Dependencies: scipy (for beta-PERT sampling), numpy. matplotlib optional for
 visualisation.
 
 License: MIT
+
+
+Frozen teaching snapshot — NOT a mirror of the production core.
+
+This module exists to make the maths readable on its own: a single file you can
+open, run, and reason about without installing a web stack. It is deliberately
+allowed to diverge in STRUCTURE from `app/montecarlo/core.py`, which is canonical and
+is what the API, the MCP server and the site are built on.
+
+So: do not sync this file field-for-field with the core, and do not treat a
+structural difference here as a bug. Genuine defects — an unbounded allocation,
+a wrong formula — are still fixed here, because this is public example code
+someone may copy.
+
+Canonical implementation: app/montecarlo/core.py
 """
 
 from __future__ import annotations
@@ -25,6 +40,27 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from scipy import stats
+
+# Monte Carlo allocates several (n_tasks, n_simulations) float64 arrays, so their
+# product — not either factor alone — governs memory. 10_000_000 cells is ~80 MB
+# per array and still admits a 1000-task network at the default 10_000 runs.
+#
+# Present here as well as in app/montecarlo/core.py because an unbounded
+# allocation is a defect in its own right, not a sync obligation: this file is a
+# public example someone may copy into their own code. Ported deliberately; the
+# rest of this module is a frozen teaching snapshot (see the header note).
+MAX_SIMULATION_CELLS = 10_000_000
+
+
+def _check_allocation(n_tasks: int, n_simulations: int) -> None:
+    """Reject over-large requests before any array is created."""
+    if n_tasks * n_simulations > MAX_SIMULATION_CELLS:
+        msg = (
+            f"tasks × n_simulations ({n_tasks} × {n_simulations}) exceeds the "
+            f"limit of {MAX_SIMULATION_CELLS}"
+        )
+        raise ValueError(msg)
+
 
 # ── Core Data Structures ────────────────────────────────────────────────
 
@@ -196,7 +232,12 @@ def simulate_schedule(
     Returns:
         SimulationResult with duration samples, percentiles, histogram,
         and critical-path frequency analysis.
+
+    Raises:
+        ValueError: if tasks x n_simulations would exceed MAX_SIMULATION_CELLS.
     """
+    _check_allocation(len(tasks), n_simulations)
+
     rng = np.random.default_rng(seed)
 
     has_dependencies = any(t.depends_on for t in tasks)
