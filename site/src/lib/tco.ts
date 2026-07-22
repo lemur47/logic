@@ -1,3 +1,5 @@
+import { round2 } from "./round";
+
 export interface TcoInput {
   name: string;
   initialPrice: number;
@@ -17,9 +19,6 @@ export interface TcoResult {
   npvAnnual: number;
 }
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
 
 export function calculateTco(input: TcoInput): TcoResult {
   const {

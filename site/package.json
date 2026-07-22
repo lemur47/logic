@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@astrojs/svelte": "^8.0.5",
@@ -22,7 +23,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.8"
+    "@astrojs/check": "0.9.8",
+    "vitest": "4.1.10"
   },
   "overrides": {
     "esbuild": "0.28.1",

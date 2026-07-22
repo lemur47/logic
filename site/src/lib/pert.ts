@@ -1,5 +1,7 @@
 // PERT estimation logic — port of app/pert/core.py (single-task only)
 
+import { round2, round4 } from "./round";
+
 export interface InsightTag {
   name: string;
   description: string;
@@ -62,9 +64,7 @@ export const DEFAULT_TAGS: InsightTag[] = [
   HIDDEN_DEPENDENCIES,
 ];
 
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
+// Rounding must match Python's half-to-even, not JS's half-up. See ./round.ts.
 
 export function pertStats(o: number, m: number, p: number): PertStats {
   const expected = (o + 4 * m + p) / 6;
@@ -94,14 +94,14 @@ export function applyTags(
     tagsApplied.push({
       name: sel.tag.name,
       severity: sel.severity,
-      multiplier: round2(effective * 10000) / 10000,
+      multiplier: round4(effective),
     });
   }
 
   return {
     adjustedP: pessimistic * combinedMultiplier,
     tagsApplied,
-    combinedMultiplier: round2(combinedMultiplier * 10000) / 10000,
+    combinedMultiplier: round4(combinedMultiplier),
   };
 }
 
