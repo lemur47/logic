@@ -3,6 +3,10 @@
 #
 # Install: uv pip install pre-commit && pre-commit install
 # Update: pre-commit autoupdate
+#
+# Two stages are wired, so `pre-commit install` alone is enough — without
+# default_install_hook_types the commit-msg guard installs silently as a no-op.
+default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   # Security - Gitleaks (v8.30.0+ uses 'gitleaks dir' command)
@@ -37,6 +41,22 @@ repos:
           - "--verbosity=error"
           - "--recursive"
           - "."
+
+  # Security - Airtable ID guard (commit MESSAGE surface)
+  #
+  # gitleaks above scans staged file content; it cannot see the commit message,
+  # which is never a file in the working tree. This closes that surface, and
+  # being tracked here it also covers commits made outside the agent
+  # environment. The companion PreToolUse hook (same script, --hook) covers
+  # `gh pr`/`gh issue` bodies but lives in gitignored settings, so it does not
+  # travel with a clone.
+  - repo: local
+    hooks:
+      - id: airtable-id-guard
+        name: Airtable ID guard (commit message)
+        entry: python scripts/check-airtable-ids.py
+        language: system
+        stages: [commit-msg]
 
   # Code Quality - Ruff (linting + formatting)
   - repo: https://github.com/astral-sh/ruff-pre-commit
