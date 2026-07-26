@@ -9,6 +9,7 @@ The skills in [`../`](../README.md) (PERT, EVM, TCO, Monte Carlo) encode executa
 | [anonymisation](anonymisation/SKILL.md) | Extract lessons from real engagement experience without exposing the parties, before anything reaches a public surface. |
 | [content-cadence](content-cadence/SKILL.md) | Turn one R&D artefact into one post (briefing or deep dive) plus a LinkedIn derivative, with the anonymisation gate and editorial conventions enforced. |
 | [cleanup](cleanup/SKILL.md) | Sweep the surfaces that carry durable claims — README, agent instruction files, docs, shared memory — for statements reality has moved past, and correct them or mark them unverified. |
+| [session-rituals](session-rituals/SKILL.md) | Open and close a working session: reconcile shared memory against repo and tracker ground truth, absorb what arrived, and leave a handover the next session can boot from. Invoked via [`/boot-ritual` and `/close-ritual`](../../commands/operational/README.md). |
 
 ## Org calibration via local overlay
 
