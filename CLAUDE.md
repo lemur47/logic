@@ -129,7 +129,7 @@ Every new module follows this pipeline:
 - Ruff lint rules: E, F, FAST, I, N, W, B, C4, UP, SIM (with E501 and B008 ignored)
 - Pyright basic mode on `app/` only
 - SQLite for development (`logic.db`, gitignored)
-- Pre-commit hooks: gitleaks, opengrep, osv-scanner, ruff, pyright, pytest, standard hygiene checks
+- Pre-commit hooks: gitleaks, opengrep, osv-scanner, ruff, pyright, pytest, standard hygiene checks. A `commit-msg`-stage hook (`scripts/check-airtable-ids.py`, id `airtable-id-guard`) additionally scans the commit *message*, which gitleaks cannot see. `default_install_hook_types` wires both stages on a plain `pre-commit install` — but **do not set `core.hooksPath`**: pre-commit refuses to install while it is set, so the message guard silently never arrives.
 
 ## System Dependencies
 
