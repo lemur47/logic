@@ -51,6 +51,14 @@ The EVM, TCO, and Monte Carlo Skills handle stateless calculations. For persiste
 logic/
 ├── app/          # FastAPI service (deterministic execution)
 ├── examples/     # Standalone PoCs (prove the math)
+├── mcp_server/   # Lean stdio MCP server (pmorun-mcp on PyPI)
+├── scripts/      # Repo tooling invoked by hooks (not application code)
+├── commands/     # Slash commands, symlinked into the user scope
+│   └── operational/
+│       ├── boot-ritual.md
+│       ├── close-ritual.md
+│       ├── ship.md
+│       └── README.md
 ├── skills/       # Claude Skills (conversational execution)
 │   ├── pert/
 │   │   └── SKILL.md
@@ -62,12 +70,18 @@ logic/
 │   │   └── SKILL.md
 │   ├── operational/
 │   │   ├── anonymisation/
-│   │   │   └── SKILL.md
+│   │   ├── content-cadence/
+│   │   ├── cleanup/
+│   │   ├── session-rituals/   # SKILL.md + BOOT.md + CLOSE.md
+│   │   ├── ship/
 │   │   └── README.md
 │   └── README.md
 ├── site/         # pmo.run website (interactive UI)
 └── docs/         # Strategy and documentation
 ```
+
+Each operational skill directory holds a `SKILL.md` and, where the organisation
+needs its own values, a gitignored `CALIBRATION.local.md` beside it.
 
 Same logic, four interfaces: code, API, conversation, browser.
 
