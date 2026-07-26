@@ -183,6 +183,12 @@ Same logic, conversational interface. Add a `SKILL.md` to a [Claude Project](htt
 
 See [`skills/README.md`](skills/README.md) for details.
 
+Alongside these, [`skills/operational/`](skills/operational/README.md) holds a
+different class — guardrails on *how the work is done* rather than decision
+maths, with organisation specifics kept in gitignored overlays. Two of them are
+invocable as slash commands; see
+[`commands/operational/`](commands/operational/README.md).
+
 ## Docs
 
 - [`CLAUDE.md`](CLAUDE.md) — Commands, architecture details, code style conventions
