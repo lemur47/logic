@@ -10,6 +10,7 @@ The skills in [`../`](../README.md) (PERT, EVM, TCO, Monte Carlo) encode executa
 | [content-cadence](content-cadence/SKILL.md) | Turn one R&D artefact into one post (briefing or deep dive) plus a LinkedIn derivative, with the anonymisation gate and editorial conventions enforced. |
 | [cleanup](cleanup/SKILL.md) | Sweep the surfaces that carry durable claims — README, agent instruction files, docs, shared memory — for statements reality has moved past, and correct them or mark them unverified. |
 | [session-rituals](session-rituals/SKILL.md) | Open and close a working session: reconcile shared memory against repo and tracker ground truth, absorb what arrived, and leave a handover the next session can boot from. Invoked via [`/boot-ritual` and `/close-ritual`](../../commands/operational/README.md). |
+| [ship](ship/SKILL.md) | Drive a change from working tree to merge-ready: reproduce the gates exactly as CI runs them, triage whose red it is, sequence the merge — and never make a check pass by weakening it. Invoked via [`/ship`](../../commands/operational/README.md). |
 
 ## Org calibration via local overlay
 

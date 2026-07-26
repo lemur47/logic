@@ -12,6 +12,7 @@ user scope so they are available from **every** repository rather than one.
 |---------|---------|
 | [`/boot-ritual`](boot-ritual.md) | Open a session — read shared memory, verify it against repo and tracker ground truth, correct what drifted, classify inbound pull requests, report, and hand into planning or execution. |
 | [`/close-ritual`](close-ritual.md) | Close a session — write changes back to shared memory, sweep durable claims for staleness, open a doc pull request if needed, and log a handover the next session or machine can boot from. |
+| [`/ship`](ship.md) | Drive the current change to a merge-ready pull request — reproduce the gates as CI runs them, triage any red, sequence the merge, and stop at green-awaiting-approval. |
 
 Both invoke the [`session-rituals`](../../skills/operational/session-rituals/SKILL.md)
 skill, which keeps universal method in the tracked files and organisation
