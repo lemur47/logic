@@ -33,12 +33,22 @@ Every programme this ritual serves is described by one row: which repository is
 its ground truth, which memory namespace it boots from, which tracker holds its
 approved work, and which files carry its durable claims.
 
-That register is organisation-specific and lives in `CALIBRATION.local.md`
-alongside this file — namespaces, tracker identifiers, base and table
-identifiers, and machine ownership are not universal method and must not be
-committed. **If the overlay is missing, stop and say so.** Guessing a namespace
-writes memory nobody will read again; guessing a tracker filter silently returns
-nothing and looks like "no open work".
+That register is organisation-specific and must not be committed — namespaces,
+tracker identifiers, base and table identifiers, and machine ownership are not
+universal method. Resolve it in this order and take the first hit:
+
+1. `<repo>/.claude/calibration/session-rituals.local.md` — a repository carrying
+   its own
+2. `~/.claude/calibration/operational.local.md` — the machine-wide register,
+   serving every programme worked on from this machine
+3. `CALIBRATION.local.md` beside this file — a single-programme overlay
+
+Rung 2 is the usual home, because one machine typically serves several
+programmes and the register's whole job is to tell them apart.
+
+**If no overlay resolves, stop and say so.** Guessing a namespace writes memory
+nobody will read again; guessing a tracker filter silently returns nothing and
+looks like "no open work".
 
 Resolve the programme from the working directory before anything else. If the
 directory maps to no row, or to more than one, ask rather than assume.

@@ -11,7 +11,7 @@ reference, and follow it step by step.
 **Target:** $ARGUMENTS
 
 If that is empty, resolve the programme from the current working directory using
-the register in the skill's `CALIBRATION.local.md`.
+the calibration register, found via the lookup order in the skill's `SKILL.md`.
 
 Hold to these for this run:
 
