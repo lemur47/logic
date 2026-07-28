@@ -80,8 +80,10 @@ logic/
 └── docs/         # Strategy and documentation
 ```
 
-Each operational skill directory holds a `SKILL.md` and, where the organisation
-needs its own values, a gitignored `CALIBRATION.local.md` beside it.
+Each operational skill directory holds a `SKILL.md`. Where the organisation needs
+its own values, they live in a gitignored calibration overlay — beside the skill,
+in the repository, or machine-wide. See
+[`operational/README.md`](operational/README.md).
 
 Same logic, four interfaces: code, API, conversation, browser.
 
