@@ -5,7 +5,8 @@ you were away, and hand the session a starting point.
 
 Read [`SKILL.md`](SKILL.md) first — precedence, triage and the guardrails apply
 throughout. Resolve the programme from the working directory and load its row
-from `CALIBRATION.local.md` before step 1.
+from the calibration register, using the lookup order `SKILL.md` gives, before
+step 1.
 
 ## 1. Read the Memory Layer
 

@@ -12,8 +12,8 @@ whole point of the ritual is that it is executed rather than recalled.
 **Target:** $ARGUMENTS
 
 If that is empty, resolve the programme from the current working directory using
-the register in the skill's `CALIBRATION.local.md`. If the directory matches no
-row, or more than one, ask rather than assume.
+the calibration register, found via the lookup order in the skill's `SKILL.md`.
+If the directory matches no row, or more than one, ask rather than assume.
 
 Hold to these for this run:
 

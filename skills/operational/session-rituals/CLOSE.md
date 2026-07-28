@@ -5,7 +5,7 @@ and leave a handover that a different session — or a different machine — can
 boot from without asking anyone.
 
 Read [`SKILL.md`](SKILL.md) first. Resolve the programme and load its row from
-`CALIBRATION.local.md` before step 1.
+the calibration register, using the lookup order `SKILL.md` gives, before step 1.
 
 ## 1. Establish What This Session Changed
 
