@@ -16,8 +16,10 @@ user scope so they are available from **every** repository rather than one.
 
 Both invoke the [`session-rituals`](../../skills/operational/session-rituals/SKILL.md)
 skill, which keeps universal method in the tracked files and organisation
-specifics in a gitignored `CALIBRATION.local.md` overlay — the same
-public-logic / private-calibration split used throughout this repository.
+specifics in a gitignored calibration overlay — resolved by the three-rung
+lookup described in [`skills/operational/README.md`](../../skills/operational/README.md),
+and never committed. The same public-logic / private-calibration split is used
+throughout this repository.
 
 ## Activation
 

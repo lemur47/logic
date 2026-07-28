@@ -9,7 +9,7 @@ Consulting and PMO content is credible because it draws on real experience. That
 
 If you cannot satisfy this rule, drop the example and use an industry baseline.
 
-> **This skill is organisation-neutral.** The values specific to your organisation — who your core audience is, who owns confidentiality sign-off, which agreements bind you — live in a local overlay (`CALIBRATION.local.md`) kept out of version control, not in this file. Create your own from the template in this directory's README. The four-layer structure and decision procedure below are universal.
+> **This skill is organisation-neutral.** The values specific to your organisation — who your core audience is, who owns confidentiality sign-off, which agreements bind you — live in a local overlay (`CALIBRATION.local.md`) kept out of version control, not in this file. Create your own following [`skills/operational/README.md`](../README.md), which describes the overlay's minimum contents and where it may live. The four-layer structure and decision procedure below are universal.
 >
 > **The examples below are illustrative and fictional.** They demonstrate the *failure modes*, not real engagements, and they name no real party. Keep it that way: when editing this skill, never replace a fictional example with a real case, even as a "bad" one. A document about anonymisation must itself be anonymised.
 
