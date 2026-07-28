@@ -42,8 +42,20 @@ test verifies:
 4. **Shared memory / knowledge stores** — the highest-risk surface, because it is
    consulted at session boot and rarely re-read critically.
 
-The organisation's specific paths, namespaces and owners belong in
-`CALIBRATION.local.md` alongside this file, not here.
+The organisation's specific paths, namespaces and owners belong in a calibration
+overlay, never here. Resolve it in this order and take the first hit:
+
+1. `<repo>/.claude/calibration/cleanup.local.md` — a repository carrying its own
+2. `~/.claude/calibration/operational.local.md` — the machine-wide register,
+   serving every programme worked on from this machine
+3. `CALIBRATION.local.md` beside this file — a single-programme overlay
+
+Rung 2 exists because one machine usually serves several repositories, and a
+sweep is most needed in the ones that have no overlay of their own. Rung 1 wins
+where a repository's values are genuinely its own.
+
+**If no overlay resolves, stop and say so.** A sweep guessing at surfaces
+examines the wrong things and reports a clean bill for them.
 
 ## Method
 
@@ -124,7 +136,7 @@ When in doubt, prefer correcting. A short, accurate fragment costs almost
 nothing to keep; a deletion that loses the only record of why something is the
 way it is cannot be undone.
 
-The store's deletion facility is named in `CALIBRATION.local.md` — it differs
+The store's deletion facility is named in the calibration overlay — it differs
 per organisation, and naming it here would tie a universal method to one vendor.
 
 ### 6. Report
