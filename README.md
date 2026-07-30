@@ -168,7 +168,9 @@ uvx pmorun-mcp                                # run the published server
 claude mcp add pmo-logic -- uvx pmorun-mcp    # or one line into Claude Code
 ```
 
-Four tools over stdio: task duration estimation (PERT), schedule risk (Monte Carlo), investment comparison (TCO) and project health (EVM). See [`mcp_server/README.md`](mcp_server/README.md) for pinning and client configuration.
+Four tools over stdio by default: task duration estimation (PERT), schedule risk (Monte Carlo), investment comparison (TCO) and project health (EVM).
+
+Set `PMORUN_DB` to a writable file path and four more register — an opt-in **calibration memory** that records what you estimated, then what actually happened, and learns your systematic bias from the pairs. Leave the variable unset and the server writes nothing at all. See [`mcp_server/README.md`](mcp_server/README.md) for pinning, client configuration, and the storage caveats.
 
 ## Claude Skills
 

@@ -47,7 +47,12 @@ pyright
 opengrep scan --config auto --config .opengrep/ --scan-unknown-extensions .
 
 # Dependency vulnerability scan (SCA)
-osv-scanner scan source --recursive .
+# --config is NOT optional: without it the auto-discovered root config does not
+# apply to the nested lockfiles, so osv reports its own waivers as "unused
+# ignores" and then prints them as live findings. That looks exactly like three
+# expired suppressions, and the tempting "fix" is to edit osv-scanner.toml.
+# This is the invocation the pre-commit hook and the CI job both use.
+osv-scanner scan source --config=osv-scanner.toml --recursive .
 
 # Run all pre-commit hooks
 pre-commit run --all-files
