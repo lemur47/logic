@@ -57,6 +57,11 @@ TIMEOUT_SECONDS = 300
 
 READ_CHUNK = 65536
 
+# A ceiling on one un-terminated frame. Far above any real MCP response, and there
+# only so that a server streaming without ever writing a newline fails with a clear
+# reason instead of growing the buffer until the deadline or memory runs out.
+MAX_FRAME_BYTES = 8 * 1024 * 1024
+
 
 class FrameReader:
     """Newline-delimited JSON frames from a pipe, with a wait that actually bounds.
@@ -93,6 +98,9 @@ class FrameReader:
                 self.reason = "eof"
                 return None
             self._buffer += chunk
+            if len(self._buffer) > MAX_FRAME_BYTES:
+                self.reason = "oversize"
+                return None
 
 
 def _send(proc: subprocess.Popen[bytes], message: dict) -> None:
@@ -118,7 +126,14 @@ def _read_response(reader: FrameReader, want_id: int, timeout: float) -> dict | 
             continue
         try:
             message = json.loads(stripped)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            # Both must be caught, and only one of them is obvious. `json.loads` on
+            # bytes decodes internally, so a non-UTF-8 byte on stdout raises
+            # UnicodeDecodeError — which is NOT a subclass of JSONDecodeError, and
+            # went uncaught here at first. The effect was a traceback blaming this
+            # harness for a server that had merely logged a latin-1 line, in the one
+            # tool whose job is to diagnose broken builds. Skip the frame instead:
+            # a garbage line is not a verdict.
             continue
         if isinstance(message, dict) and message.get("id") == want_id:
             return message
@@ -128,6 +143,12 @@ def _explain(reader: FrameReader, what: str, timeout: float) -> None:
     if reader.reason == "timeout":
         print(
             f"smoke: FAIL — no {what} within {timeout}s. The server started and is not answering.",
+            file=sys.stderr,
+        )
+    elif reader.reason == "oversize":
+        print(
+            f"smoke: FAIL — no {what}; the server wrote more than "
+            f"{MAX_FRAME_BYTES} bytes without completing a line.",
             file=sys.stderr,
         )
     else:
@@ -229,6 +250,10 @@ def main() -> int:
         reader.close()
         if proc.stdin is not None:
             proc.stdin.close()
+        # We read the descriptor directly, so this wrapper never gets used — but it
+        # still owns the fd, and leaving it open prints a ResourceWarning over an
+        # otherwise-clean PASS for anyone running with warnings as errors.
+        proc.stdout.close()
         proc.terminate()
         try:
             proc.wait(timeout=10)
