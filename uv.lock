@@ -1178,7 +1178,7 @@ wheels = [
 
 [[package]]
 name = "pmorun-mcp"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "mcp", extra = ["cli"] },
@@ -1214,7 +1214,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], marker = "extra == 'app'", specifier = ">=0.128.0" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },
     { name = "matplotlib", marker = "extra == 'analysis'", specifier = ">=3.9.0" },
-    { name = "mcp", extras = ["cli"], specifier = ">=1.0" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.2,<2" },
     { name = "numpy", specifier = ">=2.2.0" },
     { name = "pandas", marker = "extra == 'analysis'", specifier = ">=2.2.0" },
     { name = "pmorun-mcp", extras = ["app"], marker = "extra == 'dev'" },

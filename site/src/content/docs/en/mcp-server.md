@@ -27,19 +27,19 @@ The quickest path runs the server without installing anything permanent — `uvx
 
 ```bash
 uvx pmorun-mcp           # latest release
-uvx pmorun-mcp@0.1.1     # pinned to this release (recommended)
+uvx pmorun-mcp@0.2.0     # pinned to this release (recommended)
 ```
 
-Pinning to `@0.1.1` gives a reproducible install from the immutable PyPI artefact; drop the pin to track the latest.
+Pinning to `@0.2.0` gives a reproducible install from the immutable PyPI artefact; drop the pin to track the latest.
 
-Prefer a persistent install? `uv pip install "pmorun-mcp==0.1.1"` (or plain `pip install "pmorun-mcp==0.1.1"`) gives you a `pmorun-mcp` console command.
+Prefer a persistent install? `uv pip install "pmorun-mcp==0.2.0"` (or plain `pip install "pmorun-mcp==0.2.0"`) gives you a `pmorun-mcp` console command.
 
 ## Wire It Into Claude
 
 For Claude Code, one line:
 
 ```bash
-claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1   # or drop @0.1.1 to track latest
+claude mcp add pmo-logic -- uvx pmorun-mcp@0.2.0   # or drop @0.2.0 to track latest
 ```
 
 For Claude Desktop, add this to `claude_desktop_config.json`:
@@ -49,13 +49,21 @@ For Claude Desktop, add this to `claude_desktop_config.json`:
   "mcpServers": {
     "pmo-logic": {
       "command": "uvx",
-      "args": ["pmorun-mcp@0.1.1"]
+      "args": ["pmorun-mcp@0.2.0"]
     }
   }
 }
 ```
 
 Restart, and the four tools appear under the `pmo-logic` server.
+
+Four more join them if you point `PMORUN_DB` at a writable file path — an opt-in
+**calibration memory** that records what you estimated, then what actually
+happened, and learns your systematic bias from the pairs. Leave the variable unset
+and the server stays entirely stateless, writing nothing anywhere. The database is
+a plain unencrypted local SQLite file, so choose its location accordingly; the
+[package README](https://github.com/lemur47/logic/blob/main/mcp_server/README.md)
+covers the tools and the caveats in full.
 
 ## Ask a Real Question
 

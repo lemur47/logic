@@ -1,7 +1,7 @@
 """
 Calibration-memory tests (opt-in estimation log + Bayesian summary).
 
-Covers: the registration flag contract (no PMORUN_DB → exactly the four v0.1
+Covers: the registration flag contract (no PMORUN_DB → exactly the four classic
 tools, byte-identical stateless behaviour; PMORUN_DB set → the four calibration
 tools join), the record → actual → summarise round-trip, the Bayesian summary
 maths against hand-computed conjugate updates, the log-grounded
@@ -18,7 +18,7 @@ import pytest
 from mcp_server import calibration_tools, storage
 from mcp_server.errors import ToolComputationError, ToolValidationError
 
-V01_TOOLS = {
+CLASSIC_TOOLS = {
     "estimate_task_duration",
     "identify_schedule_risk",
     "compare_investment_options",
@@ -69,12 +69,12 @@ class TestRegistrationFlag:
         monkeypatch.delenv(storage.ENV_VAR, raising=False)
         server = _reload_server()
         names = {t.name for t in await server.mcp.list_tools()}
-        assert names == V01_TOOLS
+        assert names == CLASSIC_TOOLS
 
     async def test_env_var_registers_the_calibration_tools(self, log_db, restore_server_module):
         server = _reload_server()
         names = {t.name for t in await server.mcp.list_tools()}
-        assert names == V01_TOOLS | CALIBRATION_TOOLS
+        assert names == CLASSIC_TOOLS | CALIBRATION_TOOLS
 
     async def test_calibration_descriptions_lead_with_decision_question(
         self, log_db, restore_server_module
@@ -88,6 +88,46 @@ class TestRegistrationFlag:
         monkeypatch.delenv(storage.ENV_VAR, raising=False)
         with pytest.raises(ToolValidationError, match="not enabled"):
             calibration_tools.record_estimate("infra", 1, 2, 3)
+
+
+# =============================================================================
+# PMORUN_DB pointing somewhere that does not exist yet
+#
+# The documented instruction is "set PMORUN_DB to a writable file path", and the
+# obvious way to follow it is a path under a directory that does not exist. Before
+# this was handled, the four tools registered and then failed on first call with a
+# generic internal error naming neither the path nor the cause. No automated check
+# covered it — it was found by pointing a real client at a fresh path.
+# =============================================================================
+
+
+class TestPathCreation:
+    def test_missing_parent_directories_are_created(self, tmp_path, monkeypatch):
+        db = tmp_path / "does" / "not" / "exist" / "calibration.db"
+        monkeypatch.setenv(storage.ENV_VAR, str(db))
+
+        result = calibration_tools.record_estimate("infra", 0.2, 0.4, 0.8)
+
+        assert result["estimate_id"] == 1
+        assert db.exists(), "the log file itself should have been created"
+        assert db.parent.is_dir(), "the parent directories should have been created"
+
+    def test_unwritable_location_names_the_path_and_the_reason(self, tmp_path, monkeypatch):
+        # A file where a directory needs to be: makedirs cannot create under it.
+        blocker = tmp_path / "blocker"
+        blocker.write_text("not a directory")
+        db = blocker / "nested" / "calibration.db"
+        monkeypatch.setenv(storage.ENV_VAR, str(db))
+
+        with pytest.raises(ToolValidationError) as excinfo:
+            calibration_tools.record_estimate("infra", 0.2, 0.4, 0.8)
+
+        message = str(excinfo.value)
+        assert storage.ENV_VAR in message, "the message must name the variable"
+        assert str(db) in message, "the message must name the path that failed"
+        # The whole point of the fix: a configuration problem must not arrive as an
+        # opaque internal error.
+        assert "InternalError" not in message
 
 
 # =============================================================================

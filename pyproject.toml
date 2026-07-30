@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pmorun-mcp"
-version = "0.1.1"
+version = "0.2.0"
 description = "pmo.run MCP server — classic PMO decision tools (PERT, Monte Carlo, TCO, EVM) over the Model Context Protocol."
 readme = "mcp_server/README.md"
 # Floor is 3.12, not lower: the shipped import graph uses PEP 695 type-parameter
@@ -41,8 +41,29 @@ keywords = [
 # transport — that is the SDK's requirement, not ours, and unavoidable short of
 # vendoring it.) numpy is used by tools.py and montecarlo.core; scipy.stats by
 # montecarlo.core — both genuinely required.
+#
+# BOTH `mcp` bounds are load-bearing, and they bound the same fact: the range must
+# admit only versions that actually contain `mcp.server.fastmcp`, which server.py
+# imports.
+#
+# Upper: mcp 2.0.0 REMOVED FastMCP — not moved: there is no `class FastMCP`
+# anywhere in the 2.x package and `mcp/server/` is an entirely new layout. Without
+# the bound, `uvx pmorun-mcp` resolved 2.0.0 fresh from PyPI and every new install
+# died at import, on every machine, while CI stayed green because uv.lock pins 1.x.
+# A lockfile proves the repo works; it never proves the release works.
+#
+# Lower: `mcp.server.fastmcp` first appears in **1.2.0**. Checked against every 1.x
+# release below it — 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3 — and all of them fail
+# identically; they also declare no extras at all, so `mcp[cli]` is not even
+# satisfiable there. The old `>=1.0` floor was therefore wrong in exactly the way
+# the upper bound was — it only bites when a resolver is pushed low (a co-installed
+# constraint, or `--resolution lowest`), which is why nothing noticed.
+#
+# So lift the upper bound only as part of a deliberate port — either to the 2.x
+# server API or to the standalone `fastmcp` package — which also touches
+# tests/mcp_server/test_tools.py.
 dependencies = [
-    "mcp[cli]>=1.0",
+    "mcp[cli]>=1.2,<2",
     "numpy>=2.2.0",
     "pydantic>=2.0",
     "scipy>=1.15.0",

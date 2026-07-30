@@ -1,7 +1,7 @@
 """
 Calibration-memory MCP tools (opt-in — registered only when ``PMORUN_DB`` is set).
 
-These tools close the estimation feedback loop the four v0.1 tools cannot: record
+These tools close the estimation feedback loop the four classic tools cannot: record
 a three-point estimate, later record what actually happened, and let conjugate
 Bayesian updating (``app.bayesian.core``) turn the accumulated (estimated, actual)
 pairs into a calibrated delay factor. They also re-enable the previously parked

@@ -1,13 +1,16 @@
 """
-pmo.run MCP server (v0.1).
+pmo.run MCP server.
 
 Exposes the pure-function ``app.{module}.core`` layer to MCP clients via FastMCP
 over stdio. Designed for composition: an LLM combines these decision-logic tools
 with a data-source MCP (e.g. Airtable) to answer PMO questions a spreadsheet
 formula alone cannot.
 
-v0.1 ships four classic PMO tools — PERT, Monte Carlo (schedule), TCO and EVM.
-stdio transport only; no auth, no hosting (those are the v0.2 hosted lane).
+The tool surface is **conditional**, so state the condition rather than a count:
+four classic PMO tools always — PERT, Monte Carlo (schedule), TCO and EVM — plus
+four calibration-memory tools when ``PMORUN_DB`` is set (see below). stdio
+transport only; no auth and no hosted component here. Hosting is a separate
+product, not a later version of this package.
 
 Run:
     uv run python -m mcp_server.server     # from a source checkout
@@ -24,7 +27,7 @@ from . import storage, tools
 
 mcp = FastMCP("pmo-logic")
 
-# Register the four v0.1 tools — each a thin adapter over the corresponding
+# Register the four always-on tools — each a thin adapter over the corresponding
 # app.{module}.core function, with shared Pydantic models in and out. See
 # tools.py for implementations.
 mcp.tool()(tools.estimate_task_duration)

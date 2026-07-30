@@ -27,19 +27,19 @@ order: 2
 
 ```bash
 uvx pmorun-mcp           # 最新リリース
-uvx pmorun-mcp@0.1.1     # このリリースに固定（推奨）
+uvx pmorun-mcp@0.2.0     # このリリースに固定（推奨）
 ```
 
-`@0.1.1`で固定すると、不変のPyPI成果物から再現性のあるインストールになります。固定を外せば常に最新を追従します。
+`@0.2.0`で固定すると、不変のPyPI成果物から再現性のあるインストールになります。固定を外せば常に最新を追従します。
 
-恒久的に入れたい場合は、`uv pip install "pmorun-mcp==0.1.1"`（または通常の`pip install "pmorun-mcp==0.1.1"`）で`pmorun-mcp`コマンドが使えるようになります。
+恒久的に入れたい場合は、`uv pip install "pmorun-mcp==0.2.0"`（または通常の`pip install "pmorun-mcp==0.2.0"`）で`pmorun-mcp`コマンドが使えるようになります。
 
 ## Claudeへの接続
 
 Claude Codeなら一行です：
 
 ```bash
-claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1   # @0.1.1 を外せば最新を追従
+claude mcp add pmo-logic -- uvx pmorun-mcp@0.2.0   # @0.2.0 を外せば最新を追従
 ```
 
 Claude Desktopの場合は、`claude_desktop_config.json`に以下を追加します：
@@ -49,13 +49,15 @@ Claude Desktopの場合は、`claude_desktop_config.json`に以下を追加し�
   "mcpServers": {
     "pmo-logic": {
       "command": "uvx",
-      "args": ["pmorun-mcp@0.1.1"]
+      "args": ["pmorun-mcp@0.2.0"]
     }
   }
 }
 ```
 
 再起動すると、`pmo-logic`サーバーの下に四つのツールが現れます。
+
+`PMORUN_DB`に書き込み可能なファイルパスを指定すると、さらに四つが加わります。見積もりと実績を記録し、その対から見積もりの偏りを学ぶ、任意選択の**較正メモリ**です。この変数を設定しなければ、サーバーは何も書き込まず、完全に無状態のまま動きます。データベースは暗号化されていないローカルのSQLiteファイルなので、置き場所は相応に選んでください。ツールと注意点の詳細は[パッケージのREADME](https://github.com/lemur47/logic/blob/main/mcp_server/README.md)にあります。
 
 ## 実際の問いを投げる
 

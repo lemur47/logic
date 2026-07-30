@@ -1,6 +1,11 @@
 # Release workflow — publishes pmorun-mcp to PyPI on a version tag.
 #
-# Trigger: pushing a tag matching v* (e.g. v0.1.0).
+# Triggers:
+#   - pushing a tag matching v* (e.g. v0.1.0) → the real publish to PyPI.
+#   - workflow_dispatch → a REHEARSAL. It can never reach production PyPI: the
+#     only offered targets are "none" and "testpypi", so the safety is structural
+#     rather than a convention someone has to remember.
+#
 # Auth: OIDC Trusted Publishing — no long-lived PyPI token / no secrets.
 #       The publish job mints a short-lived OIDC token that PyPI exchanges for
 #       upload rights, scoped to this repo + the `pypi` environment.
@@ -10,7 +15,14 @@
 # action — gh-action-pypi-publish, previously the mutable `release/v1` branch
 # ref — is the highest-value pin in the repo.
 #
-# One-time setup before the first release: see docs/RELEASING.md.
+# Why a rehearsal trigger exists at all: this workflow's only consumer was a tag
+# push, so no pull request has ever exercised it and every change to it went live
+# unverified at the one moment it mattered. Dispatching it with target "none"
+# exercises checkout, setup-python, the build, and the artifact round-trip without
+# uploading anything anywhere.
+#
+# One-time setup before the first release, and before the first testpypi
+# rehearsal: see docs/RELEASING.md.
 
 name: Release
 
@@ -18,6 +30,15 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Rehearsal target. Production PyPI is deliberately not offered here — only a tag push publishes for real."
+        type: choice
+        options:
+          - none
+          - testpypi
+        default: none
 
 permissions:
   contents: read
@@ -35,8 +56,10 @@ jobs:
           python-version: "3.12" # the package support floor
 
       # PyPI versions are immutable — fail fast if the tag and the packaged
-      # version disagree, before anything is built or uploaded.
+      # version disagree, before anything is built or uploaded. Skipped on a
+      # rehearsal, where there is no version tag to check against.
       - name: Guard — tag must match pyproject version
+        if: github.event_name == 'push'
         env:
           TAG: ${{ github.ref_name }}
         run: |
@@ -61,11 +84,53 @@ jobs:
           name: dist
           path: dist/
 
-  publish:
+  # Install the built wheel the way a USER gets it — no lockfile in the picture —
+  # and make the server answer a real MCP handshake. This is the control whose
+  # absence let 0.1.1 ship unusable: its `mcp` requirement had no upper bound, and
+  # `uv.lock` hid that from every other gate. Resolving fresh here is the whole
+  # point; do not "fix" a red in this job by installing from the lockfile.
+  smoke:
     needs: build
     runs-on: ubuntu-latest
-    # The GitHub environment the PyPI trusted publisher is scoped to.
-    environment: pypi
+    # The handshake bounds its own waits, but a wedged install step would otherwise
+    # sit on the runner's 6-hour default before telling anyone.
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12" # the package support floor
+
+      - name: Download distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist/
+
+      - name: Install the wheel with dependencies resolved fresh from PyPI
+        run: |
+          python -m venv .smoke
+          .smoke/bin/python -m pip install --quiet --upgrade pip
+          .smoke/bin/python -m pip install --quiet dist/*.whl
+
+      # PMORUN_DB is deliberately unset, so this asserts the DEFAULT surface.
+      # If a release intentionally changes that count, change it here too — this
+      # is the assertion the published docs are checked against.
+      - name: Make the server answer
+        run: python scripts/mcp_smoke.py --expect-tools 4 -- .smoke/bin/pmorun-mcp
+
+  publish:
+    needs: [build, smoke]
+    # A tag push publishes for real. A rehearsal only publishes if it explicitly
+    # asked for TestPyPI; with target "none" the run stops after the smoke test.
+    if: github.event_name == 'push' || inputs.target == 'testpypi'
+    runs-on: ubuntu-latest
+    # The GitHub environment the matching trusted publisher is scoped to. On a
+    # rehearsal this is `testpypi`, which cannot publish to production PyPI even
+    # if the repository-url below were wrong.
+    environment: ${{ github.event_name == 'push' && 'pypi' || 'testpypi' }}
     permissions:
       id-token: write # required for OIDC; this is the only elevated scope
     steps:
@@ -75,5 +140,14 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish to PyPI
+      - name: Publish
         uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # release/v1
+        with:
+          repository-url: ${{ github.event_name == 'push' && 'https://upload.pypi.org/legacy/' || 'https://test.pypi.org/legacy/' }}
+          # TestPyPI versions are immutable too, so without this a second rehearsal
+          # of the same version fails with "file already exists" — and the release
+          # checklist asks for a green rehearsal before every tag, which would then
+          # be unsatisfiable after the first attempt. Scoped to rehearsals on
+          # purpose: on a real publish a version collision is a genuine mistake
+          # (usually a re-tag) and must fail loudly rather than be skipped.
+          skip-existing: ${{ github.event_name != 'push' }}

@@ -1,11 +1,11 @@
 """
-MCP tool implementations (v0.1 — four classic PMO tools).
+MCP tool implementations — the four classic PMO tools, always registered.
 
 Each public, registered function is exposed as an MCP tool by ``server.py``. Tools
 are verb-noun named, and every description leads with the *decision question* —
 that is what helps an LLM pick the right tool, not the underlying maths.
 
-Design rules for v0.1:
+Design rules:
 
 - **One core, multiple surfaces.** Imports flow ``mcp_server/ → app.{module}.core``
   (pure functions only). We never import FastAPI, routers, or DB models here, so the
@@ -142,7 +142,7 @@ def identify_schedule_risk(
         tasks: The task network. Each task has ``name``, three-point estimates
             (``optimistic`` / ``most_likely`` / ``pessimistic``, same time unit), and
             an optional ``depends_on`` list of predecessor task names. (``risk_class``
-            is reserved for v0.2 drift simulation and is ignored here.)
+            is reserved for a future drift simulation and is ignored here.)
             Note: if **no** task in the network declares a ``depends_on`` the tasks
             are assumed to form a sequential chain (durations sum) — bare tasks are
             *not* inferred to run in parallel. Declare ``depends_on`` to model genuine
@@ -299,13 +299,16 @@ def estimate_from_history(
     """Estimate a task's duration by composing past actual durations with
     calibration knobs and insight tags.
 
-    PARKED for v0.1 — see the section banner above. Kept intact for re-enablement.
+    Registered only when ``PMORUN_DB`` is set — see the section banner above. This
+    is the pure implementation; the log-grounded wrapper in calibration_tools.py
+    registers under this tool's name and feeds it recorded actuals.
 
     Use when: you have observed past durations for similar tasks and want a
     calibrated estimate, not a guess. Layer 2 (pre-PERT) translates history into M
     and P; Layer 1 (post-PERT) widens the tail via insight tags.
 
-    **v0.1 calibration formula** — subject to revision once we have field data:
+    **Calibration formula — placeholder coefficients**, subject to revision once we
+    have field data:
 
         base_M = median(past_actuals)
         base_spread = max(past_actuals) - base_M     # if len >= 2
