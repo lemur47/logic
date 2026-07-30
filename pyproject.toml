@@ -52,11 +52,12 @@ keywords = [
 # died at import, on every machine, while CI stayed green because uv.lock pins 1.x.
 # A lockfile proves the repo works; it never proves the release works.
 #
-# Lower: `mcp.server.fastmcp` first appears in **1.2.0**. Releases 1.0.0, 1.1.0 and
-# 1.1.1 fail identically, and they declare no extras at all, so `mcp[cli]` is not
-# even satisfiable there. The old `>=1.0` floor was therefore wrong in exactly the
-# way the upper bound was — it only bites when a resolver is pushed low (a
-# co-installed constraint, or `--resolution lowest`), which is why nothing noticed.
+# Lower: `mcp.server.fastmcp` first appears in **1.2.0**. Checked against every 1.x
+# release below it — 1.0.0, 1.1.0, 1.1.1, 1.1.2, 1.1.3 — and all of them fail
+# identically; they also declare no extras at all, so `mcp[cli]` is not even
+# satisfiable there. The old `>=1.0` floor was therefore wrong in exactly the way
+# the upper bound was — it only bites when a resolver is pushed low (a co-installed
+# constraint, or `--resolution lowest`), which is why nothing noticed.
 #
 # So lift the upper bound only as part of a deliberate port — either to the 2.x
 # server API or to the standalone `fastmcp` package — which also touches

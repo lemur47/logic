@@ -36,7 +36,17 @@ except where the wheel ships them.
   imports, and the dependency was declared without an upper bound — so a fresh
   install resolved 2.0.0 and died at import with
   `ModuleNotFoundError: No module named 'mcp.server.fastmcp'`. The requirement is
-  now `mcp[cli]>=1.0,<2`.
+  now **`mcp[cli]>=1.2,<2`**. Both bounds carry weight: `mcp.server.fastmcp` first
+  appears in 1.2.0, so every release below it fails in exactly the same way (and
+  declares no extras at all, making `mcp[cli]` unsatisfiable there), while 2.x no
+  longer has it. The range is precisely the versions that contain what the server
+  imports.
+- **Compatibility note across that range.** `mcp` 1.2.0 does not emit
+  `outputSchema` on `tools/list` or `structuredContent` on `tools/call`; recent 1.x
+  does. Both are legal installs of 0.2.0, so a client that reads
+  `structuredContent` gets it from a newer resolve and falls back to text content
+  on an older one. Pin a recent `mcp` if your client depends on the structured
+  form.
 - Monte Carlo: bounded the drift path and capped list inputs, closing a
   denial-of-service shape where a large or hostile request could force unbounded
   work. **This changes behaviour on the default surface**, so it is an upgrade
