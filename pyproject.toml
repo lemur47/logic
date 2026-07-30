@@ -41,8 +41,18 @@ keywords = [
 # transport — that is the SDK's requirement, not ours, and unavoidable short of
 # vendoring it.) numpy is used by tools.py and montecarlo.core; scipy.stats by
 # montecarlo.core — both genuinely required.
+#
+# The `mcp` upper bound is load-bearing, not caution. mcp 2.0.0 REMOVED FastMCP —
+# not moved: there is no `class FastMCP` anywhere in the 2.x package and
+# `mcp/server/` is an entirely new layout — while server.py imports
+# `mcp.server.fastmcp`. Without the bound, `uvx pmorun-mcp` resolved 2.0.0 fresh
+# from PyPI and every new install died at import, on every machine, while CI
+# stayed green because uv.lock pins 1.x. A lockfile proves the repo works; it
+# never proves the release works. So lift this bound only as part of a deliberate
+# port — either to the 2.x server API or to the standalone `fastmcp` package —
+# which also touches tests/mcp_server/test_tools.py.
 dependencies = [
-    "mcp[cli]>=1.0",
+    "mcp[cli]>=1.0,<2",
     "numpy>=2.2.0",
     "pydantic>=2.0",
     "scipy>=1.15.0",
