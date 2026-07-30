@@ -27,19 +27,19 @@ The quickest path runs the server without installing anything permanent — `uvx
 
 ```bash
 uvx pmorun-mcp           # latest release
-uvx pmorun-mcp@0.1.1     # pinned to this release (recommended)
+uvx pmorun-mcp@0.2.0     # pinned to this release (recommended)
 ```
 
-Pinning to `@0.1.1` gives a reproducible install from the immutable PyPI artefact; drop the pin to track the latest.
+Pinning to `@0.2.0` gives a reproducible install from the immutable PyPI artefact; drop the pin to track the latest.
 
-Prefer a persistent install? `uv pip install "pmorun-mcp==0.1.1"` (or plain `pip install "pmorun-mcp==0.1.1"`) gives you a `pmorun-mcp` console command.
+Prefer a persistent install? `uv pip install "pmorun-mcp==0.2.0"` (or plain `pip install "pmorun-mcp==0.2.0"`) gives you a `pmorun-mcp` console command.
 
 ## Wire It Into Claude
 
 For Claude Code, one line:
 
 ```bash
-claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1   # or drop @0.1.1 to track latest
+claude mcp add pmo-logic -- uvx pmorun-mcp@0.2.0   # or drop @0.2.0 to track latest
 ```
 
 For Claude Desktop, add this to `claude_desktop_config.json`:
@@ -49,7 +49,7 @@ For Claude Desktop, add this to `claude_desktop_config.json`:
   "mcpServers": {
     "pmo-logic": {
       "command": "uvx",
-      "args": ["pmorun-mcp@0.1.1"]
+      "args": ["pmorun-mcp@0.2.0"]
     }
   }
 }

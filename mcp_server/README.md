@@ -62,17 +62,17 @@ environment:
 
 ```bash
 uvx pmorun-mcp           # latest release
-uvx pmorun-mcp@0.1.1     # pinned to this release (recommended)
+uvx pmorun-mcp@0.2.0     # pinned to this release (recommended)
 ```
 
-The pinned form (`@0.1.1`) resolves to an immutable PyPI artefact: a reproducible
+The pinned form (`@0.2.0`) resolves to an immutable PyPI artefact: a reproducible
 install that won't be auto-pulled onto a future top-level release. Drop the pin to
 always track the latest.
 
 Or install it into an environment of your own:
 
 ```bash
-uv pip install "pmorun-mcp==0.1.1"   # or: pip install "pmorun-mcp==0.1.1"
+uv pip install "pmorun-mcp==0.2.0"   # or: pip install "pmorun-mcp==0.2.0"
 pmorun-mcp                           # console script — same entry point as python -m mcp_server.server
 ```
 
@@ -95,20 +95,21 @@ differs on Linux/Windows):
   "mcpServers": {
     "pmo-logic": {
       "command": "uvx",
-      "args": ["pmorun-mcp@0.1.1"]
+      "args": ["pmorun-mcp@0.2.0"]
     }
   }
 }
 ```
 
-Pinning the args to `pmorun-mcp@0.1.1` is recommended; use `["pmorun-mcp"]` to
-track the latest release instead. Restart Claude Desktop; the four tools appear
-under the `pmo-logic` server.
+Pinning the args to `pmorun-mcp@0.2.0` is recommended; use `["pmorun-mcp"]` to
+track the latest release instead. Restart Claude Desktop; the four classic tools
+appear under the `pmo-logic` server — plus four more if you set `PMORUN_DB`, as
+described under *Calibration memory* below.
 
 For Claude Code:
 
 ```bash
-claude mcp add pmo-logic -- uvx pmorun-mcp@0.1.1   # or drop @0.1.1 to track latest
+claude mcp add pmo-logic -- uvx pmorun-mcp@0.2.0   # or drop @0.2.0 to track latest
 ```
 
 > Running from a source checkout instead? Swap the command for
@@ -268,10 +269,12 @@ summary maths, and the structured-error contract. Implementation-grade maths
 sweeps live in `tests/{pert,montecarlo,tco,evm,bayesian}/` already — we do not
 duplicate them here.
 
-## Out of scope (v0.2+)
+## Out of scope for this package
 
 - **Streamable HTTP transport, OAuth, hosting, rate limiting, audit logging** —
-  the paid hosted lane. v0.1 is stdio-only and local-trust.
+  the paid hosted lane, which is a **separate product rather than a later version
+  of this package**. `pmorun-mcp` is stdio-only and local-trust by design, and no
+  future release of it changes that.
 - **Stochastic-mix tools** — the Dirichlet-drift tools remain parked, waiting
   on field data to ground their calibration. (`estimate_from_history` and the
   Bayesian calibration summary shipped with the opt-in calibration memory —
