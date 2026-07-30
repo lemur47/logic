@@ -9,7 +9,7 @@ It is not a log of every repository commit; the FastAPI prototype in `app/`, the
 site and the examples move independently and are not part of the release surface
 except where the wheel ships them.
 
-## [0.2.0] — Unreleased
+## [0.2.0] — 2026-07-30
 
 ### Added
 
@@ -19,6 +19,10 @@ except where the wheel ships them.
   last of which had been parked since 0.1 waiting for exactly this data source.
   The tool surface is therefore **conditional**: four tools by default, eight
   when `PMORUN_DB` is set.
+- `PMORUN_DB` may point at a path whose directories do not exist yet; they are
+  created on first use. If the location genuinely cannot be written — a file where a
+  directory needs to be, a read-only mount — the tools fail with a validation error
+  naming the variable, the path and the reason, rather than a generic one.
 - With `PMORUN_DB` unset the server remains **stateless** — nothing is written
   anywhere, and the four classic tools are the whole surface, exactly as in 0.1.1.
   That is not the same as "no behaviour change": see the input bounds under

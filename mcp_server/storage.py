@@ -7,8 +7,9 @@ runtime stays fully stateless — the pre-calibration behaviour, unchanged.
 
 Design constraints:
 
-- **stdlib only.** ``sqlite3`` ships with CPython; the lean PyPI dependency set
-  is untouched.
+- **stdlib only** for third-party dependencies. ``sqlite3`` ships with CPython, so
+  the lean PyPI dependency set is untouched. (The one intra-package import is the
+  error taxonomy, so a bad ``PMORUN_DB`` reaches the client tagged and readable.)
 - **D1-portable schema.** Cloudflare D1 executes SQLite SQL, so this exact DDL
   is the rehearsal for the hosted calibration memory's data model: no SQLite
   extensions, no triggers, ISO-8601 TEXT timestamps, JSON packed into TEXT.
@@ -25,6 +26,8 @@ import os
 import sqlite3
 from contextlib import closing
 from datetime import UTC, datetime
+
+from .errors import ToolValidationError
 
 ENV_VAR = "PMORUN_DB"
 
@@ -60,9 +63,40 @@ def utc_now() -> str:
 
 
 def _connect(path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
-    conn.executescript(_SCHEMA)
+    """Open the log, creating the file *and its parent directories* if needed.
+
+    Creating the parents matters more than it looks. The documented instruction is
+    "set ``PMORUN_DB`` to a writable file path", and the obvious way to follow it is
+    a path under a directory that does not exist yet. Without this, every
+    calibration tool still *registered*, then failed on first call with a generic
+    internal error that named neither the path nor the cause — the tool surface
+    advertised eight tools and four of them could not work. Found by pointing a real
+    client at a fresh path before the release, which no automated check had covered.
+
+    Failures here are configuration problems, not computation ones, so they are
+    tagged as such and they name the path. A user who mistypes ``PMORUN_DB`` should
+    be told which path failed and why.
+    """
+    parent = os.path.dirname(os.path.abspath(path))
+    try:
+        os.makedirs(parent, exist_ok=True)
+    except OSError as exc:
+        raise ToolValidationError(
+            f"{ENV_VAR} is set to {path!r}, but its directory {parent!r} could not be "
+            f"created: {exc.strerror}. Point it at a writable location, or unset it to "
+            "run the server statelessly."
+        ) from exc
+
+    try:
+        conn = sqlite3.connect(path)
+        conn.row_factory = sqlite3.Row
+        conn.executescript(_SCHEMA)
+    except sqlite3.Error as exc:
+        raise ToolValidationError(
+            f"{ENV_VAR} is set to {path!r}, which is not a usable SQLite database: "
+            f"{exc}. Point it at a writable file path, or unset it to run the server "
+            "statelessly."
+        ) from exc
     return conn
 
 
