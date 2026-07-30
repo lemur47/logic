@@ -57,7 +57,19 @@ push can publish for real, so a mis-clicked rehearsal cannot burn a version.
    — those are the paths the wheel ships (`pyproject.toml`'s `packages`), so a
    commit outside them is not part of the release. Give release dates from the tag
    or the PyPI upload time, never from memory.
-4. Update the **documented install version** to match: the pinned
+
+   Ask of every entry: **does this change what a user of the MCP server
+   experiences?** A fix inside `app/` may ship in the wheel and still be
+   unreachable without the `app` extra — say so rather than implying the server
+   changed. And do not write "no behaviour change" without checking the input
+   bounds and validation limits, which apply to the default surface and are the
+   easiest thing to overlook.
+
+4. **Replace `Unreleased` in the changelog heading with the release date** before
+   tagging. Nothing enforces this — the build guard compares the tag to
+   `pyproject.toml` only — so a release can otherwise publish with its own entry
+   still marked unreleased.
+5. Update the **documented install version** to match: the pinned
    `pmorun-mcp@<version>` / `pmorun-mcp==<version>` examples in
    `mcp_server/README.md` (the PyPI long description), plus the living homepage
    §03 and `docs/{en,ja}/mcp-server.md` install snippets. Leave the unpinned
@@ -69,31 +81,45 @@ push can publish for real, so a mis-clicked rehearsal cannot burn a version.
    `<version>` grep cannot see, and they have survived releases before. Prefer
    wording that states a *condition* over wording that states a count, so the
    next release does not have to touch the same lines again.
-5. **Rehearse the publish against TestPyPI** using `release.yml`'s
+
+   **Read `mcp_server/README.md` from the top.** It is the PyPI project page, its
+   opening blockquote is the most-read paragraph the project has, and a sweep
+   driven by grep hits will skip it. Check its internal anchors still resolve if
+   you renamed any heading — `twine check` validates rendering, not links.
+6. **Rehearse the publish against TestPyPI** using `release.yml`'s
    `workflow_dispatch` trigger, and let it go green before you tag. The
    tag-triggered path is the only consumer of that workflow, so a change to it is
-   otherwise unexercised until the moment it matters.
-6. Tag the release commit on `main` and push the tag:
+   otherwise unexercised until the moment it matters. Note what a rehearsal does
+   and does not cover: `target: none` skips the `publish` job entirely, so only
+   `target: testpypi` exercises the publish action, its environment and its
+   repository URL.
+7. Tag the release commit on `main` and push the tag:
    ```bash
    git checkout main && git pull
    git tag v0.2.0      # match pyproject version, prefixed with v
    git push origin v0.2.0
    ```
-7. The push triggers `release.yml`: it builds the sdist + wheel and publishes to
+8. The push triggers `release.yml`: it builds the sdist + wheel and publishes to
    PyPI via OIDC. Watch the run under the repo's **Actions** tab. If the `pypi`
    environment has a required reviewer, the publish job **pauses for approval** —
    that is the gate working, not a failure.
-8. **Verify the published artefact by making it answer, not by watching it start.**
-   Resolve it the way a user does — fresh, with no lockfile in the picture — and
-   drive a real MCP handshake:
+9. **Verify the published artefact by making it answer, not by watching it start.**
+   Resolve it the way a user does — fresh, with no lockfile in the picture — pinned
+   to the version you just published, and drive a real MCP handshake:
    ```bash
-   uvx --refresh pmorun-mcp     # then send initialize over stdio and read serverInfo
+   python scripts/mcp_smoke.py --expect-tools 4 -- \
+     uvx --refresh --from "pmorun-mcp==0.2.0" pmorun-mcp
    ```
+   **Pin the version in the command.** That is what proves you tested the release
+   rather than whatever was already cached — the `serverInfo.version` in the
+   handshake is the **mcp SDK's** version, not ours (`FastMCP()` is constructed
+   without one), so it cannot tell 0.2.0 from 0.1.1.
+
    A server whose import fails exits silently, and every client reports that as
    nothing more than "connection closed". "The process did not immediately exit"
    is therefore not evidence that the release works.
 
-> **Why step 8 is worded that way.** 0.1.1 shipped with `mcp[cli]>=1.0` and no
+> **Why step 9 is worded that way.** 0.1.1 shipped with `mcp[cli]>=1.0` and no
 > upper bound. When `mcp` 2.0.0 removed `FastMCP`, every fresh install of the
 > published wheel began dying at import — on every machine — while CI stayed green,
 > because `uv.lock` pins a working `mcp`. **A lockfile proves the repository works;

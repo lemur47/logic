@@ -6,12 +6,15 @@ pattern that makes pmo.run useful: a data-source MCP (Airtable, GitHub) feeds
 records in; this server runs the maths; Claude orchestrates and narrates the
 result.
 
-> **Status: v0.1.** Four classic PMO tools, stdio transport, structured errors,
+> **What this is.** Four classic PMO tools, stdio transport, structured errors,
 > plus an **opt-in calibration memory** (a local SQLite estimation log — see
-> [Calibration memory](#calibration-memory-opt-in)). Published to PyPI as
+> [Calibration memory](#calibration-memory-opt-in)), which takes the surface from
+> four tools to eight when you set `PMORUN_DB`. Published to PyPI as
 > [`pmorun-mcp`](https://pypi.org/project/pmorun-mcp/) — install it or run it
-> from a source checkout (see [Install](#install)). The hosted lane (Streamable
-> HTTP + auth) is parked for v0.2 — see [Out of scope](#out-of-scope-v02).
+> from a source checkout (see [Install](#install)). Version history:
+> [CHANGELOG](https://github.com/lemur47/logic/blob/main/CHANGELOG.md). The hosted
+> lane (Streamable HTTP + auth) is a **separate product**, not a later version of
+> this package — see [Out of scope](#out-of-scope-for-this-package).
 
 ## What's in the box
 

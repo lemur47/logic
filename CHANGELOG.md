@@ -19,8 +19,10 @@ except where the wheel ships them.
   last of which had been parked since 0.1 waiting for exactly this data source.
   The tool surface is therefore **conditional**: four tools by default, eight
   when `PMORUN_DB` is set.
-- With `PMORUN_DB` unset the server is byte-for-byte as stateless as 0.1.1, so
-  existing users see no behaviour change from this release.
+- With `PMORUN_DB` unset the server remains **stateless** — nothing is written
+  anywhere, and the four classic tools are the whole surface, exactly as in 0.1.1.
+  That is not the same as "no behaviour change": see the input bounds under
+  *Fixed*, which apply to the default surface too.
 
 > **Read before enabling it.** The calibration database is a plain, **unencrypted**
 > local SQLite file. Do not point `PMORUN_DB` at a shared, synced or backed-up
@@ -36,9 +38,19 @@ except where the wheel ships them.
   `ModuleNotFoundError: No module named 'mcp.server.fastmcp'`. The requirement is
   now `mcp[cli]>=1.0,<2`.
 - Monte Carlo: bounded the drift path and capped list inputs, closing a
-  denial-of-service shape where a large or hostile request could force
-  unbounded work.
-- Tightened CORS handling in the HTTP-transport path.
+  denial-of-service shape where a large or hostile request could force unbounded
+  work. **This changes behaviour on the default surface**, so it is an upgrade
+  note as much as a fix: list fields (`tasks`, `depends_on`, `risk_classes`) now
+  accept at most 1000 items, and a simulation is rejected when
+  `tasks × num_simulations` exceeds 10,000,000. Requests above either limit
+  returned a result in 0.1.1 and now return a validation error. Both limits are
+  far above any real project plan; if you are over one, you were almost certainly
+  not getting a meaningful answer either.
+- Tightened CORS handling in `app.main`. This affects only the self-host FastAPI
+  prototype: the module ships in the wheel but needs the `app` extra to import,
+  and the MCP server has no HTTP transport to apply it to. Listed for completeness
+  because the code is in the distribution, not because it changes anything for
+  users of the MCP server.
 
 ### Changed
 

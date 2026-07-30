@@ -142,7 +142,7 @@ def identify_schedule_risk(
         tasks: The task network. Each task has ``name``, three-point estimates
             (``optimistic`` / ``most_likely`` / ``pessimistic``, same time unit), and
             an optional ``depends_on`` list of predecessor task names. (``risk_class``
-            is reserved for v0.2 drift simulation and is ignored here.)
+            is reserved for a future drift simulation and is ignored here.)
             Note: if **no** task in the network declares a ``depends_on`` the tasks
             are assumed to form a sequential chain (durations sum) — bare tasks are
             *not* inferred to run in parallel. Declare ``depends_on`` to model genuine

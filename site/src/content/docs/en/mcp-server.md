@@ -57,6 +57,14 @@ For Claude Desktop, add this to `claude_desktop_config.json`:
 
 Restart, and the four tools appear under the `pmo-logic` server.
 
+Four more join them if you point `PMORUN_DB` at a writable file path — an opt-in
+**calibration memory** that records what you estimated, then what actually
+happened, and learns your systematic bias from the pairs. Leave the variable unset
+and the server stays entirely stateless, writing nothing anywhere. The database is
+a plain unencrypted local SQLite file, so choose its location accordingly; the
+[package README](https://github.com/lemur47/logic/blob/main/mcp_server/README.md)
+covers the tools and the caveats in full.
+
 ## Ask a Real Question
 
 Once connected, you stop writing JSON and start asking questions. Start with a single task:
