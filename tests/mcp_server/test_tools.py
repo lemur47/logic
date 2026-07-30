@@ -1,5 +1,5 @@
 """
-MCP server v0.1 tests.
+MCP server tests — the default, stateless surface (PMORUN_DB unset).
 
 Covers: registration of exactly the four classic tools (each leading with a
 decision question), one worked example per tool through the shared Pydantic
@@ -9,7 +9,7 @@ contract (typed tags, no tracebacks on the wire).
 Implementation-grade maths sweeps live in tests/{pert,montecarlo,tco,evm}/ —
 we do not duplicate them here. The opt-in calibration memory (including the
 log-grounded `estimate_from_history`) is covered by test_calibration.py; with
-PMORUN_DB unset — this module's world — the four v0.1 tools are the whole
+PMORUN_DB unset — this module's world — the four classic tools are the whole
 surface.
 """
 
@@ -51,7 +51,7 @@ V01_TOOLS = {
 
 
 class TestServerRegistration:
-    async def test_exactly_the_four_v01_tools_registered(self):
+    async def test_exactly_the_four_classic_tools_registered(self):
         names = {t.name for t in await mcp.list_tools()}
         assert names == V01_TOOLS
 

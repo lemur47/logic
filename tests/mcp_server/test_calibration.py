@@ -1,7 +1,7 @@
 """
 Calibration-memory tests (opt-in estimation log + Bayesian summary).
 
-Covers: the registration flag contract (no PMORUN_DB → exactly the four v0.1
+Covers: the registration flag contract (no PMORUN_DB → exactly the four classic
 tools, byte-identical stateless behaviour; PMORUN_DB set → the four calibration
 tools join), the record → actual → summarise round-trip, the Bayesian summary
 maths against hand-computed conjugate updates, the log-grounded

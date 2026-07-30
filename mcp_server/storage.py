@@ -3,7 +3,7 @@ Opt-in local estimation log (SQLite) — the calibration-memory storage layer.
 
 Activated by the ``PMORUN_DB`` environment variable (a filesystem path). When the
 variable is unset the server never touches this module at tool-call time and the
-runtime stays fully stateless — the v0.1 behaviour, unchanged.
+runtime stays fully stateless — the pre-calibration behaviour, unchanged.
 
 Design constraints:
 
