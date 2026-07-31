@@ -15,34 +15,11 @@
 #   reason = "why this can't be fixed yet (package, version, blocker)"
 #   # review-by: YYYY-MM-DD — re-check upstream for a fix and remove if available.
 
-# --- Astro 6.4.8 XSS advisories, published 2026-07-20 ---
+# --- Currently empty ---
 #
-# These three are a DELIBERATE, TIME-BOXED EXCEPTION to the rule above: a fix
-# does exist, but every one of them requires Astro 6 -> 7, a major-version
-# upgrade of the framework behind the live public site. Taking that unplanned,
-# mid-sprint, is a worse risk than a dated deferral.
-#
-# All three were verified UNREACHABLE in our source at the time of suppression:
-#   - no `transition:` directives anywhere in site/src
-#   - no `astro:transitions` / ClientRouter import
-#   - no spread attributes on elements in any .astro file
-# The site cannot exercise any of the three vulnerable code paths.
-#
-# The Astro 6->7 upgrade is a tracked Work Item. If it has not landed by the
-# review date, do not silently extend these — re-verify reachability and
-# escalate.
-
-[[IgnoredVulns]]
-id = "GHSA-4g3v-8h47-v7g6"
-reason = "Astro 6.4.8 reflected XSS via unescaped View Transition animation properties. Fix requires Astro 7.1.0 (major upgrade of the live site). Unreachable: site uses no view transitions and imports no ClientRouter."
-# review-by: 2026-08-21 — re-check; remove once the Astro 6->7 upgrade WI lands.
-
-[[IgnoredVulns]]
-id = "GHSA-f48w-9m4c-m7f5"
-reason = "Astro 6.4.8 XSS via unescaped spread attribute names in renderHTMLElement. Fix requires Astro 7.0.6 (major upgrade of the live site). Unreachable: no spread attributes on elements in any .astro file."
-# review-by: 2026-08-21 — re-check; remove once the Astro 6->7 upgrade WI lands.
-
-[[IgnoredVulns]]
-id = "GHSA-7pw4-f3q4-r2p2"
-reason = "Astro 6.4.8 XSS via unescaped transition:* directive values. Fix requires Astro 7.0.4 (major upgrade of the live site). Unreachable: no transition:* directives anywhere in site/src."
-# review-by: 2026-08-21 — re-check; remove once the Astro 6->7 upgrade WI lands.
+# The three Astro 6.4.8 XSS advisories (GHSA-4g3v-8h47-v7g6,
+# GHSA-f48w-9m4c-m7f5, GHSA-7pw4-f3q4-r2p2) were suppressed here as a
+# time-boxed exception because every fix required Astro 6 -> 7. That upgrade
+# has landed, so the suppressions are removed rather than expired — osv-scanner
+# reported all three as unused ignores once Astro 7 was in the lockfile, which
+# is the signal that a deferral has been discharged by real work.

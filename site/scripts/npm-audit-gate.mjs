@@ -20,26 +20,11 @@
  * Advisories deliberately deferred. Every entry needs a reason and a
  * reviewBy — an allowlist without an expiry becomes permanent by accident.
  */
-const ALLOWLIST = [
-  {
-    id: "GHSA-4g3v-8h47-v7g6",
-    reason:
-      "Astro 6.4.8 reflected XSS via View Transition animation properties. Fix requires Astro 7.1.0 (major upgrade of the live site). Unreachable: site uses no view transitions and imports no ClientRouter.",
-    reviewBy: "2026-08-21",
-  },
-  {
-    id: "GHSA-f48w-9m4c-m7f5",
-    reason:
-      "Astro 6.4.8 XSS via unescaped spread attribute names in renderHTMLElement. Fix requires Astro 7.0.6 (major upgrade of the live site). Unreachable: no spread attributes on elements in any .astro file.",
-    reviewBy: "2026-08-21",
-  },
-  {
-    id: "GHSA-7pw4-f3q4-r2p2",
-    reason:
-      "Astro 6.4.8 XSS via unescaped transition:* directive values. Fix requires Astro 7.0.4 (major upgrade of the live site). Unreachable: no transition:* directives anywhere in site/src.",
-    reviewBy: "2026-08-21",
-  },
-];
+// Currently empty. The three Astro 6.4.8 XSS advisories that lived here
+// (GHSA-4g3v-8h47-v7g6, GHSA-f48w-9m4c-m7f5, GHSA-7pw4-f3q4-r2p2) each
+// required Astro 6 -> 7 to fix. That upgrade has landed, so they are deleted
+// rather than left to expire on their review-by date.
+const ALLOWLIST = [];
 
 const BLOCKING_SEVERITIES = new Set(["moderate", "high", "critical"]);
 const ADVISORY_ID = /GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}/gi;
