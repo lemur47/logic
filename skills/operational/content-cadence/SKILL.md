@@ -108,7 +108,9 @@ Long-form, method-first. The title itself carries a tagline — `<title>: <tagli
 - **APA 7th title case** for H1 and H2 headings.
 - **Slugs and tags are English-only**; EN and JA posts share the same slug for i18n routing (`site/src/content/blog/en/<slug>.md` and `site/src/content/blog/ja/<slug>.md`).
 - **Frontmatter** per the site schema: `title`, `description`, `pubDate`, `tags` (all required); `draft` and `contentType` optional.
-- **Frontmatter values:** set `contentType` to `"briefing"` or `"deep-dive"` to match the frame; `description` is one or two plain sentences in the post's register; `pubDate` is the drafting date, paired with `draft: true` until the publish decision (publishing is outside this skill).
+- **Frontmatter values:** set `contentType` to `"briefing"` or `"deep-dive"` to match the frame; `description` is one or two plain sentences in the post's register; `pubDate` is the drafting date.
+- **Do NOT set `draft: true`.** The merge is the publish decision (see the review gate below), so the draft flag has no step left to gate — it only creates a second pull request to clear it. Worse, this site excludes drafts from the blog index and the post route in any production build, and a deploy preview *is* a production build: setting the flag hides the post from the very review the pull request exists to enable. No post in this repo carries the field. **This rule exists because it happened** — a briefing shipped with `draft: true` and the preview rendered a blog index that simply did not contain it.
+  *If you are adapting this skill to another site:* the flag is only safe where drafts render in preview (e.g. the build sets `PUBLIC_SHOW_DRAFTS`, or previews run in dev mode). Check that before using it; otherwise follow the rule above.
 - **Slug:** short kebab-case drawn from the title's key noun phrase, roughly two to six words.
 - **Title case vs. taglines:** the heading label before the colon is APA title case; the tagline after the colon is a normal sentence in sentence case (proper nouns and brand casing kept as-is). A deep dive's `<title>: <tagline>` follows the same split. A briefing's title is a plain title — no tagline required.
 - **JA is a native rewrite, not a translation.** Prefer native terms over katakana transliterations (経験則 not ヒューリスティック, 価値 not ベネフィット); restructure sentences for JA rhythm rather than mirroring EN syntax.
@@ -118,6 +120,7 @@ Long-form, method-first. The title itself carries a tagline — `<title>: <tagli
 1. **Anonymisation — binding.** Run the [anonymisation](../anonymisation/SKILL.md) skill over the full draft (EN, JA, and LinkedIn derivative) before anything moves toward a public surface. Its decision procedure applies paragraph by paragraph; if an example cannot be scrubbed, drop it for an industry baseline. **Fast pass:** if no paragraph draws on real client or engagement experience (e.g. the artefact is the organisation's own public code), the gate passes — note "anonymisation: no engagement material" in the handover and move on.
 2. **Image references.** Every inline image `![...](path)` in both posts must resolve to a real committed file (e.g. `/blog/foo.png` → `site/public/blog/foo.png`). Grep and verify each one; missing assets block review — request them, do not ship without. The LinkedIn derivative is exempt (it is not committed; any image is attached at publish time).
 3. **Frame integrity.** Every H2 (and a deep dive's title) carries its tagline. Skimming headings alone must convey the argument.
+4. **The preview actually contains the post.** Once the pull request has a deploy preview, fetch it and confirm **each language's blog index lists the post and each post URL returns 200**. Do this before requesting review, and do it against the preview rather than a local build — a local build passing proves the post compiles, not that the deployed site shows it. This gate is cheap and catches the whole class where the site builds successfully *without* your post: a draft flag, a locale or slug mismatch, a collection filter, a routing rule. **A green build is not evidence the post is there.** If the preview does not appear at all, say so rather than assuming it will; do not treat a missing deploy-preview check as proof that no preview was built.
 
 ## Outputs
 
@@ -131,7 +134,7 @@ The LinkedIn derivative is a compression of the post, not a teaser: lead with th
 
 ## Review Gate: The PR Is the Human in the Loop
 
-Drafts reach the sign-off owner as a **pull request** — never a direct commit to the publishing branch. The PR is the structural review gate: the sign-off owner reads the rendered drafts, edits or requests changes, and the merge is the publish decision. The skill's own gates (below) are what a draft must pass *before* it may enter that PR; they do not replace the human review, they make it worth the reviewer's time.
+Drafts reach the sign-off owner as a **pull request** — never a direct commit to the publishing branch. The PR is the structural review gate: the sign-off owner reads the rendered drafts, edits or requests changes, and the merge is the publish decision. The skill's own gates (below) are what a draft must pass before that review is requested; they do not replace the human review, they make it worth the reviewer's time. Gates 1–3 run before the PR is opened. **Gate 4 necessarily runs after**, because it checks the deploy preview the PR itself produces — which is the point: the reviewer is being asked to read a rendered page, so something must confirm the page renders.
 
 ## Procedure
 
@@ -142,5 +145,6 @@ Drafts reach the sign-off owner as a **pull request** — never a direct commit 
 5. Run gate 1 (anonymisation) on the EN draft; rewrite or drop failing paragraphs.
 6. Write the JA post as a native rewrite of the gated EN draft.
 7. Write the LinkedIn derivative from the gated post, with an optional simple image.
-8. Run all three gates end to end; fix or escalate anything failing.
-9. Open (or update) the PR — the human-in-the-loop review gate. Publishing is the sign-off owner's merge decision, outside this skill.
+8. Run gates 1–3 end to end; fix or escalate anything failing.
+9. Open (or update) the PR — the human-in-the-loop review gate.
+10. Run gate 4 against the PR's deploy preview, and **put the per-language preview URLs in the handover** so the sign-off owner reads the rendered post rather than the diff. Only then request review. Publishing is the sign-off owner's merge decision, outside this skill.
