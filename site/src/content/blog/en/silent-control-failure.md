@@ -4,7 +4,6 @@ description: "As PMOs push reporting, compliance checks and risk assessment onto
 pubDate: 2026-07-31
 tags: ["pmo", "governance", "assurance", "ai-agents", "devsecops"]
 contentType: "briefing"
-draft: true
 ---
 
 The House of PMO's trends for 2026 give PMOs a piece of advice worth taking seriously: *"Never trust a single data source. A truly data-driven PMO triangulates information from multiple systems."* It is sound. This briefing is about the failure it does not catch — the case where every source agrees, every check is green, and none of them looked at anything. We found four instances in our own delivery in one week, and we build this kind of tooling for a living.
