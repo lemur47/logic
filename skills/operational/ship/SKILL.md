@@ -67,6 +67,34 @@ Where a local hook and CI disagree about scope — different file sets, differen
 lockfiles, different stages — trust neither until you have run the wider one.
 A local pass is not evidence that CI will pass.
 
+## What Cannot Be Read Off the Repository
+
+Most of what this loop needs is **discovered, not configured**: the gate
+invocations are in the workflow files and the hook config, and reading them is
+the point of the section above.
+
+Three things are not discoverable, and they are the ones that decide the report —
+**who approves a merge**, **which checks are required rather than merely
+present**, and **the traps that have already cost time here**. Those are
+organisation-specific and belong in a calibration overlay, never in this file.
+Resolve it in this order and take the first hit:
+
+1. `<repo>/.claude/calibration/ship.local.md` — a repository carrying its own
+2. `~/.claude/calibration/operational.local.md` — the machine-wide register,
+   serving every programme worked on from this machine
+3. `CALIBRATION.local.md` beside this file — a single-programme overlay
+
+Rung 2 is the usual home. A single-repo overlay is the shape this skill is most
+likely to get wrong, because ship is invoked *from* a repository and an overlay
+sitting beside the skill looks local when it is not: run the loop in a second
+repository and it silently applies the first one's required-context list and
+approval authority.
+
+**If no overlay resolves, run the loop but do not report merge-ready.** The
+gates can still be reproduced from the repository — that part is honest work —
+but "green on the required set, awaiting the approver" is a claim about a set
+and an authority you do not have. Say which you are missing.
+
 ## The Loop
 
 ### 1. Pre-flight
