@@ -1,0 +1,72 @@
+<svg width="100%" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Outer band: the prompt layer, which is not where a control lives -->
+<rect x="16" y="14" width="648" height="372" rx="12" style="fill:none;stroke:rgb(94, 92, 87);stroke-width:1px;stroke-dasharray:5 4"/>
+<text x="32" y="34" dominant-baseline="central" style="fill:rgb(156, 154, 146);font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400">Prompt layer — instructions are not reproduced, not audited, not carried forward</text>
+
+<!-- Inner band: environment and structure, where controls are built -->
+<rect x="40" y="48" width="600" height="322" rx="10" style="fill:none;stroke:rgb(93, 202, 165);stroke-width:1px"/>
+<text x="56" y="68" dominant-baseline="central" style="fill:rgb(93, 202, 165);font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500">Environment and structure — where a control actually lives</text>
+
+<!-- The loop, clockwise -->
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="76" y="96" width="180" height="56" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px"/>
+  <text x="166" y="124" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-size:14px;font-weight:500">Plan and instruct</text>
+</g>
+
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="424" y="96" width="180" height="56" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px"/>
+  <text x="514" y="124" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-size:14px;font-weight:500">Agent executes</text>
+</g>
+
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="424" y="266" width="180" height="56" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px"/>
+  <text x="514" y="294" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-size:14px;font-weight:500">Control runs</text>
+</g>
+
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <rect x="76" y="266" width="180" height="56" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px"/>
+  <text x="166" y="294" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-size:14px;font-weight:500">Report and decide</text>
+</g>
+
+<line x1="256" y1="124" x2="416" y2="124" marker-end="url(#arrow)" style="stroke:rgb(156, 154, 146);stroke-width:1.5px"/>
+<line x1="514" y1="152" x2="514" y2="258" marker-end="url(#arrow)" style="stroke:rgb(156, 154, 146);stroke-width:1.5px"/>
+<line x1="424" y1="294" x2="264" y2="294" marker-end="url(#arrow)" style="stroke:rgb(156, 154, 146);stroke-width:1.5px"/>
+<line x1="166" y1="266" x2="166" y2="160" marker-end="url(#arrow)" style="stroke:rgb(156, 154, 146);stroke-width:1.5px"/>
+
+<!-- Intervention points, numbered to match the four verification points -->
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <circle cx="514" cy="205" r="13" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);stroke-width:1px"/>
+  <text x="514" y="205" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);font-size:13px;font-weight:500">3</text>
+  <text x="536" y="198" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:11px;font-weight:400">Field of view:</text>
+  <text x="536" y="213" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:11px;font-weight:400">can it see this?</text>
+</g>
+
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <circle cx="344" cy="294" r="13" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);stroke-width:1px"/>
+  <text x="344" y="294" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);font-size:13px;font-weight:500">1</text>
+  <text x="344" y="326" text-anchor="middle" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:11px;font-weight:400">Evidence it ran</text>
+</g>
+
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <circle cx="166" cy="344" r="13" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);stroke-width:1px"/>
+  <text x="166" y="344" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);font-size:13px;font-weight:500">2</text>
+  <text x="190" y="344" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:11px;font-weight:400">Empty reads as unknown</text>
+</g>
+
+<g style="font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif">
+  <circle cx="166" cy="205" r="13" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);stroke-width:1px"/>
+  <text x="166" y="205" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);font-size:13px;font-weight:500">4</text>
+  <text x="188" y="198" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:11px;font-weight:400">Still alive after</text>
+  <text x="188" y="213" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:11px;font-weight:400">this change?</text>
+</g>
+
+<text x="340" y="205" text-anchor="middle" dominant-baseline="central" style="fill:rgb(156, 154, 146);font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400">Verification points are</text>
+<text x="340" y="222" text-anchor="middle" dominant-baseline="central" style="fill:rgb(156, 154, 146);font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400">interventions in the loop,</text>
+<text x="340" y="239" text-anchor="middle" dominant-baseline="central" style="fill:rgb(156, 154, 146);font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400">not extra controls</text>
+</svg>

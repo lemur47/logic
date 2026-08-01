@@ -114,6 +114,8 @@ Long-form, method-first. The title itself carries a tagline — `<title>: <tagli
 - **Slug:** short kebab-case drawn from the title's key noun phrase, roughly two to six words.
 - **Title case vs. taglines:** the heading label before the colon is APA title case; the tagline after the colon is a normal sentence in sentence case (proper nouns and brand casing kept as-is). A deep dive's `<title>: <tagline>` follows the same split. A briefing's title is a plain title — no tagline required.
 - **JA is a native rewrite, not a translation.** Prefer native terms over katakana transliterations (経験則 not ヒューリスティック, 価値 not ベネフィット); restructure sentences for JA rhythm rather than mirroring EN syntax.
+- **Bold marks the answer, not emphasis.** Bold only the discussion point's answer and the elements that lead directly to it — expect roughly one per section, not one per paragraph. Emphasis works by contrast, so a page where every paragraph carries a bold phrase has no emphasis at all; the reader skims the bold, finds it uniformly important, and stops trusting it. Section taglines and list structure already carry scannability, which is what bolding a whole list of judgements duplicates. **This rule exists because it happened** — a briefing went to review with a bold phrase in nearly every paragraph, and the reviewer could not locate the argument.
+- **In JA, counting expressions use Arabic numerals, not kanji numerals.** 1週間に4件, 4つの点, 損失は1日, 事故記録に1行, and numbered headings as `1.` rather than `一.`. Idiomatic adverbs keep their kanji form (一度も, 一つひとつ) — the rule is about counts, not about every occurrence of a number word.
 
 ## Gates (Must Pass Before Review)
 
