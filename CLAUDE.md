@@ -47,11 +47,16 @@ pyright
 opengrep scan --config auto --config .opengrep/ --scan-unknown-extensions .
 
 # Dependency vulnerability scan (SCA)
-# --config is NOT optional: without it the auto-discovered root config does not
-# apply to the nested lockfiles, so osv reports its own waivers as "unused
-# ignores" and then prints them as live findings. That looks exactly like three
-# expired suppressions, and the tempting "fix" is to edit osv-scanner.toml.
-# This is the invocation the pre-commit hook and the CI job both use.
+# Use --config even though the suppression list is currently EMPTY. This is the
+# invocation the pre-commit hook and the CI job both use, so it is what
+# reproduces them; drop it and you are testing something else.
+# It matters the moment a suppression exists again: without the flag the
+# auto-discovered root config does not apply to the nested lockfiles, so osv
+# reports the project's own waivers as "unused ignores" and then prints them as
+# live findings — indistinguishable from expired suppressions, and the tempting
+# "fix" is to edit osv-scanner.toml and weaken a control that was working.
+# That symptom is dormant, not gone: the Astro 6->7 upgrade discharged all three
+# waivers on 2026-07-31, so there is nothing left for it to misreport today.
 osv-scanner scan source --config=osv-scanner.toml --recursive .
 
 # Run all pre-commit hooks
