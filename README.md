@@ -187,9 +187,11 @@ See [`skills/README.md`](skills/README.md) for details.
 
 Alongside these, [`skills/operational/`](skills/operational/README.md) holds a
 different class — guardrails on *how the work is done* rather than decision
-maths, with organisation specifics kept in gitignored overlays. Two of them are
-invocable as slash commands; see
-[`commands/operational/`](commands/operational/README.md).
+maths, with organisation specifics kept in gitignored overlays. Most of that set
+(session rituals, staleness sweeps, a ship loop, an anonymisation gate) now lives
+in **[agent-ops](https://github.com/lemur47/agent-ops)**, since it governs how an
+agent works rather than anything about this repository; `content-cadence` remains
+here.
 
 ## Docs
 

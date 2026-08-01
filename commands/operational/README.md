@@ -1,50 +1,26 @@
 # Operational Commands
 
-Slash commands that run *the ritual around the work*, not the work itself.
+**These commands have moved to [github.com/lemur47/agent-ops](https://github.com/lemur47/agent-ops)** (public, MIT).
 
-They pair with the operational skills in
-[`../../skills/operational/`](../../skills/operational/README.md): the command is
-the thin, invocable entry point; the skill holds the method. Commands live here
-so they are version-tracked and reviewable, and are activated by symlink into the
-user scope so they are available from **every** repository rather than one.
+`/boot-ritual`, `/close-ritual` and `/ship` used to live here, paired with the operational skills in
+[`../../skills/operational/`](../../skills/operational/README.md). They moved for the same reason those skills
+did: they run *the ritual around the work*, not the work itself, and nothing in them depends on this
+repository's decision maths. This file stays so that a link from a blog post or an older commit still lands
+somewhere useful rather than on a 404.
 
-| Command | Purpose |
-|---------|---------|
-| [`/boot-ritual`](boot-ritual.md) | Open a session — read shared memory, verify it against repo and tracker ground truth, correct what drifted, classify inbound pull requests, report, and hand into planning or execution. |
-| [`/close-ritual`](close-ritual.md) | Close a session — write changes back to shared memory, sweep durable claims for staleness, open a doc pull request if needed, and log a handover the next session or machine can boot from. |
-| [`/ship`](ship.md) | Drive the current change to a merge-ready pull request — reproduce the gates as CI runs them, triage any red, sequence the merge, and stop at green-awaiting-approval. |
+| Command | Now at |
+|---------|--------|
+| `/boot-ritual` | [agent-ops `commands/boot-ritual.md`](https://github.com/lemur47/agent-ops/blob/main/commands/boot-ritual.md) |
+| `/close-ritual` | [agent-ops `commands/close-ritual.md`](https://github.com/lemur47/agent-ops/blob/main/commands/close-ritual.md) |
+| `/ship` | [agent-ops `commands/ship.md`](https://github.com/lemur47/agent-ops/blob/main/commands/ship.md) |
 
-Both invoke the [`session-rituals`](../../skills/operational/session-rituals/SKILL.md)
-skill, which keeps universal method in the tracked files and organisation
-specifics in a gitignored calibration overlay — resolved by the three-rung
-lookup described in [`skills/operational/README.md`](../../skills/operational/README.md),
-and never committed. The same public-logic / private-calibration split is used
-throughout this repository.
+Activation instructions live with the commands, in that repository's README. Two points from them are worth
+repeating because they were learned here the expensive way:
 
-## Activation
+**User scope, not project scope, is what makes a ritual cross-programme.** A `.claude/skills/` symlink inside
+one repository is only visible from that repository, which is the wrong shape for something serving several.
 
-Symlink into the user scope, once per machine:
-
-```bash
-mkdir -p "$HOME/.claude/commands" "$HOME/.claude/skills"
-
-ln -sfn "$HOME/projects/logic/commands/operational/boot-ritual.md"  "$HOME/.claude/commands/boot-ritual.md"
-ln -sfn "$HOME/projects/logic/commands/operational/close-ritual.md" "$HOME/.claude/commands/close-ritual.md"
-ln -sfn "$HOME/projects/logic/skills/operational/session-rituals"   "$HOME/.claude/skills/session-rituals"
-```
-
-User scope, not project scope, is what makes these cross-programme. A
-`.claude/skills/` symlink inside one repository is only visible from that
-repository, which is the wrong shape for a ritual that serves several.
-
-**Verify rather than assume.** Activation failing quietly — while the documented
-remedy reports success — is a mistake this toolchain has already made once.
-After linking, start a fresh session and confirm `/boot-ritual` is listed and
-`session-rituals` appears in the available skills. A command also only ever fires
-when it is invoked; the symlink makes it *available*, not automatic.
-
-## A Note on Scope
-
-These commands read and reconcile. They do not merge pull requests, start
-approved work, or change behaviour. The only commit a ritual makes is
-documentation, on its own branch, for someone else to merge.
+**Verify rather than assume.** Activation failing quietly — while the documented remedy reports success — is a
+mistake this toolchain has already made. After linking, start a fresh session and confirm the command is listed
+and its skill appears in the available skills. A command also only fires when it is invoked; a symlink makes it
+*available*, never automatic.
