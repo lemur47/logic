@@ -23,7 +23,7 @@ That's it. Claude reads the skill, follows the formulas, and shows its work.
 
 ## Operational Skills
 
-Beyond decision-logic, the repo tracks **operational skills** — editorial and process guardrails with no `app/` module behind them. See [`operational/`](operational/README.md). These keep organisation-specific values in a gitignored local overlay, so the public skill stays organisation-neutral.
+Beyond decision-logic, the repo tracks **operational skills** — editorial and process guardrails with no `app/` module behind them. See [`operational/`](operational/README.md). These keep organisation-specific values in a gitignored local overlay, so the public skill stays organisation-neutral. Most of that set now lives in [agent-ops](https://github.com/lemur47/agent-ops); `content-cadence` remains here.
 
 ## What Stays API-Only
 
@@ -53,12 +53,9 @@ logic/
 ├── examples/     # Standalone PoCs (prove the math)
 ├── mcp_server/   # Lean stdio MCP server (pmorun-mcp on PyPI)
 ├── scripts/      # Repo tooling invoked by hooks (not application code)
-├── commands/     # Slash commands, symlinked into the user scope
+├── commands/     # Slash commands (the operational set moved to agent-ops)
 │   └── operational/
-│       ├── boot-ritual.md
-│       ├── close-ritual.md
-│       ├── ship.md
-│       └── README.md
+│       └── README.md          # pointer to github.com/lemur47/agent-ops
 ├── skills/       # Claude Skills (conversational execution)
 │   ├── pert/
 │   │   └── SKILL.md
@@ -69,12 +66,8 @@ logic/
 │   ├── montecarlo/
 │   │   └── SKILL.md
 │   ├── operational/
-│   │   ├── anonymisation/
 │   │   ├── content-cadence/
-│   │   ├── cleanup/
-│   │   ├── session-rituals/   # SKILL.md + BOOT.md + CLOSE.md
-│   │   ├── ship/
-│   │   └── README.md
+│   │   └── README.md          # the rest moved to agent-ops
 │   └── README.md
 ├── site/         # pmo.run website (interactive UI)
 └── docs/         # Strategy and documentation

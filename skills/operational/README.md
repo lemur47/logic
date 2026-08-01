@@ -6,11 +6,23 @@ The skills in [`../`](../README.md) (PERT, EVM, TCO, Monte Carlo) encode executa
 
 | Skill | Purpose |
 |-------|---------|
-| [anonymisation](anonymisation/SKILL.md) | Extract lessons from real engagement experience without exposing the parties, before anything reaches a public surface. |
 | [content-cadence](content-cadence/SKILL.md) | Turn one R&D artefact into one post (briefing or deep dive) plus a LinkedIn derivative, with the anonymisation gate and editorial conventions enforced. |
-| [cleanup](cleanup/SKILL.md) | Sweep the surfaces that carry durable claims — README, agent instruction files, docs, shared memory — for statements reality has moved past, and correct them or mark them unverified. |
-| [session-rituals](session-rituals/SKILL.md) | Open and close a working session: reconcile shared memory against repo and tracker ground truth, absorb what arrived, and leave a handover the next session can boot from. Invoked via [`/boot-ritual` and `/close-ritual`](../../commands/operational/README.md). |
-| [ship](ship/SKILL.md) | Drive a change from working tree to merge-ready: reproduce the gates exactly as CI runs them, triage whose red it is, sequence the merge — and never make a check pass by weakening it. Invoked via [`/ship`](../../commands/operational/README.md). |
+
+## Most of This Set Now Lives in `agent-ops`
+
+Four skills that used to live here — **`anonymisation`, `cleanup`, `session-rituals` and `ship`** — moved to
+**[github.com/lemur47/agent-ops](https://github.com/lemur47/agent-ops)** (public, MIT), together with the
+`/boot-ritual`, `/close-ritual` and `/ship` commands.
+
+They moved because they were never about this repository. They govern how an agent works — opening and closing a
+session, sweeping stale claims, driving a change to merge-ready, keeping engagement material out of public
+writing — and none of that depends on decision maths. Kept here, they were reachable only by whoever had this
+repository checked out, and they carried the awkwardness of a general method living inside one product's tree.
+
+`content-cadence` stays. It has forked between two working trees with improvements on both sides, so reconciling
+it is a rewrite rather than a move, and it waits on its own piece of work.
+
+If you arrived from a blog post or a link expecting one of the moved skills, `agent-ops` is where it is now.
 
 ## Org calibration via local overlay
 
@@ -33,3 +45,8 @@ Rung 1 wins where a repository's values are genuinely its own and should move wi
 Whichever rung you use, the overlay is **never committed** — not to a public repository and not to a private one. It typically carries tracker identifiers and namespaces, and the value of the split disappears the moment a copy is versioned.
 
 A minimal overlay names your core audience, your confidentiality sign-off owner, the agreements that bind you, and your default fallback when an example fails the rule.
+
+**An overlay travels with its skill.** A rung-3 overlay sits *inside* the skill directory, so moving the skill
+moves the overlay with it — and deleting the skill deletes the overlay. That is easy to miss when a skill is
+relocated, and the failure is silent: the skill resolves no overlay at all and stops, or falls back, without
+anything announcing that its calibration went missing. Check the resolved rung after any move.
