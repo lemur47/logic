@@ -570,4 +570,4 @@ pmo.run/
 - **TypeScript:** Cloudflare Workers, Agents SDK (future)
 - **Frontend:** Astro + Svelte + Tailwind CSS
 - **AI:** Claude (development partner, CLAUDE.md-driven)
-- **Security:** gitleaks, bandit, ruff, pyright, pre-commit hooks, GitHub Actions CI
+- **Security:** gitleaks, opengrep, osv-scanner, ruff, pyright, pre-commit hooks, GitHub Actions CI

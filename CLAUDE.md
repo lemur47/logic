@@ -137,6 +137,7 @@ Every new module follows this pipeline:
 - Python 3.14, managed with `uv`
 - Ruff: 100 char line length, double quotes, spaces for indentation
 - Ruff lint rules: E, F, FAST, I, N, W, B, C4, UP, SIM (with E501 and B008 ignored)
+- **Ruff does not format Markdown, deliberately.** From 0.16 it formats Python code blocks embedded in `.md`, which would rewrite published blog posts (EN and JA), the standalone example READMEs and `skills/montecarlo/SKILL.md` — turning teaching code like `x ** 2` into `x**2`. `[tool.ruff] extend-exclude = ["*.md"]` scopes that out. **Remove it only alongside a deliberate decision to format published content, never to make a red gate go green.** Keep the ruff version in step across all three places it is pinned: the `ruff-pre-commit` rev, the `ruff>=` floor in `pyproject.toml`, and whatever `uv.lock` resolves. They drifted to three different versions once, so local commits and CI ran different formatters.
 - Pyright basic mode on `app/` only
 - SQLite for development (`logic.db`, gitignored)
 - Pre-commit hooks: gitleaks, opengrep, osv-scanner, ruff, pyright, pytest, standard hygiene checks. A `commit-msg`-stage hook (`scripts/check-airtable-ids.py`, id `airtable-id-guard`) additionally scans the commit *message*, which gitleaks cannot see. `default_install_hook_types` wires both stages on a plain `pre-commit install` — but **do not set `core.hooksPath`**: pre-commit refuses to install while it is set, so the message guard silently never arrives.
