@@ -88,7 +88,12 @@ dev = [
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",
-    "ruff>=0.15.0",
+    # Floor, not a ceiling: 0.16 is where the Markdown-formatting behaviour the
+    # [tool.ruff] extend-exclude above scopes out was introduced, so an older
+    # ruff would not understand what that exclusion is defending against. Keep
+    # this in step with the ruff-pre-commit rev in .pre-commit-config.yaml —
+    # the two run the same gate and must not drift.
+    "ruff>=0.16.0",
     "httpx>=0.28.1",  # For FastAPI testing
     "pyright>=1.1.408",
 ]
@@ -124,6 +129,20 @@ line-length = 100
 # Match the package support floor so pyupgrade (UP) never rewrites to syntax
 # newer than 3.12 can run.
 target-version = "py312"
+# Ruff 0.16 began formatting Python code blocks embedded in Markdown, which
+# silently widened this gate's remit from source to prose: without this line it
+# rewrites published blog posts (EN and JA), the five standalone example
+# READMEs, and skills/montecarlo/SKILL.md.
+#
+# Code in documentation is written to be read, not to satisfy a formatter —
+# `observation_noise ** 2` is spaced deliberately, and collapsing it to
+# `observation_noise**2` costs legibility in the artefacts whose whole job is
+# explaining. Formatting published content is a content decision, with a
+# Japanese register review attached; it is not something a patch-level
+# dependency bump gets to make.
+#
+# Delete this only alongside that decision, never to make a gate go green.
+extend-exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = [
