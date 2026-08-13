@@ -147,7 +147,8 @@ Every new module follows this pipeline:
 
 The following tools must be installed outside of `uv`:
 
-- `gitleaks` — secret scanning. **The pre-commit hook and CI each install their own pinned 8.30.0, so neither uses the binary on your PATH** — keep those two in step (`rev` in `.pre-commit-config.yaml`, `GITLEAKS_VERSION` in `security.yml`) and treat a PATH copy as a convenience only. If you do install one for manual scans, take a recent binary release: the `apt` package is old enough to lack subcommands the docs assume.
+- `gitleaks` — secret scanning, **8.30.0**, binary release in `~/.local/bin`. **The pre-commit hook and CI each install their own pinned copy, so neither uses your PATH binary** — keep all three in step (`rev` in `.pre-commit-config.yaml`, `GITLEAKS_VERSION` in `security.yml`, and whatever you installed). **Do not use the `apt` package**: it is 8.16.0, predating the `dir` subcommand entirely, so the documented command fails with `unknown command` and looks like a broken gate rather than a stale binary.
+  A manual `gitleaks dir …` scan reports **far more than the gate does, by design**: it walks the filesystem including gitignored files, while the hook scans staged content only. Findings in `CLAUDE.local.md` or `tmp/` are the expected state — both are gitignored, and the identifiers living there rather than in tracked files is the convention working, not a leak. Check `git check-ignore` and `git log --all -- <path>` before treating any of them as an incident.
 - `opengrep` — SAST scanning (binary at `~/.local/bin/opengrep`)
 - `osv-scanner` — dependency vulnerability scanning (binary at `~/.local/bin/osv-scanner`)
 
