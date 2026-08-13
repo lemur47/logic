@@ -140,13 +140,14 @@ Every new module follows this pipeline:
 - **Ruff does not format Markdown, deliberately.** From 0.16 it formats Python code blocks embedded in `.md`, which would rewrite published blog posts (EN and JA), the standalone example READMEs and `skills/montecarlo/SKILL.md` — turning teaching code like `x ** 2` into `x**2`. `[tool.ruff] extend-exclude = ["*.md"]` scopes that out. **Remove it only alongside a deliberate decision to format published content, never to make a red gate go green.** Keep the ruff version in step across all three places it is pinned: the `ruff-pre-commit` rev, the `ruff>=` floor in `pyproject.toml`, and whatever `uv.lock` resolves. They drifted to three different versions once, so local commits and CI ran different formatters.
 - Pyright basic mode on `app/` only
 - SQLite for development (`logic.db`, gitignored)
+- **A gate that skips and a gate that passes render identically.** `ruff` reports `(no files to check) Skipped` on any commit staging no `.py`, and gitleaks in `--staged` mode always prints `0 commits scanned` — in that mode the honest signal is the **bytes** scanned, which read `~0 bytes` for the whole period the hook was silently broken. Never read a green hook as evidence the gate works; plant a canary and watch it go red. **Never add `args` to the gitleaks hook** — pre-commit appends them to the upstream `entry`, which is what broke it.
 - Pre-commit hooks: gitleaks, opengrep, osv-scanner, ruff, pyright, pytest, standard hygiene checks. A `commit-msg`-stage hook (`scripts/check-airtable-ids.py`, id `airtable-id-guard`) additionally scans the commit *message*, which gitleaks cannot see. `default_install_hook_types` wires both stages on a plain `pre-commit install` — but **do not set `core.hooksPath`**: pre-commit refuses to install while it is set, so the message guard silently never arrives.
 
 ## System Dependencies
 
 The following tools must be installed outside of `uv`:
 
-- `gitleaks` — secret scanning (`sudo apt install gitleaks` or binary release)
+- `gitleaks` — secret scanning. **The pre-commit hook and CI each install their own pinned 8.30.0, so neither uses the binary on your PATH** — keep those two in step (`rev` in `.pre-commit-config.yaml`, `GITLEAKS_VERSION` in `security.yml`) and treat a PATH copy as a convenience only. If you do install one for manual scans, take a recent binary release: the `apt` package is old enough to lack subcommands the docs assume.
 - `opengrep` — SAST scanning (binary at `~/.local/bin/opengrep`)
 - `osv-scanner` — dependency vulnerability scanning (binary at `~/.local/bin/osv-scanner`)
 

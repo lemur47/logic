@@ -9,12 +9,30 @@
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
-  # Security - Gitleaks (v8.30.0+ uses 'gitleaks dir' command)
+  # Security - Gitleaks (secret scanning, staged content)
+  #
+  # DO NOT ADD `args` HERE. pre-commit APPENDS args to the hook's own entry, it
+  # does not replace it. The upstream entry is already complete:
+  #
+  #     gitleaks git --pre-commit --redact --staged --verbose
+  #
+  # so an added `args: ["dir", ...]` produced `... --verbose dir --config=...`,
+  # where gitleaks read `dir` as the PATH to scan. It failed to chdir, scanned
+  # 0 commits, and EXITED 0 — the hook reported "Passed" on every commit for as
+  # long as it was configured that way, and `--config` never applied either, so
+  # the airtable-id rule was not even loaded. A commit carrying a planted canary
+  # went through green, with hooks enabled and no --no-verify (2026-08-13).
+  #
+  # The config is auto-discovered: gitleaks finds .gitleaks.toml at the repo
+  # root without being told. If you ever do need to pass something, verify the
+  # RESOLVED argv (`pre-commit run gitleaks --verbose`) and re-run the positive
+  # control — this defect existed precisely because the config looked correct.
+  #
+  # Keep `rev` in step with GITLEAKS_VERSION in .github/workflows/security.yml.
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:
       - id: gitleaks
-        args: ["dir", "--config=.gitleaks.toml", "--verbose"]
 
   # Security - Opengrep (SAST with data-flow analysis)
   # Replaces bandit — covers Python, JS/TS, Svelte, YAML, Dockerfile
