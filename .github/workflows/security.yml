@@ -49,6 +49,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
+          # Without this the action installs its own hard-coded default (8.24.3
+          # as of v3.0.0) while pre-commit ran 8.30.0 — two surfaces enforcing
+          # one rule set with nothing forcing them to agree, which is how the
+          # three drifted ruff pins happened. Keep in step with the gitleaks
+          # `rev` in .pre-commit-config.yaml. No `v` prefix.
+          GITLEAKS_VERSION: "8.30.0"
 
   # Static analysis with Opengrep (replaces bandit)
   opengrep:
