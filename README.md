@@ -50,7 +50,9 @@ Every module follows: **Standalone PoC → FastAPI endpoint → Agent tool → I
 
 ```bash
 git clone https://github.com/lemur47/logic.git && cd logic
-sudo apt install gitleaks
+# opengrep must be on PATH before the first commit — the pre-commit SAST hook
+# shells out to it. gitleaks and osv-scanner do NOT need installing: their hooks
+# build their own pinned copies. See CLAUDE.md for versions and binary sources.
 uv venv
 direnv allow
 uv pip install -e ".[dev]"
