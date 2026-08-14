@@ -37,10 +37,7 @@ permissions:
 
 on:
   push:
-    # TEMPORARY (positive control, removed before merge): the branch is here so
-    # a push event fires at all — feature branches otherwise only reach this
-    # workflow through `pull_request`, which the notifier deliberately excludes.
-    branches: [main, ci/merge-gate-findable]
+    branches: [main]
   pull_request:
     branches: [main]
   schedule:
@@ -153,7 +150,6 @@ jobs:
 
       - name: Run Ruff Formatter Check
         run: uv run ruff format --check .
-
 
   # Type checking with pyright
   typecheck:
@@ -293,10 +289,12 @@ jobs:
   # ---------------------------------------------------------------------------
   notify-red-main:
     needs: [gitleaks, opengrep, osv-scan, lint, typecheck, pytest, frontend, remote-mcp]
-    # TEMPORARY disjunct (positive control, removed before merge). The main
-    # clause is left byte-for-byte as it will ship, so what is proved here is
-    # what merges, minus one OR.
-    if: ${{ failure() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci/merge-gate-findable') }}
+    # Proved by positive control on 2026-08-14: with this condition temporarily
+    # widened to a test branch and `lint` failed on purpose, this job opened and
+    # assigned issue #143 naming the failing job, and the green half then closed
+    # it. Re-run that control if you change the condition — the notifier cannot
+    # be verified by reading it.
+    if: ${{ failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -359,8 +357,7 @@ jobs:
 
   clear-red-main:
     needs: [gitleaks, opengrep, osv-scan, lint, typecheck, pytest, frontend, remote-mcp]
-    # TEMPORARY disjunct (positive control, removed before merge) — see above.
-    if: ${{ success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci/merge-gate-findable') }}
+    if: ${{ success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
