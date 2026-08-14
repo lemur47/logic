@@ -154,11 +154,6 @@ jobs:
       - name: Run Ruff Formatter Check
         run: uv run ruff format --check .
 
-      # TEMPORARY (positive control, removed before merge). A required job has
-      # to actually fail for notify-red-main to be observed firing; a mechanism
-      # nobody has seen fail is the thing this change exists to fix.
-      - name: Deliberate failure — positive control for notify-red-main
-        run: exit 1
 
   # Type checking with pyright
   typecheck:
