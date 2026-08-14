@@ -37,7 +37,10 @@ permissions:
 
 on:
   push:
-    branches: [main]
+    # TEMPORARY (positive control, removed before merge): the branch is here so
+    # a push event fires at all — feature branches otherwise only reach this
+    # workflow through `pull_request`, which the notifier deliberately excludes.
+    branches: [main, ci/merge-gate-findable]
   pull_request:
     branches: [main]
   schedule:
@@ -150,6 +153,12 @@ jobs:
 
       - name: Run Ruff Formatter Check
         run: uv run ruff format --check .
+
+      # TEMPORARY (positive control, removed before merge). A required job has
+      # to actually fail for notify-red-main to be observed firing; a mechanism
+      # nobody has seen fail is the thing this change exists to fix.
+      - name: Deliberate failure — positive control for notify-red-main
+        run: exit 1
 
   # Type checking with pyright
   typecheck:
@@ -289,7 +298,10 @@ jobs:
   # ---------------------------------------------------------------------------
   notify-red-main:
     needs: [gitleaks, opengrep, osv-scan, lint, typecheck, pytest, frontend, remote-mcp]
-    if: ${{ failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    # TEMPORARY disjunct (positive control, removed before merge). The main
+    # clause is left byte-for-byte as it will ship, so what is proved here is
+    # what merges, minus one OR.
+    if: ${{ failure() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci/merge-gate-findable') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -352,7 +364,8 @@ jobs:
 
   clear-red-main:
     needs: [gitleaks, opengrep, osv-scan, lint, typecheck, pytest, frontend, remote-mcp]
-    if: ${{ success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    # TEMPORARY disjunct (positive control, removed before merge) — see above.
+    if: ${{ success() && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci/merge-gate-findable') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
