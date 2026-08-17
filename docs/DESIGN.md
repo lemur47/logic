@@ -170,7 +170,36 @@ D1 Analytics (computed by agent — never surfaced in plugins, never manually ma
 └── calibration_data       ← proprietary: field-adjusted coefficients
 ```
 
-**`activity_analytics`** is the key table. It's populated entirely by the agent from GitHub webhook events. No human creates or maintains rows. Over time, it feeds Bayesian calibration ("work packages involving authentication historically take 1.4x PERT estimate"), process mining ("issues with 3+ contributors take 40% longer"), and anomaly detection ("WBS 1.3 has 2 open issues but no commits in 5 days").
+**`activity_analytics`** is the key table. It's populated entirely by the agent from GitHub webhook events. No human creates or maintains rows. Over time, it feeds Bayesian calibration, process mining ("issues with 3+ contributors take 40% longer"), and anomaly detection ("WBS 1.3 has 2 open issues but no commits in 5 days").
+
+What calibration output looks like in practice, from our own `estimation_log` rather than a hypothetical: across 29 estimate/actual pairs, the posterior delay factor is **0.891** — we *over*-estimate by roughly 1.12x per item — and it varies by category, from content work at 0.994 down to operational housekeeping at 0.756. Earlier versions of this document illustrated the same idea with a 1.4x *under*-estimate. That figure was an extrapolation from a handful of observations and the measured data reversed both its size and its direction, which is the argument for the table rather than a footnote about it.
+
+### Data Plane and Narrative Plane
+
+A governance boundary, not a preference, and deliberately written to resist being softened later.
+
+**The data plane takes measurable, falsifiable inputs only.** Into the engine go the influence graph and behavioural measures — estimate-accuracy ratio, throughput, review turnaround, domain familiarity. Every one is derived from events the system already records, and every one can be contradicted by the next observation.
+
+**Personality typologies stay out of the maths, permanently.** MBTI, Wealth Dynamics and anything comparable are excluded as model inputs, weights, priors or features — including as tie-breakers, defaults or "soft" adjustments, and including any attempt to infer a type from observed behaviour, which would reintroduce them through the back door. Four reasons:
+
+1. Poor test-retest reliability and no validated predictive power for delivery outcomes. An input that does not reproduce cannot carry a coefficient.
+2. An unfalsifiable prior is not a prior. Bayesian machinery applied to one manufactures false confidence and launders it as arithmetic.
+3. GDPR Article 22 and works-council exposure. Software that profiles identified individuals inside decision support carries obligations that a throughput measure does not.
+4. One weak component taints the whole instrument. Everything else here is defensible under scrutiny; this would be the sentence a sceptical reviewer quotes.
+
+**The narrative plane may carry labelled qualitative colour** — opt-in, explicitly marked as heuristic, and never feeding a calculation.
+
+The test to apply when this is next questioned: *can the input be measured from recorded events, and could an observation falsify it?* If not, it belongs to the narrative plane. The named typologies are only today's instances; the test is the durable part.
+
+### Ontology: A Fixed Upper Layer With Generated Extensions
+
+The semantic layer over D1, KV and R2 uses a **fixed upper ontology** — actor, team, coordination mechanism, artefact, claim, dependency — with **generated per-programme domain extensions** beneath it.
+
+The deciding argument is comparability rather than elegance. A freshly generated ontology per programme destroys cross-project comparison: posteriors cannot transfer between programmes, and the reference-class layer — the thing that lets one programme's history inform another's estimate — dies with it. The fixed upper layer is what makes calibration extensible past a single programme.
+
+**The grounding rule is mandatory.** Every generated class and relation must bind to at least one observable data source, or be pruned. An unbound class is deleted, not flagged for later; "later" is how ungrounded taxonomies survive. A taxonomy with no data beneath it is a container artefact about the organisation that wrote it — it records how people talked, not what happened.
+
+This mirrors the schema principle above: core tables are stable, domain tables are additive, and the same holds one level up in the semantics.
 
 ### GitHub Integration: Input → Agent → Output
 
@@ -519,6 +548,8 @@ PMO data exists on a spectrum from public (estimation formulas) to highly sensit
 | Operational UI | Plugin layer — bring your own visual app (Airtable = reference plugin) | WBS work packages only; we do not build a visual UI |
 | Dev tool sync | GitHub webhooks | Agent bridge: activity analytics computed, not managed |
 | Python vs TypeScript | Both | Python for community, TypeScript for product |
+| Model inputs | Measurable, falsifiable inputs only | Personality typologies excluded from the data plane permanently; qualitative colour is narrative-plane and labelled |
+| Semantic layer | Fixed upper ontology + generated per-programme extensions | Grounding rule mandatory: an unbound class is pruned, not flagged |
 
 
 ---
