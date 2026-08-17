@@ -151,7 +151,9 @@ jobs:
       - name: Require a green TestPyPI rehearsal for this commit
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.sha }}
+          # POSITIVE CONTROL SCAFFOLDING — reverted before merge. 62ee44e is the
+          # commit today's real TestPyPI rehearsal ran against.
+          SHA: 62ee44ea079d28b07b6e269cf8188020719866e6
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
