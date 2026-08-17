@@ -93,6 +93,22 @@ push can publish for real, so a mis-clicked rehearsal cannot burn a version.
    and does not cover: `target: none` skips the `publish` job entirely, so only
    `target: testpypi` exercises the publish action, its environment and its
    repository URL.
+
+   **This step is enforced, not merely asked for.** Since 2026-08-17 the tag path
+   carries a `rehearsed` job that refuses to publish unless *this exact commit*
+   has a successful `target: testpypi` dispatch behind it. Dispatch the rehearsal
+   on the commit you are about to tag — a rehearsal of an earlier commit does not
+   count, and neither does a `target: none` run, because its `publish` job never
+   ran.
+
+   If a tag is blocked by `rehearsed`, the fix is to dispatch the rehearsal on
+   that commit and re-run the tag. There is no bypass; the rehearsal takes about
+   two minutes, which is the whole argument for enforcing it.
+
+   TestPyPI is deliberately **not** in the production publish path. The first
+   rehearsal (2026-08-17) failed on a five-second OIDC read timeout to
+   test.pypi.org and passed on re-run — had TestPyPI been a step in the real
+   release, that transient would have blocked the release itself.
 7. Tag the release commit on `main` and push the tag:
    ```bash
    git checkout main && git pull
