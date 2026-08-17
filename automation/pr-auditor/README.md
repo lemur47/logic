@@ -91,20 +91,43 @@ text — with the item, not in a screenshot.
    hand and pointed at the scenario's custom webhook URL. Deliberately not via
    the automation platform's own GitHub app, which has known permission problems.
 
-## Two findings that need a decision before wiring
+The folder is created and empty. The scenario is not built yet, because a
+half-wired scenario would consume the account's one remaining slot while proving
+nothing.
 
-**The automation account belongs to the other programme.** The only organisation
-available is on the OHORA side, and this auditor is now part of the sellable PMO
-product. Building the scenario there couples the asset being prepared for sale to
-an account that is not part of it — the coupling this programme treats as a
-defect. Options: a separate organisation for PMO, accept the coupling knowingly
-and record it, or implement the auditor as a workflow in this repository calling
-the API directly, which removes the third-party account entirely.
+## Where the scenario lives, and how it leaves
 
-**The free plan is tighter than the design assumes**: two scenarios (one already
-used), 1000 operations per month, and three-day webhook log retention. A reviewer
-firing on every push to every open pull request will find that ceiling quickly,
-and the logs needed to debug a failure expire in three days.
+The scenario is built in a dedicated **folder** in the automation account the
+connector can reach, not in a separate organisation. Separate organisations are
+not the separation mechanism here: the integration surface can address one
+organisation at a time, so an organisation split would buy tidiness at the cost
+of being unable to manage the thing that was split off.
 
-Neither is a reason to abandon the approach. Both are reasons to decide the
-platform before building on it, rather than after.
+**The blueprint export is the handover mechanism.** A scenario exports to JSON
+and imports into any other account, which is what makes building here reversible
+rather than entangling. That is worth stating precisely, because it is easy to
+reach for the wrong standard:
+
+> Divestment does not mean every asset transfers by itself on the day of sale.
+> Some of it is migration work, planned and performed. An asset that needs a
+> documented migration step is not the same as an asset that is entangled.
+
+So the test to apply to anything built here is **"can this be exported and
+re-imported by a new owner?"** — not "does this run in an account bearing the
+right name". Applying the stricter test would rule out most useful tooling and
+buy nothing.
+
+## Operating constraints of the account
+
+Real limits to design within, not blockers: **two scenarios total** (one already
+used by an unrelated connection test), **1000 operations per month**, a five-minute
+execution ceiling, and **three-day webhook log retention**.
+
+Two consequences worth building for rather than discovering:
+
+- A reviewer firing on every push to every open pull request will meet the
+  monthly ceiling. The ~50-file diff cap above is one bound; restricting the
+  trigger to `opened` plus `synchronize` rather than every event is another.
+- The logs needed to debug a failed run expire in three days, so evidence from a
+  positive control gets recorded with the work item when it is produced. A
+  screenshot taken next week will not exist.
