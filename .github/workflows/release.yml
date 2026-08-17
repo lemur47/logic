@@ -30,7 +30,6 @@ on:
   push:
     tags:
       - "v*"
-  pull_request: # POSITIVE CONTROL SCAFFOLDING — removed before merge.
   workflow_dispatch:
     inputs:
       target:
@@ -142,8 +141,7 @@ jobs:
   # There is no bypass, and none is needed: the remedy for a blocked tag is to
   # dispatch the rehearsal on that commit, which takes about two minutes.
   rehearsed:
-    # POSITIVE CONTROL SCAFFOLDING — removed before merge.
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       actions: read # read this workflow's own run history; nothing else
@@ -151,9 +149,7 @@ jobs:
       - name: Require a green TestPyPI rehearsal for this commit
         env:
           GH_TOKEN: ${{ github.token }}
-          # POSITIVE CONTROL SCAFFOLDING — reverted before merge. 62ee44e is the
-          # commit today's real TestPyPI rehearsal ran against.
-          SHA: 62ee44ea079d28b07b6e269cf8188020719866e6
+          SHA: ${{ github.sha }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
