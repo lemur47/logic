@@ -4,6 +4,23 @@
 # Jobs: gitleaks scan, opengrep SAST, osv-scanner SCA, ruff lint, pyright typecheck,
 #       pytest suite, frontend checks, remote-mcp PoC checks
 #
+# THIS FILE IS THE MERGE GATE. The "Protect main" ruleset requires nine status
+# contexts, and they are keyed on JOB NAMES, not on this file's name or on the
+# workflow name. Eight of the nine are the job ids below; the ninth, `CodeQL`,
+# is GitHub default setup and is defined in NO FILE in this repository — look
+# for it in the web UI, not here.
+#
+# Renaming this file is therefore safe (it was `security.yml` until 2026-08-14,
+# which meant the workflow named "CI" lived somewhere nobody would grep for).
+# Renaming, splitting or reorganising the JOBS is NOT: drop a job id the ruleset
+# still requires and the context never reports, which leaves main protected by a
+# check that can no longer run. Change a job id only together with the ruleset,
+# and re-verify from the API afterwards rather than inferring from a green PR:
+#
+#     gh api /repos/lemur47/logic/rulesets
+#
+# A PR going green proves the jobs ran. It does not prove they are still required.
+#
 # Third-party actions are pinned to a full commit SHA (human-readable version in
 # a trailing comment) so a moved or hijacked tag can't swap an action out from
 # under us. Dependabot (github-actions ecosystem) keeps the SHAs fresh.
@@ -248,3 +265,120 @@ jobs:
 
       - name: Test
         run: npm test
+
+  # ---------------------------------------------------------------------------
+  # Red-main notification
+  #
+  # On 2026-08-10 the weekly scheduled run failed `frontend` and `osv-scan` on
+  # main, with no commit behind it — advisory feeds moved under a static tree.
+  # Nothing notified anyone. The next human contact was a session boot two days
+  # later. On a repository that goes days between commits, the schedule's cadence
+  # IS the detection interval, so a silent detection is barely a detection.
+  #
+  # These two jobs make the state of main visible in a place a person is already
+  # notified about: an assigned issue. `notify-red-main` opens one (or comments
+  # on the existing one) when any required job fails on the default branch;
+  # `clear-red-main` closes it when the branch comes back green, so the issue's
+  # presence always means "main is red right now" rather than "main was red once".
+  #
+  # Deliberately NOT on pull requests: a PR surfaces its own failures on the PR,
+  # and an issue per red PR would be noise that trains people to ignore the label.
+  #
+  # NOTE: these two jobs are NOT required contexts, and must not become ones.
+  # A notifier that can block a merge is a notifier that will be bypassed.
+  # ---------------------------------------------------------------------------
+  notify-red-main:
+    needs: [gitleaks, opengrep, osv-scan, lint, typecheck, pytest, frontend, remote-mcp]
+    # Proved by positive control on 2026-08-14: with this condition temporarily
+    # widened to a test branch and `lint` failed on purpose, this job opened and
+    # assigned issue #143 naming the failing job, and the green half then closed
+    # it. Re-run that control if you change the condition — the notifier cannot
+    # be verified by reading it.
+    if: ${{ failure() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open or update the red-main issue
+        env:
+          # Every value is workflow metadata, never user-supplied content, and is
+          # passed through the environment rather than interpolated into the
+          # script — the standard guard against workflow command injection.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.sha }}
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+
+          FAILED=$(printf '%s' "$NEEDS_JSON" \
+            | jq -r 'to_entries
+                     | map(select(.value.result != "success"))
+                     | map(.key)
+                     | join(", ")')
+          [ -n "$FAILED" ] || FAILED="(none reported — check the run)"
+
+          gh label create red-main --repo "$REPO" --color B60205 \
+            --description "The default branch is failing a required check" \
+            >/dev/null 2>&1 || true
+
+          BODY=$(cat <<EOF
+          A required check is failing on the default branch.
+
+          | | |
+          |---|---|
+          | Failing jobs | $FAILED |
+          | Commit | \`$SHA\` |
+          | Trigger | \`$EVENT\` |
+          | Run | $RUN_URL |
+
+          This issue was opened automatically and is reused while it stays open.
+          It closes itself when a run on the default branch goes green, so an open
+          copy means **main is red right now**.
+          EOF
+          )
+
+          EXISTING=$(gh issue list --repo "$REPO" --label red-main --state open \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$REPO" --body "$BODY"
+          else
+            gh issue create --repo "$REPO" \
+              --title "main is red: a required check is failing" \
+              --label red-main \
+              --assignee "$OWNER" \
+              --body "$BODY"
+          fi
+
+  clear-red-main:
+    needs: [gitleaks, opengrep, osv-scan, lint, typecheck, pytest, frontend, remote-mcp]
+    if: ${{ success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Close the red-main issue if one is open
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          EXISTING=$(gh issue list --repo "$REPO" --label red-main --state open \
+            --json number --jq '.[0].number // empty')
+
+          if [ -z "$EXISTING" ]; then
+            echo "No open red-main issue; nothing to close."
+            exit 0
+          fi
+
+          gh issue close "$EXISTING" --repo "$REPO" --comment \
+            "All required checks passed on the default branch at \`$SHA\`. Closing. Run: $RUN_URL"
