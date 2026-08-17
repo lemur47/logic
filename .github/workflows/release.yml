@@ -30,6 +30,7 @@ on:
   push:
     tags:
       - "v*"
+  pull_request: # POSITIVE CONTROL SCAFFOLDING — removed before merge.
   workflow_dispatch:
     inputs:
       target:
@@ -141,7 +142,8 @@ jobs:
   # There is no bypass, and none is needed: the remedy for a blocked tag is to
   # dispatch the rehearsal on that commit, which takes about two minutes.
   rehearsed:
-    if: github.event_name == 'push'
+    # POSITIVE CONTROL SCAFFOLDING — removed before merge.
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       actions: read # read this workflow's own run history; nothing else
