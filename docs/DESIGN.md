@@ -193,7 +193,9 @@ The test to apply when this is next questioned: *can the input be measured from 
 
 ### Ontology: A Fixed Upper Layer With Generated Extensions
 
-The semantic layer over D1, KV and R2 uses a **fixed upper ontology** — actor, team, coordination mechanism, artefact, claim, dependency — with **generated per-programme domain extensions** beneath it.
+The semantic layer over the operational stores — D1 and R2 as they stand today — uses a **fixed upper ontology** (actor, team, coordination mechanism, artefact, claim, dependency) with **generated per-programme domain extensions** beneath it.
+
+KV and Vectorize are *candidate* stores for this layer rather than part of it. Both are gated on the tenancy decision, which is still a draft: it settles how a shared store is partitioned per organisation and encrypted, and until it is taken neither store can be assigned a privacy zone. Naming a store here without a zone would contradict the three-zone model below, which is the one place this document cannot afford to be loose.
 
 The deciding argument is comparability rather than elegance. A freshly generated ontology per programme destroys cross-project comparison: posteriors cannot transfer between programmes, and the reference-class layer — the thing that lets one programme's history inform another's estimate — dies with it. The fixed upper layer is what makes calibration extensible past a single programme.
 
