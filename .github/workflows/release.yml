@@ -121,11 +121,69 @@ jobs:
       - name: Make the server answer
         run: python scripts/mcp_smoke.py --expect-tools 4 -- .smoke/bin/pmorun-mcp
 
+  # A tag push must not be the first time this release path is exercised. The
+  # checklist has always ASKED for a green TestPyPI rehearsal before tagging;
+  # nothing enforced it, so the `pypi` environment's required reviewer was the
+  # only thing standing between an unrehearsed change and production — a human
+  # substituting for a control.
+  #
+  # What counts as evidence: a workflow_dispatch run of THIS workflow, on THIS
+  # exact commit, whose `publish` job succeeded. On a dispatch, `publish` runs
+  # only when target is `testpypi`, so a successful publish job proves the target
+  # without reading the inputs — which the runs API does not expose.
+  #
+  # This deliberately does NOT put TestPyPI in the production release path. The
+  # first rehearsal on 2026-08-17 failed on a 5-second OIDC read timeout to
+  # test.pypi.org and passed on re-run; publishing to TestPyPI during a real
+  # release would have made that transient block the release itself. Evidence of
+  # an earlier rehearsal costs one API read and depends on nobody's uptime.
+  #
+  # There is no bypass, and none is needed: the remedy for a blocked tag is to
+  # dispatch the rehearsal on that commit, which takes about two minutes.
+  rehearsed:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read # read this workflow's own run history; nothing else
+    steps:
+      - name: Require a green TestPyPI rehearsal for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          runs="$(gh api \
+            "/repos/${REPO}/actions/workflows/release.yml/runs?event=workflow_dispatch&head_sha=${SHA}&status=success&per_page=20" \
+            --jq '.workflow_runs[].id')"
+          for id in ${runs}; do
+            if gh api "/repos/${REPO}/actions/runs/${id}/jobs" \
+              --jq '.jobs[] | select(.name == "publish") | .conclusion' | grep -qx success; then
+              echo "Rehearsal found: run ${id} published ${SHA} to TestPyPI."
+              exit 0
+            fi
+          done
+          echo "::error::No green TestPyPI rehearsal for ${SHA}. Dispatch Release with target=testpypi on this commit, let it pass, then re-run this tag."
+          exit 1
+
   publish:
-    needs: [build, smoke]
-    # A tag push publishes for real. A rehearsal only publishes if it explicitly
-    # asked for TestPyPI; with target "none" the run stops after the smoke test.
-    if: github.event_name == 'push' || inputs.target == 'testpypi'
+    needs: [build, smoke, rehearsed]
+    # A tag push publishes for real, and only once `rehearsed` has confirmed this
+    # commit was rehearsed. A rehearsal only publishes if it explicitly asked for
+    # TestPyPI; with target "none" the run stops after the smoke test.
+    #
+    # `!cancelled()` is load-bearing: on a rehearsal `rehearsed` is SKIPPED, and a
+    # job whose dependency skipped is skipped too unless its condition survives
+    # that state. Without it this workflow would silently stop publishing to
+    # TestPyPI — the rehearsal would go green having done nothing.
+    if: >-
+      !cancelled()
+      && needs.build.result == 'success'
+      && needs.smoke.result == 'success'
+      && (
+        (github.event_name == 'push' && needs.rehearsed.result == 'success')
+        || inputs.target == 'testpypi'
+      )
     runs-on: ubuntu-latest
     # The GitHub environment the matching trusted publisher is scoped to. On a
     # rehearsal this is `testpypi`, which cannot publish to production PyPI even

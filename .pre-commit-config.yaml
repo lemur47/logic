@@ -28,7 +28,7 @@ repos:
   # RESOLVED argv (`pre-commit run gitleaks --verbose`) and re-run the positive
   # control — this defect existed precisely because the config looked correct.
   #
-  # Keep `rev` in step with GITLEAKS_VERSION in .github/workflows/security.yml.
+  # Keep `rev` in step with GITLEAKS_VERSION in .github/workflows/ci.yml.
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:

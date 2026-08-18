@@ -1,7 +1,7 @@
 # Dependabot configuration — keeps the committed locks and pinned Actions fresh.
 #
 # Two ecosystems, both on a weekly cadence so a static lock can't quietly age
-# into the Monday osv-scanner cron (see .github/workflows/security.yml):
+# into the Monday osv-scanner cron (see .github/workflows/ci.yml):
 #
 #   1. uv      — the native uv ecosystem reads pyproject.toml + uv.lock directly
 #                (NOT the `pip` ecosystem, which mismatches a uv-locked tree).
