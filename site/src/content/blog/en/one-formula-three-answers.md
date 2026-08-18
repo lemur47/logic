@@ -1,6 +1,6 @@
 ---
-title: "Three Tools, One Formula, Three Answers: an 8.7% drift that changes what the committee decides"
-description: "We compute the same estimation formula in three places. On one work item they disagreed by 8.7% — not from a bug, but from rounding mode. At portfolio scale that is the difference between over-running by a tenth and over-running by a third. Here is how our own dogfooding found it, and the division of labour that fixes it."
+title: "The Decision Risk of Tool Fragmentation: One Calculation, Three Tools, Answers 8.7% Apart"
+description: "The same estimation formula runs in three of our tools. On one work item the answers diverged by 8.7% — not from a bug, but from rounding mode — and a second, larger divergence needed no rounding at all. What that costs a steering committee, and the division of labour that fixes it."
 pubDate: 2026-08-14
 tags: ["pmo", "governance", "estimation", "assurance", "ai-agents"]
 contentType: "deep-dive"
@@ -10,22 +10,35 @@ A steering committee approves a budget on the strength of a number. That number 
 
 We found ours by accident, in our own data, while doing something else entirely.
 
-## Executive Summary: One Formula Implemented in Three Places Is Three Formulas
+## Executive Summary: When Several Tools Hold the Same Number, You Are Deciding on a Range Nobody Has Measured
 
-- We compute PERT expected duration in three places: a tracker's formula field, a Python core, and a TypeScript port of that core. They are meant to agree, and almost always do.
-- On one work item they disagreed by **8.7%** in the derived figure. Not a bug in any of them. A difference in rounding *mode* — one rounds half up, another rounds half to even.
-- Twenty-eight of twenty-nine items agreed to within 0.011. The divergence appears only when a value lands exactly on a rounding tie, which is precisely why no test caught it and why it survived a line-by-line review.
-- A second, larger divergence needs no rounding at all. Our estimating bias reads as 1.12× or 1.30× depending on which aggregate you take — both correct, 16% apart, and the choice is usually made silently by whoever wrote the query.
-- At the scale of a single half-day task these are curiosities. Rolled up across a portfolio they are the difference between "we over-run by about a tenth" and "we over-run by about a third" — two sentences that produce different budgets and different risk provisions.
-- We found it by dogfooding: running our own estimation history through our own tool. The fix is not a patch. It is a division of labour — one system of record, one calculation layer, one analyst — with the netting done at the boundaries.
+**Conclusion and recommendation.** Name one system of record for every number that reaches a decision, net every other implementation against it with fixtures generated from that record — ties included, deliberately — and state which aggregate statistic each report uses. Do that and the disagreements become lookups. Until then, the figure in front of the committee is not a number but a range, and nobody in the room knows how wide it is.
+
+**The problem.** The same fact is held by a tracker, a spreadsheet, a dashboard, an application, a slide a PMO retyped by hand, and now an AI agent asked to summarise the position. Each holds a fragment; none is authoritative; nothing nets them. A decision taken on unreconciled fragments has left the facts behind, whatever its confidence sounds like.
+
+**The analysis.** We ran twenty-nine of our own estimate/actual pairs through our own calibration tool. Twenty-eight agreed with the tracker to within 0.011. One diverged by **8.7%** — no bug in any implementation, a difference in rounding *mode*. A second divergence, 16% wide, needs no rounding at all: our estimating bias reads as 1.12× or 1.30× depending on which aggregate you take, and both are correct.
+
+**The evaluation.** At the scale of one half-day task these are curiosities. In a portfolio roll-up they are the difference between "we over-run by about a tenth" and "by about a third" — two sentences that produce different budgets. And because the arithmetic sits inside a feedback loop, the drift is not reported once and forgotten; it is fed back and re-learnt, so the chain grows more confident as it grows more wrong.
 
 ## Problems: Your Calculation Chain Has More Than One Implementation, and Nobody Has Netted Them
 
 Almost every organisation computes its important numbers more than once. A figure originates in a spreadsheet formula field, is recomputed by a BI tool for the dashboard, is recomputed again by an application that consumes the same data, and is now increasingly recomputed a fourth time by an AI agent asked to summarise the position. Four implementations of one definition, maintained by different people, in different languages, at different times.
 
+There is usually a fifth, and it is the one nobody counts: the PMO preparing the pack. Figures are lifted out of the tracker into a spreadsheet, rounded to fit a column, summed into a subtotal the source system never computed, and pasted into a slide. That is an implementation too — written in cell references and keystrokes, reviewed by nobody, and re-created from scratch every reporting cycle.
+
 The reason this persists is a category error that is genuinely easy to make: **a formula field in a spreadsheet or tracker does not look like an implementation.** It looks like the data. Nobody puts it on the list of systems to reconcile, because it does not present itself as a system. We had already learnt this lesson for the Python-to-TypeScript pair and written it into our own engineering standards — and we still missed the tracker, for exactly this reason.
 
 There is a second reason it survives: rounding ties are rare. Feed a hundred realistic values through two implementations that differ only in rounding mode and ninety-nine will agree. A defect that shows up in one case per hundred does not look like a defect. It looks like noise, or like someone mistyping a figure into a slide.
+
+### The Intelligence Problem Underneath the Arithmetic
+
+Take a step back from the decimals and this is a data-to-decision problem, which is the PMO's actual job. Data becomes information when it is placed in context, information becomes knowledge when it is reconciled and understood, and knowledge is what a decision is supposed to rest on. Fragmentation breaks that ladder at the first rung: when several tools each hold a piece of the same fact and no two of them agree exactly, there is no reconciled position to build knowledge from.
+
+What reaches the committee instead is a narrative — internally consistent, confidently delivered, and detached from the facts by an unknown margin. That is not a governance failure anyone can see happening, because the narrative is coherent; coherence is exactly what it has instead of grounding. A decision made on it has left the evidence behind while keeping the vocabulary of evidence.
+
+**For a C-suite reader, an executive sponsor or an advising consultant, the exposure does not present as a rounding difference. It presents as a statistical error in the reporting, an AI summary that asserts a precision it never had, and a strategic call made on both.** Those are three different incident reports, and all three have the same root: several implementations of one definition and no authority between them.
+
+It is worth being blunt about why estimation is the sorest place for this to happen. Executives have long experience of estimates that are padded and still late — a figure inflated for safety, the work over-running anyway, and the response being more people and more firefighting. Where delivery is contracted out, padding is a rational hedge against risk the supplier carries alone, which is a structural feature of how the work is bought rather than a failing of whoever quoted it; the practical consequence is that quoted effort and eventual effort can differ by a multiple rather than by a margin. Estimates are tied to budget cycles, delivery windows and launch timing, so an inflated one is not a harmless cushion; it moves money and dates. The estimating instrument therefore arrives in the room already carrying the least trust of any number in the pack, and an instrument that is quietly biased is the last thing it can afford.
 
 This has become sharper, not softer, as more of the calculation moves to AI agents. When an agent reads the data, computes a figure and writes the commentary in a single step, the arithmetic is the least-inspected layer in the chain. Reviewers audit the prose, because the prose is what they can read. The number arrives already formatted, already in a sentence, already carrying the authority of having been computed. **In the era of auditing what an LLM produced, the arithmetic is where the least scrutiny meets the most trust.**
 
@@ -78,6 +91,14 @@ The actual duration was 0.15 sessions. So the same item's calibration ratio is:
 
 **8.7% apart, from rounding mode alone** — and larger than the rounding itself, because rounding happened *before* the division rather than after it. One decimal place of disagreement in the denominator became almost a tenth of the answer.
 
+It is worth naming what PERT contributes to this. A three-point estimate is a judgement about a distribution, and `(O + 4M + P) / 6` collapses it to a single expected value. Reporting that value to two decimal places states a precision the underlying judgement never had — which is why the second decimal was free to disagree across three tools without anybody noticing that it was carrying weight it could not bear.
+
+### Who Found It, and Why Nobody Had
+
+The division of labour matters to how this surfaced. The twenty-nine pairs were not retyped by a person; an agent read them from the tracker, loaded them into the calibration tool, and then compared its own output against the tracker's equivalent column — which is the step that produced the finding. It found the discrepancy by checking its own work against a second source, not by being clever about arithmetic.
+
+That is also the reason it had gone unfound for so long. Two of the three implementations were never reviewed as code by anybody. A formula field is configured in a browser by whoever built the view; it has no diff, no test and no reviewer, and it can be edited by someone who would never describe themselves as writing software. The same now applies to a growing share of code that an AI agent writes and a human approves in bulk. Low-code configuration and AI-written implementation share one property that matters here: **the number of implementations grows faster than the number of things anyone has agreed to review.**
+
 ### The Divergence That Needs No Rounding at All
 
 While reconciling that, a second and larger gap surfaced, and this one is not about arithmetic precision:
@@ -101,6 +122,10 @@ It is tempting to file all of this as a rounding detail. The reason not to is st
 
 What makes this worth a steering committee's attention rather than an engineer's is the loop it sits in. An estimate informs a decision. The decision produces an actual. The actual feeds calibration. Calibration adjusts the next estimate. **A bias in the arithmetic layer is not a one-time misreport — it is fed back in, and it trains the next estimate.** A chain that quietly rounds one way will keep telling you that you are better calibrated than you are, and will keep doing so more confidently as the sample grows.
 
+![The estimate–decision–actual–calibration cycle drawn as a closed loop, with the 8.7% drift riding round it and being re-learnt as data on each turn, and an arrow leading out of the loop to portfolio roll-ups, contingency and the interval reported to the board — where it appears in some reporting periods and not others, and so reads as volatile delivery rather than a faulty instrument](/blog/one-formula-three-answers/drift-amplification.svg)
+
+Two things compound in that picture, and they are worth separating. The first is arithmetic: a drift on one item becomes a drift on a subtotal, then on a portfolio roll-up, then on a contingency figure derived from the roll-up. The second is worse, because it is a learning effect rather than an addition. Each turn of the loop treats the drifted figure as an observation, so the instrument is not merely misreporting — it is being trained on its own error, and the credible interval it reports narrows around the wrong value.
+
 That gives an ordering of leverage, weakest to strongest. Correcting the affected number is the weakest possible intervention and buys nothing beyond that number. Adding a regression test is better, but only catches the case you thought of. Designating a system of record is stronger still, because it converts every future disagreement from a debate into a lookup. The strongest is changing the model that says a tracker's formula field is not an implementation, because that is what kept it off the reconciliation list in the first place.
 
 The risk framing follows directly. An 8.7% drift on a half-day task is noise. The same defect operating on a portfolio roll-up, a contingency calculation or a confidence interval reported to a board is a budget line — and, because the divergence is rare rather than systematic, it will appear in some reporting periods and not others, which reads as volatility in delivery rather than as an instrument fault.
@@ -122,5 +147,7 @@ Four things, in the order we would do them again.
 - **The agent is the orchestrator and the analyst.** It moves data between the two, runs the comparison, and writes up what it found — including, in this case, the finding that its own two sources disagreed.
 
 The boundaries between those three are where the netting belongs, because they are the only places where two independent answers to the same question exist and can be compared.
+
+One caution to carry forward, because the pressure runs the other way. Every integration you add — a sync, a dashboard, an agent given tool access — is another place holding a fragment of the same fact, and it will be introduced as a convenience rather than as an implementation. Autonomous agents make this faster still: they can create a derived figure, act on it and report it without a person seeing the intermediate step. Count implementations, not tools, and require each new one to declare which system of record it defers to before it is allowed to hold a number anybody decides on.
 
 A closing note on the AI-audit question, since it is the same problem wearing different clothes. The reason this defect was findable is that the calculation layer was separable and could be interrogated on its own. Had the agent simply read the tracker and written "we over-estimate by roughly 1.2×", the sentence would have been approximately true, entirely plausible, and unauditable. **When you are checking what an AI produced, ask it for the arithmetic, not the conclusion** — the conclusion is the part designed to be easy to agree with.
