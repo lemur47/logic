@@ -36,7 +36,7 @@ This is not a growth hack. It's the ethical foundation of the business.
 ## Principles
 
 1. **Ship, don't perfect.** A live page beats a perfect plan.
-2. **R&D = Content.** Every experiment becomes a blog post.
+2. **R&D = Content, selectively.** Experiments become briefings and deep dives — single artefacts with a stated discussion point. Not a serialised build log, and never the ontology specifications themselves (see [What We Do Not Publish](#what-we-do-not-publish)).
 3. **Privacy by design.** Explicit data zones with transparent boundaries (see [Privacy Architecture in `DESIGN.md`](DESIGN.md#privacy-architecture-three-zone-model)).
 4. **Two audiences, one brand.** SME clients (JA) and PMO community (EN).
 5. **AI + Human.** The service is the product. Tools are the proof.
@@ -44,6 +44,7 @@ This is not a growth hack. It's the ethical foundation of the business.
 7. **Composable over monolithic.** Small modules anyone can import, not a walled garden.
 8. **Authenticity over marketing.** When math contradicts the pitch, fix the pitch.
 9. **Simplicity.** Fewer managed entities, more computed insights. If nobody maintains it, don't make it a table.
+10. **Measurable inputs only.** The data plane takes inputs that can be observed from recorded events and falsified by later evidence. Qualitative colour is welcome in the narrative plane, labelled as such, and never as a model coefficient (see [Data Plane and Narrative Plane in `DESIGN.md`](DESIGN.md#data-plane-and-narrative-plane)).
 
 ---
 
@@ -62,6 +63,16 @@ This is not a growth hack. It's the ethical foundation of the business.
 
 - **Japanese pages:** Business outcomes, real-world case studies, consulting CTA, plain language
 - **English pages:** Technical tools, API docs, open source repo, PMO methodology
+
+### What We Do Not Publish
+
+Reach that lands on neither audience is not reach. Three standing constraints, decided 2026-08-12:
+
+- **No serialised dev-log or build-in-public series.** Individual briefings and deep dives continue — each is one artefact with a stated discussion point, which is a different thing from narrating the build as it happens.
+- **No disclosure of core ontology specifications.** The formulas are MIT and stay that way; the schema that decides which entities and relations matter is not published (see [What Stays Open vs. Closed](#what-stays-open-vs-closed)).
+- **The anonymisation rule applies to anything client-derived**, without exception, before it reaches a public surface.
+
+Distribution effort goes instead to **MCP registry listings and English-first presentation of the repository** — the surfaces where a practitioner looking for a tool actually arrives. Progress is measured against a baseline captured before anything shipped, in installs, usage and repository signals rather than post engagement.
 
 
 ---
@@ -131,6 +142,7 @@ plugins/         → Proprietary calibration data and models (closed, B2B licens
 | Team Cognition MCP (standalone repo) | MIT | Shared team-cognition tooling, dogfooded internally |
 | Agent orchestration (Cloudflare Workers) | Source-available or MIT | Platform showcase, transparency |
 | Calibration coefficients and field models | Proprietary (B2B) | Core consulting IP, exit value |
+| Ontology specifications — the upper ontology and the rules that generate per-programme extensions | Proprietary | Decides which entities, relations and claims are worth recording at all. The maths is reproducible; this is not |
 | Risk pattern recognition models | Proprietary (B2B) | Systems thinking encoded, highest-value asset |
 | Managed data layer (D1 + R2) | Proprietary service | Client-data stewardship — the plugins thesis extended to storage |
 | Client data | Zone 1 encrypted | Never accessible, even by us |
@@ -161,6 +173,7 @@ There is no paid tier to graduate into — the OSS is the free tier of value, an
 
 **OSS distribution surfaces:**
 - pmorun-mcp on PyPI (shipped) — decision logic over MCP, `uvx pmorun-mcp` away
+- MCP registry listings and an English-first repository front page — the priority distribution work, ahead of any additional publishing cadence
 - Skills and plugin interfaces for agent workflows
 - Team Cognition MCP: the internal lemurkit tooling split into two repos — the private ops repo exports via R2 to a standalone public OSS repo
 - Visual/operational UI via the plugin layer: enterprises bring the app they already use (Airtable is the reference plugin we dogfood)
