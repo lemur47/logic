@@ -95,7 +95,7 @@ The folder is created and empty. The scenario is not built yet, because a
 half-wired scenario would consume the account's one remaining slot while proving
 nothing.
 
-## Where the scenario lives, and how it leaves
+## Where the scenario lives, and how it moves
 
 The scenario is built in a dedicated **folder** in the automation account the
 connector can reach, not in a separate organisation. Separate organisations are
@@ -103,19 +103,15 @@ not the separation mechanism here: the integration surface can address one
 organisation at a time, so an organisation split would buy tidiness at the cost
 of being unable to manage the thing that was split off.
 
-**The blueprint export is the handover mechanism.** A scenario exports to JSON
+**The blueprint export is the portability mechanism.** A scenario exports to JSON
 and imports into any other account, which is what makes building here reversible
-rather than entangling. That is worth stating precisely, because it is easy to
-reach for the wrong standard:
-
-> Divestment does not mean every asset transfers by itself on the day of sale.
-> Some of it is migration work, planned and performed. An asset that needs a
-> documented migration step is not the same as an asset that is entangled.
+rather than entangling.
 
 So the test to apply to anything built here is **"can this be exported and
-re-imported by a new owner?"** — not "does this run in an account bearing the
-right name". Applying the stricter test would rule out most useful tooling and
-buy nothing.
+re-imported into another account?"** — not "does this run in an account bearing
+the right name". A tool that needs a documented migration step is not the same as
+a tool that is entangled, and applying the stricter test would rule out most
+useful tooling while buying nothing.
 
 ## Operating constraints of the account
 
