@@ -18,6 +18,13 @@ instructions would be a control that no diff shows and no review covers.
 [`reviewer-prompt.md`](reviewer-prompt.md) is the authoritative copy; the scenario
 holds a transcription of it.
 
+A transcription nobody compares is the same problem one step along, so **compare
+them rather than assuming**: take the `system` value out of the scenario's
+request body, JSON-decode it, and check it byte-for-byte against the fenced block
+in `reviewer-prompt.md`. Reading the two side by side is not the check — that is
+how the rounding-mode divergence in this repository's TypeScript port survived a
+line-by-line review. Hash both, and compare the hashes.
+
 ## Request Shape
 
 | Field | Value | Why |
@@ -28,9 +35,29 @@ holds a transcription of it.
 | `output_config.effort` | `high` (the default) | The cost lever if review volume grows. Sonnet 5 follows effort strictly at the low end, so drop to `medium` deliberately and re-read a few reviews before keeping it. |
 | `temperature` / `top_p` / `top_k` | **omit** | Non-default sampling parameters are **rejected with a 400** on Sonnet 5. Steer with the prompt instead. |
 
-Diffs come from `GET /repos/{owner}/{repo}/pulls/{n}/files`. Cap the request:
-skip or chunk beyond ~50 files, so one enormous pull request cannot spend a
-month's automation quota in a single run.
+Diffs come from `GET /repos/{owner}/{repo}/pulls/{n}` sent with
+`Accept: application/vnd.github.v3.diff`, which returns the whole unified diff as
+text in **one** request.
+
+The obvious alternative, `GET .../pulls/{n}/files`, was tried and rejected. Its
+per-file `patch` values omit the `+++ b/<path>` headers, so the file each hunk
+belongs to survives only if the automation iterates the array — and a hosted
+platform bills one operation per bundle, turning a 50-file pull request into ~50
+operations instead of one. Concatenating the patches without iterating is cheap
+but strips the filenames, and a reviewer told to give "the file and line" cannot.
+The diff media type keeps both the filenames and the single operation.
+
+**The bound is characters, not files.** The first 200,000 characters of the diff
+are sent. Both numbers — the full length and the length sent — go into the
+request, with an instruction to declare the truncation in the comment. A
+character cap bounds model spend more directly than a file count does, and
+declaring beats skipping: a run that silently reviews part of a diff and says
+nothing is the same silent-failure class the reviewer itself is told to report.
+
+**The pull request title is deliberately not sent.** It is attacker-controlled
+free text, and anything outside the `<<<UNTRUSTED_DIFF>>>` markers reads as
+operator-authored. Repository, pull request number and head SHA are sent because
+none of them can carry arbitrary text.
 
 ## Token Spend, Recorded From Day One
 
@@ -39,6 +66,14 @@ fields (`cache_read_input_tokens`, `cache_creation_input_tokens`) against the
 pull request number. This is the emission-stage metric: unbounded model spend
 driven by input someone else writes is the failure mode, and it is invisible
 until it is measured.
+
+The row also carries `stop_reason`, the diff length sent, and whether it was
+truncated, keyed on pull request number plus head SHA. It is written to a store
+on the automation platform rather than left in the execution log, because that
+log expires in days — a metric that outlives its own retention window is not a
+metric. **The write is the last module in the chain, deliberately:** if it fails,
+the review comment has already been posted, and the run loses a measurement
+rather than a review.
 
 Note the system prompt is likely **under Sonnet 5's 1024-token minimum cacheable
 prefix**, so caching it will silently do nothing — `cache_creation_input_tokens`
@@ -93,6 +128,12 @@ Three things, none of which belong in this repository:
    automation platform's own GitHub app, which typically asks for far broader
    permissions than a reviewer needs.
 
+**The order is not arbitrary, and it is the reverse of the obvious one.** The
+webhook comes *last*, because its payload URL does not exist until the scenario's
+trigger module has been given a webhook to listen on. Creating the GitHub webhook
+first leaves it pointing at nothing, and the failure surfaces as deliveries that
+succeed against a URL nobody is reading.
+
 ## Designing Around Platform Limits
 
 Hosted automation platforms cap what a scenario may consume — a monthly
@@ -102,9 +143,19 @@ rather than discovering:
 
 - **Trigger narrowly.** A reviewer firing on every push to every open pull
   request will meet a monthly ceiling quickly. `opened` plus `synchronize` is
-  enough.
-- **Bound the diff.** The ~50-file cap above exists so a single large pull
-  request cannot exhaust the budget on its own.
+  enough, and the filter enforcing it sits on the module after the trigger, so a
+  webhook delivery for any other action costs one operation and stops.
+- **Bound the diff.** The 200,000-character cap above exists so a single large
+  pull request cannot exhaust the budget on its own.
+- **Count the operations before choosing a plan.** The chain is five modules —
+  trigger, fetch diff, review, comment, record usage — so a reviewed pull request
+  costs **five operations**, and deliveries filtered out cost one. Against a
+  1,000-operation month that is roughly 200 reviews, which is far more than this
+  repository produces. **The ceiling worth watching is not the operation count
+  but the execution timeout**, which is minutes on a free tier: a large diff
+  reviewed non-streaming at 16,000 output tokens is the run that will hit it. Buy
+  a bigger plan when a review times out, not when the operation count looks
+  alarming.
 - **Capture evidence immediately.** The logs needed to debug a failed run, or to
   show that the positive control fired, expire within days. A screenshot taken
   next week will not exist.
