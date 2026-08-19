@@ -25,6 +25,12 @@ in `reviewer-prompt.md`. Reading the two side by side is not the check — that 
 how the rounding-mode divergence in this repository's TypeScript port survived a
 line-by-line review. Hash both, and compare the hashes.
 
+That divergence is not folklore: see [`site/src/lib/round.ts`](../../site/src/lib/round.ts),
+which exists because Python's half-to-even and JavaScript's half-away-from-zero
+render identically on the page and disagree on the value, and the rule it earned
+in [`CLAUDE.md`](../../CLAUDE.md) — net a port with generated fixtures rather than
+by reading the two implementations against each other.
+
 ## Request Shape
 
 | Field | Value | Why |
@@ -162,11 +168,14 @@ rather than discovering:
   webhook delivery for any other action costs one operation and stops.
 - **Bound the diff.** The 200,000-character cap above exists so a single large
   pull request cannot exhaust the budget on its own.
-- **Count the operations before choosing a plan.** The chain is five modules —
-  trigger, fetch diff, review, comment, record usage — so a reviewed pull request
-  costs **seven operations** — the two JSON-building steps are what let the
-  request bodies be written as mapped fields rather than hand-escaped strings —
-  and deliveries filtered out cost one. Against a 1,000-operation month that is
+- **Count the operations before choosing a plan.** The chain is seven modules —
+  trigger, fetch diff, **build the review request**, review, **build the
+  comment**, post comment, record usage — so a reviewed pull request costs
+  **seven operations**. The two emboldened steps build JSON from mapped fields
+  instead of hand-escaped strings, which is what makes the request bodies
+  editable without a parse error; they are the difference between five modules
+  and seven. Deliveries filtered out cost one. Against a 1,000-operation month
+  that is
   roughly 140 **review runs**, which is not the same as 140 pull requests:
   `synchronize` fires on every push to an open pull request, so an iterative one
   reviewed after each of five pushes consumes five runs by itself. Budget against
