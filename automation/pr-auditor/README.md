@@ -103,15 +103,39 @@ of `0` on every run is the expected reading, not a bug to chase.
 ## The Control That Actually Holds
 
 Not the delimiters — the **token scope**. A fine-grained personal access token,
-single repository, with exactly two permissions:
+single repository, with three permissions:
 
-- Pull requests: **read**
-- Issues: **write** — pull request comments are issue comments
+- Pull requests: **read and write**
+- Issues: **read and write** — pull request comments are issue comments
+- Contents: **read**
 
-Nothing else. No contents write, no workflow, no administration. A completely
-successful prompt injection then buys an attacker one comment containing text of
-their choosing, on their own pull request, which a human reads with the diff in
-front of them.
+**This list is GitHub's answer, not a guess.** Every response carries an
+`x-accepted-github-permissions` header naming what the endpoint required, and it
+is the cheapest way to settle a scope question — no trial and error, and it
+reports the requirement rather than what your token happens to hold:
+
+| Call | Header |
+|---|---|
+| `GET /repos/{o}/{r}/pulls/{n}` as a diff | `pull_requests=read; contents=read` |
+| `POST /repos/{o}/{r}/issues/{n}/comments` | `issues=write; pull_requests=write` |
+
+Those are conjunctions. An earlier version of this file specified pull requests
+**read** and issues **write**, and that combination cannot work: the comment is
+refused with `403 Resource not accessible by personal access token` while the
+diff fetch succeeds, which reads like a broken endpoint rather than a missing
+permission. Note also that fetching a diff needs `contents: read`, which the same
+earlier version explicitly ruled out.
+
+Nothing beyond those three. No contents write, no workflow, no administration. A
+completely successful prompt injection then buys an attacker one comment
+containing text of their choosing, on their own pull request, which a human reads
+with the diff in front of them.
+
+**Pull requests write is broader than commenting, and worth pricing.** It also
+permits submitting a review, so a leaked token could approve. That costs little
+here only because branch protection requires zero approving reviews — check that
+before reusing this scope elsewhere. Merging stays out of reach regardless, since
+it additionally needs `contents: write`.
 
 **This gets proved, not asserted.** The acceptance criterion is an *attempted*
 push or branch-protection change with that token, refused — reading the scope
