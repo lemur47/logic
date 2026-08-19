@@ -6,7 +6,7 @@ How R&D, consulting, and code become content, community, and value. Cross-refere
 
 ## Content Cadence
 
-Each R&D artefact feeds **one** post — a briefing *or* a deep dive — and that post feeds **one** LinkedIn derivative:
+Each R&D artefact feeds **one** post — a briefing *or* a deep dive. Whether that post also feeds a social derivative is a scoping decision, not a step that always runs:
 
 ```
 R&D / Consulting / Real PMO Problems
@@ -14,13 +14,15 @@ R&D / Consulting / Real PMO Problems
 R&D artefact (PR, PoC, analysis — committed to logic repo, MIT)
       ↓  choose ONE frame
 Briefing  |  Deep Dive  (blog post, EN + JA, same slug)
-      ↓
-LinkedIn derivative
+      ↓  only where the overlay scopes one in
+Social derivative
       ↓
 Traffic → Consulting inquiries + tool users
       ↓
 More real problems → More artefacts → More trust
 ```
+
+**This step is currently scoped to product releases only.** Blog, briefing and deep-dive posts get no derivative, because measured impressions and engagement were near zero. Which artefact classes get one is an organisation-specific value and lives in the content-cadence skill's calibration overlay, not here — this document describes the shape of the loop, not the current setting.
 
 ### The Two Frames
 
