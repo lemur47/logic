@@ -7,9 +7,12 @@ It reviews. It does not gate. The merge gate is the nine required contexts in
 [`ci.yml`](../../.github/workflows/ci.yml), and the auditor is deliberately not
 one of them — a reviewer that can block a merge is a reviewer that gets bypassed.
 
-The scenario itself is a hosted automation and lives outside this repository.
-What lives here is the part worth reviewing: the reviewer's instructions and the
-design of the controls around it.
+The scenario runs on a hosted automation platform, but it does not only live
+there: [`scenario.blueprint.json`](scenario.blueprint.json) is its exported
+definition, committed here so the configuration arrives through review like
+everything else. It carries no credentials — the platform's export references the
+webhook and both keychains by opaque numeric id, and the webhook URL, which is
+the one real bearer secret in this design, does not appear in it at all.
 
 ## Why the Prompt Lives in This Repository
 
@@ -18,12 +21,19 @@ instructions would be a control that no diff shows and no review covers.
 [`reviewer-prompt.md`](reviewer-prompt.md) is the authoritative copy; the scenario
 holds a transcription of it.
 
-A transcription nobody compares is the same problem one step along, so **compare
-them rather than assuming**: take the `system` value out of the scenario's
-request body, JSON-decode it, and check it byte-for-byte against the fenced block
-in `reviewer-prompt.md`. Reading the two side by side is not the check — that is
-how the rounding-mode divergence in this repository's TypeScript port survived a
-line-by-line review. Hash both, and compare the hashes.
+A transcription nobody compares is the same problem one step along — so nobody
+has to. [`tests/test_pr_auditor_prompt_parity.py`](../../tests/test_pr_auditor_prompt_parity.py)
+compares the `system` value in the blueprint against the fenced block here, byte
+for byte, and `pytest` is a required check. Drift cannot reach `main`.
+
+Reading the two side by side would not have been the check — that is how the
+rounding-mode divergence in this repository's TypeScript port survived a
+line-by-line review. Nor is a passing test evidence on its own: this one was
+verified by removing a single full stop from the blueprint's copy and watching it
+go red. **A parity test guards a second failure mode as well** — if the prompt
+moves somewhere the test does not look, the comparison runs over nothing and
+passes for the wrong reason, so a companion test asserts that exactly one system
+prompt was found.
 
 That divergence is not folklore: see [`site/src/lib/round.ts`](../../site/src/lib/round.ts),
 which exists because Python's half-to-even and JavaScript's half-away-from-zero
