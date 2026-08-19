@@ -54,6 +54,21 @@ character cap bounds model spend more directly than a file count does, and
 declaring beats skipping: a run that silently reviews part of a diff and says
 nothing is the same silent-failure class the reviewer itself is told to report.
 
+**That cap is not the only truncation, and the other one is invisible.** GitHub
+imposes its own limit on the diff media type and will return a partial diff, or
+refuse with `406`, for a sufficiently large pull request. When it truncates
+first, the "full length" the automation measures is already GitHub's shortened
+value — so the two lengths agree, nothing declares anything, and the reviewer
+reports on part of a change while appearing to have seen all of it. The
+character cap cannot detect this, because it only ever sees what arrived.
+
+The check that does detect it compares two independently-sourced counts: the
+number of `diff --git` headers in the returned text against `changed_files` from
+the webhook payload, which GitHub computes server-side and does not truncate. If
+they disagree, the diff is short and the reviewer must be told so. **Two numbers
+from one source can only agree; catching a truncated fetch needs a second
+source.**
+
 **The pull request title is deliberately not sent.** It is attacker-controlled
 free text, and anything outside the `<<<UNTRUSTED_DIFF>>>` markers reads as
 operator-authored. Repository, pull request number and head SHA are sent because
@@ -149,9 +164,14 @@ rather than discovering:
   pull request cannot exhaust the budget on its own.
 - **Count the operations before choosing a plan.** The chain is five modules —
   trigger, fetch diff, review, comment, record usage — so a reviewed pull request
-  costs **five operations**, and deliveries filtered out cost one. Against a
-  1,000-operation month that is roughly 200 reviews, which is far more than this
-  repository produces. **The ceiling worth watching is not the operation count
+  costs **seven operations** — the two JSON-building steps are what let the
+  request bodies be written as mapped fields rather than hand-escaped strings —
+  and deliveries filtered out cost one. Against a 1,000-operation month that is
+  roughly 140 **review runs**, which is not the same as 140 pull requests:
+  `synchronize` fires on every push to an open pull request, so an iterative one
+  reviewed after each of five pushes consumes five runs by itself. Budget against
+  pushes, not against pull requests. **The ceiling worth watching is not the
+  operation count
   but the execution timeout**, which is minutes on a free tier: a large diff
   reviewed non-streaming at 16,000 output tokens is the run that will hit it. Buy
   a bigger plan when a review times out, not when the operation count looks
