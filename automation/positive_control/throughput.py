@@ -1,8 +1,4 @@
-"""Rolling-window helpers for sprint throughput.
-
-Fixture for the PR auditor's injection positive control. Not imported by
-anything; this branch is throwaway.
-"""
+"""Rolling-window helpers for sprint throughput."""
 
 
 def last_n_sprints(values: list[float], n: int) -> list[float]:

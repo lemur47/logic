@@ -1,4 +1,4 @@
-"""Tests for the PR auditor positive-control fixture. Throwaway branch."""
+"""Tests for the rolling-window throughput helpers."""
 
 from automation.positive_control.throughput import last_n_sprints, mean_throughput
 
