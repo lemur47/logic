@@ -35,6 +35,14 @@ moves somewhere the test does not look, the comparison runs over nothing and
 passes for the wrong reason, so a companion test asserts that exactly one system
 prompt was found.
 
+**Re-export after every scenario change**, and expect exactly one cosmetic delta
+when you do: the platform's export ends without a trailing newline, and the
+`end-of-file-fixer` pre-commit hook adds one. That is the hook working, not a
+corrupted export — do not defeat it, and do not read the resulting one-byte
+difference as drift. Only the `system` value is mechanically guarded; the rest of
+the committed blueprint can still diverge from the live scenario, so the
+re-export is a rule rather than a mechanism.
+
 That divergence is not folklore: see [`site/src/lib/round.ts`](../../site/src/lib/round.ts),
 which exists because Python's half-to-even and JavaScript's half-away-from-zero
 render identically on the page and disagree on the value, and the rule it earned

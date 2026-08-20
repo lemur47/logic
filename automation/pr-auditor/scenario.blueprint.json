@@ -101,7 +101,7 @@
                 "messages": [
                     {
                         "role": "user",
-                        "content": "Review this pull request diff.\n\nRepository: {{1.repository.full_name}}\nPull request number: {{1.number}}\nHead SHA: {{1.pull_request.head.sha}}\nFiles changed according to GitHub: {{1.pull_request.changed_files}}\nFile headers present in the diff below: {{length(split(toString(2.data); \"diff --git \")) - 1}}\nIf those two numbers differ, GitHub truncated the diff and you are seeing only part of this change. Say so in your comment.\nDiff characters in full: {{length(toString(2.data))}}\nDiff characters included below: {{length(substring(toString(2.data); 0; 200000))}}\nIf those two numbers differ, the diff was truncated for length and you must say so as well.\n\n<<<UNTRUSTED_DIFF>>>\n{{substring(toString(2.data); 0; 200000)}}\n<<<END_UNTRUSTED_DIFF>>>"
+                        "content": "Review this pull request diff.\n\nRepository: {{1.repository.full_name}}\nPull request number: {{1.number}}\nHead SHA: {{1.pull_request.head.sha}}\nFiles changed according to GitHub: {{1.pull_request.changed_files}}\nFile headers present in the diff below: {{length(split(newline + toString(2.data); newline + \"diff --git \")) - 1}}\nIf those two numbers differ, GitHub truncated the diff and you are seeing only part of this change. Say so in your comment.\nDiff characters in full: {{length(toString(2.data))}}\nDiff characters included below: {{length(substring(toString(2.data); 0; 200000))}}\nIf those two numbers differ, the diff was truncated for length and you must say so as well.\n\n<<<UNTRUSTED_DIFF>>>\n{{substring(toString(2.data); 0; 200000)}}\n<<<END_UNTRUSTED_DIFF>>>"
                     }
                 ],
                 "max_tokens": 16000
@@ -159,7 +159,7 @@
                 "space": ""
             },
             "mapper": {
-                "body": "**PR auditor** — an automated review by `claude-sonnet-5`, posted through a token scoped to comment and nothing else. It cannot approve, merge, label or block, and it is not a required check. Treat it as one reviewer's opinion, read against the diff.\n\n---\n\n{{join(map(3.data.content; \"text\"; \"type\"; \"text\"); newline)}}"
+                "body": "**PR auditor** — an automated review by `claude-sonnet-5`, posted through a token scoped to comment and nothing else. It cannot approve, merge, label or block, and it is not a required check. Treat it as one reviewer's opinion, read against the diff.\n{{if(3.data.stop_reason = \"end_turn\"; \"\"; newline + \"> ⚠️ **This review is incomplete — it was cut off, not finished.** The model stopped with `stop_reason: \" + 3.data.stop_reason + \"` rather than `end_turn`, so anything below the cut-off is missing and the findings are not exhaustive.\" + newline)}}\n---\n\n{{join(map(3.data.content; \"text\"; \"type\"; \"text\"); newline)}}"
             },
             "metadata": {
                 "designer": {
