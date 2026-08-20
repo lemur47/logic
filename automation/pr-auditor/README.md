@@ -85,6 +85,20 @@ they disagree, the diff is short and the reviewer must be told so. **Two numbers
 from one source can only agree; catching a truncated fetch needs a second
 source.**
 
+**The header count is anchored to line starts**, splitting on a newline followed
+by `diff --git ` rather than on that text wherever it appears. Every content line
+in a unified diff carries a `+`, `-` or space prefix, so a real file header is
+the only thing that can sit at the start of a line — which makes the anchored
+count immune to the delimiter appearing inside the diffed content.
+
+**This was found firing false, by the artefact that broke it.** The unanchored
+version counted the string anywhere, and committing `scenario.blueprint.json` put
+a literal `diff --git ` into the repository as the split argument itself. On the
+pull request that added the file, `changed_files` was 3 and the unanchored count
+was 4, so the check reported a truncation that had not happened. A committed
+artefact can break the check it carries, and the failure is not visible from
+reading either one — only from running the check against a real diff.
+
 **The pull request title is deliberately not sent.** It is attacker-controlled
 free text, and anything outside the `<<<UNTRUSTED_DIFF>>>` markers reads as
 operator-authored. Repository, pull request number and head SHA are sent because
@@ -98,13 +112,27 @@ pull request number. This is the emission-stage metric: unbounded model spend
 driven by input someone else writes is the failure mode, and it is invisible
 until it is measured.
 
-The row also carries `stop_reason`, the diff length sent, and whether it was
-truncated, keyed on pull request number plus head SHA. It is written to a store
+The row also carries `stop_reason`, the diff length fetched, and whether it was
+truncated, keyed on pull request number plus head SHA. **`diff_chars` is the
+length of what GitHub returned, not the length sent to the model** — the two
+differ whenever the character cap bites, and the request-side number is
+`input_tokens`, which records exactly what was billed. It is written to a store
 on the automation platform rather than left in the execution log, because that
 log expires in days — a metric that outlives its own retention window is not a
 metric. **The write is the last module in the chain, deliberately:** if it fails,
 the review comment has already been posted, and the run loses a measurement
 rather than a review.
+
+**A cut-off review declares itself in the comment, not only in the store.** When
+`stop_reason` is anything other than `end_turn` — `max_tokens` being the one to
+expect, at the 16,000-token cap — the comment opens with a notice saying the
+review was cut off rather than finished, and that the findings below it are
+therefore not exhaustive. Recording the reason in a store nobody reads per-run
+does not help the person reading the comment: a truncated review otherwise just
+*ends*, and reads exactly like a review that found nothing more to say. That is
+the same silent-failure class the reviewer is itself instructed to report, which
+makes leaving it unsurfaced the sharpest version of the mistake. On a normal run
+the notice renders as nothing and the comment is byte-identical to before.
 
 Note the system prompt is likely **under Sonnet 5's 1024-token minimum cacheable
 prefix**, so caching it will silently do nothing — `cache_creation_input_tokens`
