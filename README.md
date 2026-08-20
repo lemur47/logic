@@ -201,7 +201,7 @@ here.
 - [`docs/STRATEGY.md`](docs/STRATEGY.md) — Mission, audiences, monetisation, IP strategy, competitive positioning
 - [`docs/DESIGN.md`](docs/DESIGN.md) — Six-layer architecture, agent design, three-zone privacy model, technical decisions
 - [`docs/SPRINT_HISTORY.md`](docs/SPRINT_HISTORY.md) — Sprint actuals
-- [`docs/CONTENT_FLYWHEEL.md`](docs/CONTENT_FLYWHEEL.md) — R&D → blog → community → consulting loop
+- [`skills/operational/content-cadence/SKILL.md`](skills/operational/content-cadence/SKILL.md) — R&D → blog pipeline: the two post frames, editorial conventions, and the gates a draft must pass
 
 ## License
 

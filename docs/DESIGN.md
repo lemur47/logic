@@ -1,6 +1,6 @@
 # pmo.run — Design
 
-Architecture and technical decisions: six-layer stack, two-layer data architecture, agent design, three-zone privacy model, plus the website and dev environment. Forward-looking strategy lives in [`STRATEGY.md`](STRATEGY.md). Sprint actuals live in [`SPRINT_HISTORY.md`](SPRINT_HISTORY.md). The content pipeline is in [`CONTENT_FLYWHEEL.md`](CONTENT_FLYWHEEL.md).
+Architecture and technical decisions: six-layer stack, two-layer data architecture, agent design, three-zone privacy model, plus the website and dev environment. Forward-looking strategy lives in [`STRATEGY.md`](STRATEGY.md). Sprint actuals live in [`SPRINT_HISTORY.md`](SPRINT_HISTORY.md). The content pipeline is in [`../skills/operational/content-cadence/SKILL.md`](../skills/operational/content-cadence/SKILL.md).
 
 ---
 

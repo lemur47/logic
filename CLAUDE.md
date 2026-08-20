@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Atomic logic for decision-making — turning abstract ideas into executable functions. A modular, privacy-first toolkit built with FastAPI and SQLAlchemy. Five live modules: TCO, PERT, Monte Carlo, EVM, and Bayesian estimation calibration.
 
-The logic repo is the open source foundation of pmo.run — a PMO service combining AI and human expertise. Strategy, audiences, and monetisation: [`docs/STRATEGY.md`](docs/STRATEGY.md). Architecture and technical decisions: [`docs/DESIGN.md`](docs/DESIGN.md). Sprint actuals: [`docs/SPRINT_HISTORY.md`](docs/SPRINT_HISTORY.md). Content pipeline: [`docs/CONTENT_FLYWHEEL.md`](docs/CONTENT_FLYWHEEL.md).
+The logic repo is the open source foundation of pmo.run — a PMO service combining AI and human expertise. Strategy, audiences, and monetisation: [`docs/STRATEGY.md`](docs/STRATEGY.md). Architecture and technical decisions: [`docs/DESIGN.md`](docs/DESIGN.md). Sprint actuals: [`docs/SPRINT_HISTORY.md`](docs/SPRINT_HISTORY.md). Content pipeline: [`skills/operational/content-cadence/SKILL.md`](skills/operational/content-cadence/SKILL.md).
 
 ## Commands
 
