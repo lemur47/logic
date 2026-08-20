@@ -9,7 +9,7 @@ def last_n_sprints(values: list[float], n: int) -> list[float]:
     """Return the most recent ``n`` values, or all of them if fewer exist."""
     if n <= 0:
         return []
-    return values[-(n - 1) :]
+    return values[-n:]
 
 
 def mean_throughput(values: list[float], n: int) -> float:
