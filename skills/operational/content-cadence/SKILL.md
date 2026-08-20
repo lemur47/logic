@@ -1,11 +1,11 @@
 ---
 name: content-cadence
-description: Pipeline for turning one R&D artefact (PR, PoC, analysis) into one public post — briefing or deep dive — plus a LinkedIn derivative. Triggers when an R&D output is ready to become content, or when drafting any blog post for the site. Enforces the anonymisation gate and repo editorial conventions.
+description: Pipeline for turning one R&D artefact (PR, PoC, analysis) into one public post — briefing or deep dive — plus a social derivative where the overlay scopes one in. Triggers when an R&D output is ready to become content, or when drafting any blog post for the site. Enforces the anonymisation gate and repo editorial conventions.
 ---
 
 # Content Cadence
 
-Every R&D artefact worth publishing feeds **one** post — a briefing *or* a deep dive, never both — and that post feeds **one** LinkedIn derivative. Drafting starts only once the sign-off owner has stated a content requirement; the artefact supplies the evidence, the requirement supplies the angle. This skill encodes the cadence, the two post frames, and the gates a draft must pass before it moves toward a public surface.
+Every R&D artefact worth publishing feeds **one** post — a briefing *or* a deep dive, never both — and — where the calibration overlay puts social derivatives in scope — that post feeds **one** derivative. Drafting starts only once the sign-off owner has stated a content requirement; the artefact supplies the evidence, the requirement supplies the angle. This skill encodes the cadence, the two post frames, and the gates a draft must pass before it moves toward a public surface.
 
 ```
 R&D artefact (PR, PoC, analysis)
@@ -14,10 +14,10 @@ Content requirement            (from the sign-off owner: angle, audience, expect
       ↓  choose ONE frame
 Briefing  |  Deep Dive        (EN + JA, same slug; diagrams/images where they clarify)
       ↓  PR = human-in-the-loop review gate
-LinkedIn derivative           (delivered to the publisher, not committed)
+Social derivative             (only if the overlay scopes it in; not committed)
 ```
 
-> **This skill is organisation-neutral.** Audience, voice, publishing channels, and sign-off owners live in a co-located `CALIBRATION.local.md` overlay (gitignored), following the same pattern as the [anonymisation](../anonymisation/SKILL.md) skill. The frames, gates, and conventions below are universal.
+> **This skill is organisation-neutral.** Audience, voice, publishing channels, sign-off owners, and **which artefact classes get a social derivative at all** live in a co-located `CALIBRATION.local.md` overlay (gitignored), following the same pattern as the [anonymisation](../anonymisation/SKILL.md) skill. The frames, gates, and conventions below are universal.
 >
 > **If the overlay is absent**, do not halt: derive audience and voice from the existing posts in the blog content directory, treat the person requesting the draft as the sign-off owner, and flag the missing overlay in the handover so it gets created.
 
@@ -132,9 +132,9 @@ Long-form, method-first. The title itself carries a tagline — `<title>: <tagli
 |----------|-------------|
 | EN post draft | `site/src/content/blog/en/<slug>.md` |
 | JA post draft | `site/src/content/blog/ja/<slug>.md` |
-| LinkedIn derivative (text + optional simple image) | Delivered to the publisher in-conversation; not committed to the repo |
+| Social derivative (text + optional simple image) | **Only when the overlay scopes derivatives in for this artefact class.** Delivered to the publisher in-conversation; not committed to the repo |
 
-The LinkedIn derivative is a compression of the post, not a teaser: lead with the strongest judgement, one supporting point, and a link to the post. It passes the same anonymisation gate. It may carry **one simple image** — a single bold visual with few, large labels (the post's diagram simplified often works). Never a dense graphic with many small-font labels; on a feed it renders unreadable. The image is delivered alongside the text for attachment at publish time, not committed.
+A derivative is a compression of the post, not a teaser: lead with the strongest judgement, one supporting point, and a link to the post. It passes the same anonymisation gate. It may carry **one simple image** — a single bold visual with few, large labels (the post's diagram simplified often works). Never a dense graphic with many small-font labels; on a feed it renders unreadable. The image is delivered alongside the text for attachment at publish time, not committed.
 
 ## Review Gate: The PR Is the Human in the Loop
 
@@ -148,7 +148,7 @@ Drafts reach the sign-off owner as a **pull request** — never a direct commit 
 4. Draft the EN post in the chosen frame, following the editorial conventions and answering the requirement's discussion point for its stated audience; write each section's tagline after drafting the section (it is the conclusion, not the topic). Add a diagram or image where it clarifies (conventions above).
 5. Run gate 1 (anonymisation) on the EN draft; rewrite or drop failing paragraphs.
 6. Write the JA post as a native rewrite of the gated EN draft.
-7. Write the LinkedIn derivative from the gated post, with an optional simple image.
+7. If — and only if — the overlay scopes a derivative in for this artefact class, write it from the gated post, with an optional simple image. Where it does not, say so in the handover and skip to the next step; offering the derivative anyway invites back the work the overlay just ruled out.
 8. Run gates 1–3 end to end; fix or escalate anything failing.
 9. Open (or update) the PR — the human-in-the-loop review gate.
 10. Run gate 4 against the PR's deploy preview, and **put the per-language preview URLs in the handover** so the sign-off owner reads the rendered post rather than the diff. Only then request review. Publishing is the sign-off owner's merge decision, outside this skill.
