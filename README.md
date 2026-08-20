@@ -195,6 +195,19 @@ in **[agent-ops](https://github.com/lemur47/agent-ops)**, since it governs how a
 agent works rather than anything about this repository; `content-cadence` remains
 here.
 
+## Repository Automation
+
+[`automation/`](automation/) holds automation that acts on this repository rather
+than shipping as product. Today that is one thing: a **PR auditor** that reviews
+every pull request unattended and posts a single comment. It cannot approve,
+merge, label or block, and it is not a required check — the token behind it is
+scoped to commenting. Contributors should expect a comment and read it as one
+reviewer's opinion.
+
+The design, the reviewer's system prompt and the exported scenario are all in
+[`automation/pr-auditor/`](automation/pr-auditor/README.md), because a review
+prompt is a security control and reviewing it in a pull request is the point.
+
 ## Docs
 
 - [`CLAUDE.md`](CLAUDE.md) — Commands, architecture details, code style conventions

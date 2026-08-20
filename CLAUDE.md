@@ -122,6 +122,14 @@ When handling data in module design, be aware of the three zones:
 
 Never claim "E2EE" without specifying which zone. See strategy doc for full encryption architecture.
 
+### Repository Automation (`automation/`)
+
+`automation/` holds automation that acts **on this repository** rather than shipping as product. It is not imported by `app/`, `mcp_server/` or `site/`, and nothing in the test suite depends on it running.
+
+- **`automation/pr-auditor/`** — an unattended reviewer that comments on every `opened`/`synchronize` pull request. `README.md` is the design document; `reviewer-prompt.md` is the system prompt; `scenario.blueprint.json` is the exported hosted-platform scenario. **It reviews, it does not gate** — it is deliberately not a required context and its token is scoped to comment only, so expect a comment on your own branches and treat it as one reviewer's opinion.
+- **The prompt exists twice and cannot drift.** `tests/test_pr_auditor_prompt_parity.py` compares the blueprint's `system` value against `reviewer-prompt.md` byte for byte, and `pytest` is a required context. Edit one without the other and the merge gate goes red.
+- **The blueprint can still drift from the live scenario**, because only the prompt is guarded. Re-export after any scenario change; that is currently a rule, not a mechanism.
+
 ## Module Development Flow
 
 Every new module follows this pipeline:
