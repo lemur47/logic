@@ -1,6 +1,6 @@
 # pmo.run — Strategy
 
-Forward-looking strategy: mission, audiences, monetisation phases, IP positioning, and competitive moat. Architecture and technical decisions live in [`DESIGN.md`](DESIGN.md). Sprint actuals live in [`SPRINT_HISTORY.md`](SPRINT_HISTORY.md). The R&D → community loop lives in [`CONTENT_FLYWHEEL.md`](CONTENT_FLYWHEEL.md).
+Forward-looking strategy: mission, audiences, monetisation phases, IP positioning, and competitive moat. Architecture and technical decisions live in [`DESIGN.md`](DESIGN.md). Sprint actuals live in [`SPRINT_HISTORY.md`](SPRINT_HISTORY.md). The R&D → community loop is described below under *Philosophy: R&D for Everyone*; the pipeline that executes it is [`../skills/operational/content-cadence/SKILL.md`](../skills/operational/content-cadence/SKILL.md).
 
 **Domain:** pmo.run
 **Repo:** github.com/lemur47/logic
