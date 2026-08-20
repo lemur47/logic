@@ -99,13 +99,37 @@ in a unified diff carries a `+`, `-` or space prefix, so a real file header is
 the only thing that can sit at the start of a line — which makes the anchored
 count immune to the delimiter appearing inside the diffed content.
 
-**This was found firing false, by the artefact that broke it.** The unanchored
-version counted the string anywhere, and committing `scenario.blueprint.json` put
-a literal `diff --git ` into the repository as the split argument itself. On the
-pull request that added the file, `changed_files` was 3 and the unanchored count
-was 4, so the check reported a truncation that had not happened. A committed
-artefact can break the check it carries, and the failure is not visible from
-reading either one — only from running the check against a real diff.
+The expression counts the **parts**, not the separators:
+
+```
+{{length(split(toString(2.data); newline + "diff --git "))}}
+```
+
+A GitHub diff begins with a header, which therefore has no newline in front of
+it. Counting separators misses that first one and under-reports by exactly one on
+every pull request; splitting and counting the resulting parts gets it right
+without a correction term.
+
+**Both of this check's bugs were shipped by reasoning about it instead of running
+it, and the second was introduced while fixing the first.**
+
+The original counted the string anywhere. Committing `scenario.blueprint.json`
+put a literal `diff --git ` into the repository as the split argument itself, so
+on the pull request that added the file `changed_files` was 3 and the count was
+4 — a truncation reported that had not happened. **A committed artefact can break
+the check it carries.**
+
+The first fix anchored the separator correctly but tried to prepend a newline to
+the text so the leading header would match. The prepend silently did nothing,
+while the anchoring worked — so the count went from over-reporting on some pull
+requests to under-reporting on *all* of them, and the reviewer told a reader that
+a complete diff was truncated and to verify before merge. Worse than the bug it
+replaced, and shipped with an argument for why it was correct.
+
+What settled it was one command: fetch the real diff, count three ways, compare.
+That takes seconds and would have caught either bug. **For a check whose whole
+purpose is detecting a discrepancy, "I reasoned it through" is not evidence — run
+it against a real diff and read the number.**
 
 **The pull request title is deliberately not sent.** It is attacker-controlled
 free text, and anything outside the `<<<UNTRUSTED_DIFF>>>` markers reads as
