@@ -6,7 +6,7 @@ The skills in [`../`](../README.md) (PERT, EVM, TCO, Monte Carlo) encode executa
 
 | Skill | Purpose |
 |-------|---------|
-| [content-cadence](content-cadence/SKILL.md) | Turn one R&D artefact into one post (briefing or deep dive) plus a LinkedIn derivative, with the anonymisation gate and editorial conventions enforced. |
+| [content-cadence](content-cadence/SKILL.md) | Turn one R&D artefact into one post (briefing or deep dive), plus a social derivative where the calibration overlay scopes one in, with the anonymisation gate and editorial conventions enforced. |
 
 ## Most of This Set Now Lives in `agent-ops`
 
