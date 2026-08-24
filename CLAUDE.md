@@ -126,9 +126,11 @@ Never claim "E2EE" without specifying which zone. See strategy doc for full encr
 
 `automation/` holds automation that acts **on this repository** rather than shipping as product. It is not imported by `app/`, `mcp_server/` or `site/`, and nothing in the test suite depends on it running.
 
-- **`automation/pr-auditor/`** — an unattended reviewer that comments on every `opened`/`synchronize` pull request. `README.md` is the design document; `reviewer-prompt.md` is the system prompt; `scenario.blueprint.json` is the exported hosted-platform scenario. **It reviews, it does not gate** — it is deliberately not a required context and its token is scoped to comment only, so expect a comment on your own branches and treat it as one reviewer's opinion.
-- **The prompt exists twice and cannot drift.** `tests/test_pr_auditor_prompt_parity.py` compares the blueprint's `system` value against `reviewer-prompt.md` byte for byte, and `pytest` is a required context. Edit one without the other and the merge gate goes red.
-- **The blueprint can still drift from the live scenario**, because only the prompt is guarded. Re-export after any scenario change; that is currently a rule, not a mechanism.
+- **`automation/pr-auditor/`** — an unattended reviewer that comments on `opened`/`synchronize` pull requests. `README.md` is the design document; `reviewer-prompt.md` is the system prompt; `scenario.blueprint.json` is the exported hosted-platform scenario. **It reviews, it does not gate** — it is deliberately not a required context and its token is scoped to comment only, so expect a comment on your own branches and treat it as one reviewer's opinion.
+- **Commenting is not yet unconditional, so silence is ambiguous.** This line previously read "comments on every `opened`/`synchronize` pull request". The diff fetch stops on an HTTP error with no error branch, so a GitHub `406` on a sufficiently large pull request produces **no comment and no usage row at all** — indistinguishable from the auditor being off. Do not read a missing comment as a clean review. Scoped as Sprint 18 work.
+- **The *system* prompt exists twice and cannot drift.** `tests/test_pr_auditor_prompt_parity.py` compares the blueprint's `system` value against `reviewer-prompt.md` byte for byte, and `pytest` is a required context. Edit one without the other and the merge gate goes red.
+- **The user turn is NOT guarded, and that is where the delimiters live.** The untrusted-diff markers, the truncation header count and the cut-off notice sit in the user message, which no test asserts on. That pairing drifted twice inside a single pull request. Read "only the prompt is guarded" narrowly: it means the system field, not the reviewer's instructions as a whole.
+- **The blueprint can still drift from the live scenario.** Re-export after any scenario change; that is currently a rule, not a mechanism.
 
 ## Module Development Flow
 
