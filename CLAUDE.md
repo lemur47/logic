@@ -134,13 +134,35 @@ Never claim "E2EE" without specifying which zone. See strategy doc for full encr
 
 ## Module Development Flow
 
-Every new module follows this pipeline:
+Every new module follows this pipeline. **Testing is not the fourth step of it.**
+Steps 1 and 2 are each written test-first; step 4 is the comprehensive pass, not
+the first one.
 
-1. **Standalone PoC** in `examples/standalone/{module}/` — pure Python, no dependencies
+1. **Standalone PoC** in `examples/standalone/{module}/` — pure Python, no dependencies. **It ships its own pytest suite**, and `pytest examples/standalone/{module}/` passing is what makes the PoC done. All five existing modules already work this way; the Commands section above documents the invocation.
 2. **FastAPI integration** in `app/{module}/` — following the layered pattern above
 3. **Plugin interface** in `app/{module}/calibration.py` — optional, defines calibration points
-4. **Tests** in `tests/{module}/` — comprehensive, including edge cases
+4. **Tests** in `tests/{module}/` — the comprehensive pass: edge cases, and parity against `core.py` for every surface that re-implements it
 5. **Content** — blog post explaining the problem, maths, and solution (see strategy doc)
+
+### Write the Cognition Test-First
+
+A module's `core.py` is a piece of reasoning expressed as code, and the shape of
+the function *is* the decision being made. Write those test-first: state the
+contract, write the test, watch it fail **for the reason you stated**, then
+implement. The same applies to anything else where the shape is the decision — a
+new MCP tool or endpoint, a schema or vocabulary, a projection, an auditor check,
+or the logic of a privacy control.
+
+**Do not** work this way for mechanical edits, renames or formatting, and
+**especially not for infrastructure controls** — CI gates, scanners, hooks. Those
+fail by *silence* rather than by returning a wrong answer, so a passing test
+proves nothing about them. Plant a canary and watch it go red instead; the dead
+gitleaks hook is the worked example, recorded under Code Style below.
+
+The `tdd-loop` skill and its `/tdd` command drive the loop. **They ship from the
+separate `agent-ops` repository, not from this one**, and reach a working copy by
+symlink — so a fresh clone of `logic` will not have them. The practice is the
+requirement; the tooling is a convenience.
 
 ## Code Style
 
