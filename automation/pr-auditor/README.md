@@ -134,7 +134,13 @@ it against a real diff and read the number.**
 **The pull request title is deliberately not sent.** It is attacker-controlled
 free text, and anything outside the `<<<UNTRUSTED_DIFF>>>` markers reads as
 operator-authored. Repository, pull request number and head SHA are sent because
-none of them can carry arbitrary text.
+GitHub's own deliveries constrain all three to fixed shapes.
+
+**That reasoning holds only for an authentic delivery, and nothing currently
+proves one.** The webhook verifies no signature, so a forged call supplies these
+fields directly — and they are interpolated *above* the marker, in the half that
+reads as operator-authored. Treat "cannot carry arbitrary text" as a property of
+GitHub's payloads, not of this endpoint's input, until the signature check lands.
 
 ## Token Spend, Recorded From Day One
 
@@ -237,7 +243,7 @@ text — while the platform still holds the logs.
 Three things, none of which belong in this repository:
 
 1. **An Anthropic API key**, held in the automation platform's key store.
-2. **A fine-grained personal access token** with the two permissions above.
+2. **A fine-grained personal access token** with the three permissions above.
 3. **A repository webhook** on `pull_request` (`opened`, `synchronize`), pointed
    at the scenario's webhook URL. Create it by hand rather than through an
    automation platform's own GitHub app, which typically asks for far broader
