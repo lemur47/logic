@@ -199,10 +199,14 @@ here.
 
 [`automation/`](automation/) holds automation that acts on this repository rather
 than shipping as product. Today that is one thing: a **PR auditor** that reviews
-every pull request unattended and posts a single comment. It cannot approve,
+pull requests unattended and posts a single comment. It cannot approve,
 merge, label or block, and it is not a required check — the token behind it is
 scoped to commenting. Contributors should expect a comment and read it as one
 reviewer's opinion.
+
+One caveat worth stating plainly: on a very large pull request the diff fetch can
+fail, and the auditor currently produces no comment at all rather than reporting
+the failure. **A missing comment does not mean a clean review.**
 
 The design, the reviewer's system prompt and the exported scenario are all in
 [`automation/pr-auditor/`](automation/pr-auditor/README.md), because a review
