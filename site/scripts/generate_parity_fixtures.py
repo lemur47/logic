@@ -21,6 +21,12 @@ The tag catalogue matters most. `site/src/lib/pert.ts` hard-codes each tag's
 multiplier range, duplicating `app/pert/core.py`. Those numbers are calibration
 judgement — the product's actual value — so a silent divergence there changes
 what the site tells a visitor while every test still passes.
+
+`pert_display` covers the numbers a visitor actually reads off the tag panel,
+which are not the same numbers the library returns. The panel used to compute
+its own multipliers, so it could — and did — disagree with `applyTags` on the
+same inputs. Severities step in 0.05 on the slider, so the cases below are
+reachable rather than theoretical.
 """
 
 from __future__ import annotations
@@ -83,6 +89,44 @@ TCO_CASES = [
 ]
 
 
+# The tag panel's slider steps in 0.05, so the first list is every severity a
+# visitor can select. The second is off-slider: `effectiveMultiplier` is exported
+# library API, not only a panel helper, and its scale-then-divide form left float
+# noise in the return value (1.1079999999999999 for what the core calls 1.108).
+# No 0.05 step reaches one, so a net built only from the slider could not go red.
+DISPLAY_SEVERITIES = [round(i * 0.05, 2) for i in range(21)] + [
+    0.02,
+    0.04,
+    0.11,
+    0.123,
+    0.48,
+    0.71,
+]
+
+# Multi-tag selections for the combined chip. The first three were the ones that
+# actually disagreed: the panel multiplied already-rounded factors and rounded
+# the product a second time with half-away-from-zero, where the core rounds the
+# raw product once. MULTIPLE_STAKEHOLDERS at 0.5 with HIDDEN_DEPENDENCIES at
+# 0.75 showed 2.20x on the site against the core's 2.205.
+DISPLAY_COMBINED_CASES = [
+    [("FRAGMENTED_COMMUNICATION", 0.5), ("MULTIPLE_STAKEHOLDERS", 0.0)],
+    [("FRAGMENTED_COMMUNICATION", 1.0), ("MULTIPLE_STAKEHOLDERS", 0.0)],
+    [("MULTIPLE_STAKEHOLDERS", 0.5), ("HIDDEN_DEPENDENCIES", 0.75)],
+    [("FRAGMENTED_COMMUNICATION", 0.5), ("MULTIPLE_STAKEHOLDERS", 0.5)],
+    [("MULTIPLE_STAKEHOLDERS", 0.0), ("HIDDEN_DEPENDENCIES", 0.5)],
+    [
+        ("FRAGMENTED_COMMUNICATION", 0.5),
+        ("MULTIPLE_STAKEHOLDERS", 0.5),
+        ("HIDDEN_DEPENDENCIES", 0.5),
+    ],
+    [
+        ("FRAGMENTED_COMMUNICATION", 0.35),
+        ("MULTIPLE_STAKEHOLDERS", 0.85),
+        ("HIDDEN_DEPENDENCIES", 0.15),
+    ],
+]
+
+
 # Values chosen to separate the two failure modes the site's rounding had.
 # A genuine tie (the double sits exactly on the midpoint) must round to even;
 # a value that only *looks* like a tie after scaling must not. Getting the
@@ -130,6 +174,38 @@ def _tag_catalogue() -> list[dict]:
     ]
 
 
+def _core_multipliers(tags: list[tuple[str, float]]) -> dict:
+    """Return the core's own multiplier figures for one tag selection.
+
+    Read out of ``calculate_task`` rather than recomputed here: the point is to
+    pin what the core reports, and a second implementation in the generator
+    would be a third copy of the maths to keep in step. The three-point inputs
+    are irrelevant to the multipliers, hence (1, 2, 3).
+    """
+    return calculate_task(1, 2, 3, tags=[(DEFAULT_TAGS[n], s) for n, s in tags])["adjusted"]
+
+
+def _display_cases() -> dict:
+    """Emit the multipliers the tag panel renders, as the core computes them."""
+    multipliers = [
+        {
+            "tag": name,
+            "severity": severity,
+            "expected": _core_multipliers([(name, severity)])["tags_applied"][0]["multiplier"],
+        }
+        for name in sorted(DEFAULT_TAGS)
+        for severity in DISPLAY_SEVERITIES
+    ]
+    combined = [
+        {
+            "tags": [{"name": n, "severity": s} for n, s in case],
+            "expected": _core_multipliers(case)["combined_multiplier"],
+        }
+        for case in DISPLAY_COMBINED_CASES
+    ]
+    return {"multipliers": multipliers, "combined": combined}
+
+
 def build() -> dict:
     return {
         "generated_by": (
@@ -139,6 +215,7 @@ def build() -> dict:
         "tolerance": 0.005,
         "rounding": _rounding_cases(),
         "tag_catalogue": _tag_catalogue(),
+        "pert_display": _display_cases(),
         "pert": [
             {
                 "args": {"optimistic": o, "most_likely": m, "pessimistic": p},

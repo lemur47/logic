@@ -7,6 +7,8 @@
  * generated from the Python implementation.
  */
 
+import { round2 } from "./round";
+
 export interface PertStats {
   expected: number;
   std_dev: number;
@@ -25,23 +27,6 @@ export interface TaskEstimation {
   textbook: PertStats;
   /** Always null in this PoC — the tag-adjustment path is not ported. */
   adjusted: null;
-}
-
-/**
- * Round to 2 decimal places with round-half-to-even, matching Python's round().
- *
- * A naive toFixed rounds decimal ties half-away-from-zero (0.625 → 0.63) where
- * Python rounds them to even (0.625 → 0.62). Exact ties survive the ×100
- * scaling unchanged (they are k/200 with the halves exactly representable), so
- * checking the fractional part against 0.5 catches precisely the tie cases.
- */
-function round2(value: number): number {
-  const scaled = value * 100;
-  const floor = Math.floor(scaled);
-  if (scaled - floor === 0.5) {
-    return (floor % 2 === 0 ? floor : floor + 1) / 100;
-  }
-  return Math.round(scaled) / 100;
 }
 
 function pertStats(optimistic: number, mostLikely: number, pessimistic: number): PertStats {

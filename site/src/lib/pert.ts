@@ -142,6 +142,41 @@ export function createDefaultTagSelections(): TagSelection[] {
   }));
 }
 
+/**
+ * One tag's multiplier, at the precision `app/pert/core.py` reports.
+ *
+ * `round4`, not `round2(x * 100) / 100`: the latter scales before rounding,
+ * which manufactures ties the double does not have, and the trailing divide
+ * puts float noise back into the result (1.1079999999999999 where the core
+ * says 1.108). Same interpolation as `applyTags` — deliberately the same
+ * expression, so the chip beside a tag and the multiplier in the result cannot
+ * disagree.
+ */
 export function effectiveMultiplier(tag: InsightTag, severity: number): number {
-  return round2((tag.minMultiplier + severity * (tag.maxMultiplier - tag.minMultiplier)) * 100) / 100;
+  return round4(tag.minMultiplier + severity * (tag.maxMultiplier - tag.minMultiplier));
+}
+
+/**
+ * The combined multiplier for the enabled tags, as the core computes it.
+ *
+ * Delegates to `applyTags` rather than repeating the loop. The panel used to
+ * multiply already-rounded factors and round the product a second time with
+ * `Math.round`, which showed 2.20x where the core says 2.205 — the core rounds
+ * the raw product once. The pessimistic value is irrelevant to the multiplier,
+ * hence 1.
+ */
+export function combinedMultiplier(selections: TagSelection[]): number {
+  return applyTags(1, selections).combinedMultiplier;
+}
+
+/**
+ * Present a multiplier at 2 dp.
+ *
+ * Rounds before formatting: `toFixed` rounds half away from zero, so a value
+ * sitting exactly on a half-penny would be presented one way here and another
+ * by the core. Reaching that is unlikely; relying on it not happening is the
+ * habit this module exists to break.
+ */
+export function formatMultiplier(value: number): string {
+  return round2(value).toFixed(2);
 }

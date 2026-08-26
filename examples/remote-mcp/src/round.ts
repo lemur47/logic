@@ -1,5 +1,5 @@
 /**
- * Rounding that matches Python's, for the calculators ported from `app/*​/core.py`.
+ * Rounding that matches Python's, for the calculator ported from `app/pert/core.py`.
  *
  * Python's built-in `round()` uses **round-half-to-even** (banker's rounding);
  * JavaScript's `Math.round` rounds half **away from zero**. They disagree
@@ -8,19 +8,13 @@
  *     0.625 -> Python 0.62,  Math.round(62.5)/100 = 0.63
  *    -7.195 -> Python -7.2,  Math.round(-719.5)/100 = -7.19
  *
- * That is a genuine output difference on a public calculator, not a rounding
- * nicety — so the port has to match the mode, not just the decimal places.
+ * That is a genuine output difference on a surface someone estimates from, not
+ * a rounding nicety — so the port has to match the mode, not just the decimal
+ * places.
  *
- * Kept in its own module so `pert.ts` and `tco.ts` share one implementation
- * rather than growing a copy each, and generalised over decimal places so the
- * 4-dp multiplier fields can use it too.
- *
- * This is where the implementation was first got right.
- * `examples/remote-mcp/src/round.ts` is a copy of it — until 2026-08-26 that
- * example carried a scale-then-compare version instead, whose own comment
- * asserted the claim this docstring disproves: that exact ties survive the ×100
- * scaling unchanged. They do not, and it returned 0.06 where the core returns
- * 0.07. Keep the two copies in step.
+ * This file is a copy of `site/src/lib/round.ts`, which is where the
+ * implementation was first got right. Keep the two in step: the parity fixtures
+ * check each copy against the Python core, not against each other.
  */
 
 /**
