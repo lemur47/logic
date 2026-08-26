@@ -3,8 +3,15 @@
 import pytest
 from pydantic import ValidationError
 
-from app.common.limits import MAX_LIST_ITEMS
-from app.pert.schemas import ProjectInput, ProjectTaskInput, TagInput, TaskInput
+from app.common.limits import MAX_LIST_ITEMS, MAX_NAME_LENGTH
+from app.pert.schemas import (
+    ProjectInput,
+    ProjectTaskInput,
+    ScenarioCreate,
+    ScenarioUpdate,
+    TagInput,
+    TaskInput,
+)
 
 # ── TagInput ────────────────────────────────────────────────────────────────
 
@@ -135,3 +142,38 @@ class TestProjectInput:
                     for i in range(MAX_LIST_ITEMS + 1)
                 ]
             )
+
+
+class TestScenarioTagCaps:
+    """The scalar-cap sweep capped tag NAMES but not the lists holding them.
+
+    Every sibling list on these models carries MAX_LIST_ITEMS; `tags` carried
+    neither that nor the per-item name cap, on both the create and the update
+    surface.
+    """
+
+    def _scenario(self, **over) -> dict:
+        return {
+            "name": "S",
+            "tasks": [{"name": "A", "optimistic": 1, "most_likely": 2, "pessimistic": 3}],
+        } | over
+
+    def test_create_rejects_an_oversized_tag_list(self):
+        with pytest.raises(ValidationError):
+            ScenarioCreate(**self._scenario(tags=["t"] * (MAX_LIST_ITEMS + 1)))
+
+    def test_create_rejects_an_overlong_tag_name(self):
+        with pytest.raises(ValidationError):
+            ScenarioCreate(**self._scenario(tags=["t" * (MAX_NAME_LENGTH + 1)]))
+
+    def test_update_rejects_an_oversized_tag_list(self):
+        with pytest.raises(ValidationError):
+            ScenarioUpdate(tags=["t"] * (MAX_LIST_ITEMS + 1))
+
+    def test_update_rejects_an_overlong_tag_name(self):
+        with pytest.raises(ValidationError):
+            ScenarioUpdate(tags=["t" * (MAX_NAME_LENGTH + 1)])
+
+    def test_a_realistic_tag_list_is_accepted(self):
+        s = ScenarioCreate(**self._scenario(tags=["infra", "q3"]))
+        assert s.tags == ["infra", "q3"]

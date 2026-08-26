@@ -2,6 +2,7 @@
 Monte Carlo schedule simulation Pydantic schemas for request/response validation.
 """
 
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Annotated, Self
 
@@ -14,7 +15,9 @@ from . import core
 from .core import MAX_SIMULATION_CELLS
 
 
-def _check_simulation_cells(n_tasks: int, num_simulations: int, n_classes: int = 0) -> None:
+def _check_simulation_cells(
+    n_tasks: int, num_simulations: int, n_classes: int = 0, n_edges: int = 0
+) -> None:
     """Reject simulation-count products that would over-allocate.
 
     Monte Carlo allocates several (n_tasks, num_simulations) float64 arrays, so
@@ -26,10 +29,25 @@ def _check_simulation_cells(n_tasks: int, num_simulations: int, n_classes: int =
     `core._check_allocation`; both exist deliberately, and both must be widened
     together — widening only the core copy would move the rejection from a 422
     here to a 400 raised out of the router's ValueError handler.
+
+    Dependency edges are the third dimension. `depends_on` is capped per task,
+    but `_forward_pass` allocates one row per edge per task, so it is the SUM
+    across tasks that governs — 1000 tasks each at the permitted 1000
+    predecessors is a million edges. Count DISTINCT edges: the core
+    de-duplicates on construction, so budgeting repeats would reject a payload
+    that costs nothing to run.
     """
     dimension, extent = "tasks", n_tasks
     if n_classes > n_tasks:
         dimension, extent = "risk_classes", n_classes
+
+    if n_edges * num_simulations > MAX_SIMULATION_CELLS:
+        msg = (
+            f"dependency_edges × num_simulations ({n_edges} × {num_simulations}) exceeds "
+            f"the limit of {MAX_SIMULATION_CELLS}. Reduce dependency_edges or "
+            f"num_simulations."
+        )
+        raise ValueError(msg)
 
     if extent * num_simulations > MAX_SIMULATION_CELLS:
         msg = (
@@ -64,6 +82,11 @@ class TaskInput(BaseModel):
             "Ignored unless drift_config is also supplied."
         ),
     )
+
+
+def _distinct_edges(tasks: Sequence[TaskInput]) -> int:
+    """Total predecessor references across tasks, ignoring repeats within a task."""
+    return sum(len(set(t.depends_on)) for t in tasks)
 
 
 class SimulationConfig(BaseModel):
@@ -123,7 +146,12 @@ class SimulateInput(BaseModel):
     @model_validator(mode="after")
     def _validate_cells(self) -> Self:
         n_classes = len(self.drift_config.risk_classes) if self.drift_config else 0
-        _check_simulation_cells(len(self.tasks), self.config.num_simulations, n_classes)
+        _check_simulation_cells(
+            len(self.tasks),
+            self.config.num_simulations,
+            n_classes,
+            n_edges=_distinct_edges(self.tasks),
+        )
         return self
 
     model_config = ConfigDict(
@@ -304,7 +332,9 @@ class ScenarioCreate(BaseModel):
 
     @model_validator(mode="after")
     def _validate_cells(self) -> Self:
-        _check_simulation_cells(len(self.tasks), self.num_simulations)
+        _check_simulation_cells(
+            len(self.tasks), self.num_simulations, n_edges=_distinct_edges(self.tasks)
+        )
         return self
 
 
@@ -322,7 +352,9 @@ class ScenarioUpdate(BaseModel):
         # Only checkable when both factors are supplied in the same patch; the
         # crud layer and core guard bound the mixed case (new tasks + stored count).
         if self.tasks is not None and self.num_simulations is not None:
-            _check_simulation_cells(len(self.tasks), self.num_simulations)
+            _check_simulation_cells(
+                len(self.tasks), self.num_simulations, n_edges=_distinct_edges(self.tasks)
+            )
         return self
 
 

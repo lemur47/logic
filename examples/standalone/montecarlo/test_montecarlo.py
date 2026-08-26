@@ -372,3 +372,48 @@ class TestAllocationGuard:
         tasks = [Task(f"T{i}", 1.0, 2.0, 3.0) for i in range(100)]
         with pytest.raises(ValueError, match="exceeds the limit"):
             simulate_schedule(tasks, n_simulations=1_000_000)
+
+
+class TestDependencyEdgeBudget:
+    """Dependency edges were a third, unbounded allocation dimension.
+
+    Ported from app/montecarlo/core.py deliberately: an unbounded allocation is
+    a defect in its own right, and this file is a public example someone may
+    copy. Asserts on memory, which is deterministic here; wall-clock for the
+    same input spans ~1.9x and would flake.
+    """
+
+    def test_repeated_dependencies_are_de_duplicated(self):
+        t = Task("B", 1, 2, 3, depends_on=("A", "A", "A"))
+        assert t.depends_on == ("A",)
+
+    def test_de_duplication_preserves_first_occurrence_order(self):
+        t = Task("C", 1, 2, 3, depends_on=("B", "A", "B"))
+        assert t.depends_on == ("B", "A")
+
+    def test_edge_budget_rejects_a_dense_distinct_graph(self):
+        from montecarlo import _check_allocation
+
+        with pytest.raises(ValueError, match="dependency_edges"):
+            _check_allocation(700, 10_000, n_edges=244_650)
+
+    def test_edge_budget_still_admits_a_realistic_chain(self):
+        from montecarlo import _check_allocation
+
+        _check_allocation(1000, 10_000, n_edges=999)  # must not raise
+
+    def test_the_confirmed_denial_of_service_input_stays_bounded(self):
+        import tracemalloc
+
+        tasks = [Task("t0", 1, 2, 3)] + [
+            Task(f"t{i}", 1, 2, 3, depends_on=("t0",) * 1_000) for i in range(1, 200)
+        ]
+        tracemalloc.start()
+        try:
+            simulate_schedule(tasks, n_simulations=2_000, seed=42)
+            peak_mb = tracemalloc.get_traced_memory()[1] / 1e6
+        finally:
+            tracemalloc.stop()
+
+        # 6416 MB before the fix, 22.4 MB after; 200 MB separates them cleanly.
+        assert peak_mb < 200, f"peak {peak_mb:.1f} MB — the edge cost is back"

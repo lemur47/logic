@@ -396,3 +396,80 @@ class TestSkewedInputs:
         result = simulate_schedule(tasks, n_simulations=50_000, seed=42)
         mc_mean = float(np.mean(result.durations))
         assert mc_mean > result.percentiles["P50"]
+
+
+# =============================================================================
+# Dependency-Edge Budget (2026-08-21 audit, finding confirmed 2026-08-25)
+# =============================================================================
+
+
+class TestDependencyEdgeBudget:
+    """The allocation guard bounded tasks and risk classes but never edges.
+
+    `_forward_pass` materialises one `(len(depends_on), n_simulations)` array
+    per task, so the sum of dependency-list lengths is an allocation dimension
+    in its own right. Measured at 200 tasks x 2,000 simulations: 199,000
+    repeated edges peaked at 6.4 GB against 22 MB once de-duplicated.
+
+    Memory is the metric these assert on, and deliberately so — it is
+    deterministic to the decimal across runs, while wall-clock for the same
+    input spans 1.9x and would flake.
+    """
+
+    def test_repeated_dependencies_are_de_duplicated(self):
+        """Repeated names are semantic no-ops; keeping them is pure cost."""
+        t = Task("B", 1, 2, 3, depends_on=("A", "A", "A"))
+        assert t.depends_on == ("A",)
+
+    def test_de_duplication_preserves_first_occurrence_order(self):
+        t = Task("C", 1, 2, 3, depends_on=("B", "A", "B"))
+        assert t.depends_on == ("B", "A")
+
+    def test_de_duplication_does_not_change_the_result(self):
+        """Dedup is output-preserving, which is what makes it safe as the fix."""
+        repeated = [
+            Task("A", 1, 2, 3),
+            Task("B", 1, 2, 3, depends_on=("A",) * 500),
+        ]
+        single = [
+            Task("A", 1, 2, 3),
+            Task("B", 1, 2, 3, depends_on=("A",)),
+        ]
+        assert (
+            simulate_schedule(repeated, n_simulations=2_000, seed=42).percentiles
+            == simulate_schedule(single, n_simulations=2_000, seed=42).percentiles
+        )
+
+    def test_edge_budget_rejects_a_dense_distinct_graph(self):
+        """Dedup closes repeated edges; distinct ones need their own bound."""
+        tasks = [Task("t0", 1, 2, 3)] + [
+            Task(f"t{i}", 1, 2, 3, depends_on=tuple(f"t{j}" for j in range(i)))
+            for i in range(1, 700)
+        ]
+        with pytest.raises(ValueError, match="dependency_edges"):
+            simulate_schedule(tasks, n_simulations=10_000)
+
+    def test_edge_budget_still_admits_a_realistic_network(self):
+        """A 1000-task chain at the default 10,000 runs is legitimate input."""
+        tasks = [Task("t0", 1, 2, 3)] + [
+            Task(f"t{i}", 1, 2, 3, depends_on=(f"t{i - 1}",)) for i in range(1, 1_000)
+        ]
+        simulate_schedule(tasks, n_simulations=10, seed=42)  # must not raise
+
+    def test_the_confirmed_denial_of_service_input_stays_bounded(self):
+        """The exact reproduction from the audit, asserted on peak memory."""
+        import tracemalloc
+
+        tasks = [Task("t0", 1, 2, 3)] + [
+            Task(f"t{i}", 1, 2, 3, depends_on=("t0",) * 1_000) for i in range(1, 200)
+        ]
+        tracemalloc.start()
+        try:
+            simulate_schedule(tasks, n_simulations=2_000, seed=42)
+            peak_mb = tracemalloc.get_traced_memory()[1] / 1e6
+        finally:
+            tracemalloc.stop()
+
+        # Measured 6416 MB before the fix, 22.4 MB after. Any ceiling in
+        # between distinguishes them; 200 MB leaves ~9x margin on both sides.
+        assert peak_mb < 200, f"peak {peak_mb:.1f} MB — the edge cost is back"
