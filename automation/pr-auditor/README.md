@@ -54,8 +54,8 @@ by reading the two implementations against each other.
 | Field | Value | Why |
 |---|---|---|
 | `model` | `claude-sonnet-5` | This repository's changes are authored on Opus; a reviewer on a different model gives model-class diversity inside one vendor. Reviewer independence comes mostly from **context** — fresh system prompt, diff only, no session history — and the model margin is real but smaller than it feels. |
-| `max_tokens` | 16000 | Non-streaming; above roughly this, SDK HTTP timeouts start to matter. |
-| `thinking` | omit | Adaptive thinking is **on by default** on Sonnet 5. Omitting the field is the recommended configuration, not an oversight. |
+| `max_tokens` | 24000 | Raised from 16000 on 2026-08-26 after a review was cut off mid-sentence at exactly the 16,000 ceiling (PR #158). Non-streaming, so this is a trade: more headroom against SDK HTTP timeouts. The Anthropic module's own timeout is 300s, which is the real backstop. **This lowers the odds of truncation; it cannot remove them** — see the row below. |
+| `thinking` | **omit** | Adaptive thinking is **on by default** on Sonnet 5. Omitting the field is the recommended configuration, not an oversight. ⚠️ **Do not try to bound it with `budget_tokens`. That was attempted on 2026-08-26 and it broke the scenario:** `{"type": "enabled", "budget_tokens": N}` is a pre-4.6 shape, **removed on Sonnet 5 and rejected with a 400** — `"thinking.type.enabled" is not supported for this model` — which failed every run until reverted. There is therefore **no way to reserve a guaranteed share of `max_tokens` for the visible reply** on this model: thinking and text draw on one pool and only the model decides the split. The single lever is `output_config.effort`, in the row below. |
 | `output_config.effort` | `high` (the default) | The cost lever if review volume grows. Sonnet 5 follows effort strictly at the low end, so drop to `medium` deliberately and re-read a few reviews before keeping it. |
 | `temperature` / `top_p` / `top_k` | **omit** | Non-default sampling parameters are **rejected with a 400** on Sonnet 5. Steer with the prompt instead. |
 
@@ -163,7 +163,7 @@ rather than a review.
 
 **A cut-off review declares itself in the comment, not only in the store.** When
 `stop_reason` is anything other than `end_turn` — `max_tokens` being the one to
-expect, at the 16,000-token cap — the comment opens with a notice saying the
+expect — the comment opens with a notice saying the
 review was cut off rather than finished, and that the findings below it are
 therefore not exhaustive. Recording the reason in a store nobody reads per-run
 does not help the person reading the comment: a truncated review otherwise just
@@ -282,7 +282,7 @@ rather than discovering:
   pushes, not against pull requests. **The ceiling worth watching is not the
   operation count
   but the execution timeout**, which is minutes on a free tier: a large diff
-  reviewed non-streaming at 16,000 output tokens is the run that will hit it. Buy
+  reviewed non-streaming at the full output budget is the run that will hit it. Buy
   a bigger plan when a review times out, not when the operation count looks
   alarming.
 - **Capture evidence immediately.** The logs needed to debug a failed run, or to
