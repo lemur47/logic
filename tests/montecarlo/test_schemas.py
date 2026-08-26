@@ -98,3 +98,44 @@ class TestCoreAllocationGuard:
         tasks = [Task(name="A", optimistic=1, most_likely=2, pessimistic=3)]
         with pytest.raises(ValueError, match="exceeds the limit"):
             simulate_schedule(tasks, n_simulations=MAX_SIMULATION_CELLS + 1)
+
+
+class TestDependencyEdgeBudgetAtTheBoundary:
+    """`depends_on` is capped per task but the SUM was never bounded.
+
+    1000 tasks each carrying the permitted 1000 predecessors is a million
+    edges, and `_forward_pass` allocates one array row per edge per task. The
+    per-task cap alone therefore does not bound the request.
+    """
+
+    def _task(self, name: str, deps: list[str]) -> dict:
+        return {
+            "name": name,
+            "optimistic": 1,
+            "most_likely": 2,
+            "pessimistic": 3,
+            "depends_on": deps,
+        }
+
+    def test_dense_distinct_graph_is_rejected(self):
+        tasks = [self._task("t0", [])] + [
+            self._task(f"t{i}", [f"t{j}" for j in range(i)]) for i in range(1, 700)
+        ]
+        with pytest.raises(ValidationError, match="dependency_edges"):
+            SimulateInput(tasks=tasks, config={"num_simulations": 10_000})
+
+    def test_repeated_edges_are_counted_once(self):
+        """The core de-duplicates, so the boundary must budget distinct edges.
+
+        Counting repeats here would reject a payload that costs nothing to run.
+        """
+        tasks = [self._task("t0", [])] + [
+            self._task(f"t{i}", ["t0"] * 1_000) for i in range(1, 200)
+        ]
+        SimulateInput(tasks=tasks, config={"num_simulations": 10_000})  # must not raise
+
+    def test_a_realistic_chain_is_still_accepted(self):
+        tasks = [self._task("t0", [])] + [
+            self._task(f"t{i}", [f"t{i - 1}"]) for i in range(1, 1_000)
+        ]
+        SimulateInput(tasks=tasks, config={"num_simulations": 10_000})  # must not raise

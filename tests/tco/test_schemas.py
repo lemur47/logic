@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.common.limits import MAX_LIST_ITEMS
+from app.common.limits import MAX_LIST_ITEMS, MAX_NAME_LENGTH
 from app.tco.schemas import CompareRequest, ScenarioCreate, ScenarioUpdate, TCOInput
 
 # ── TCOInput ─────────────────────────────────────────────────────────────────
@@ -137,3 +137,34 @@ class TestScenarioUpdate:
     def test_empty_name_rejected(self):
         with pytest.raises(ValidationError):
             ScenarioUpdate(name="")
+
+
+class TestScenarioTagCaps:
+    """`tags` carried neither the shared list cap nor the per-item name cap.
+
+    Its sibling lists on these models already carry MAX_LIST_ITEMS; the scalar
+    sweep that capped tag names missed the lists holding them.
+    """
+
+    def _scenario(self, **over) -> dict:
+        return {"name": "S", "initial_price": 100.0, "useful_life_years": 5} | over
+
+    def test_create_rejects_an_oversized_tag_list(self):
+        with pytest.raises(ValidationError):
+            ScenarioCreate(**self._scenario(tags=["t"] * (MAX_LIST_ITEMS + 1)))
+
+    def test_create_rejects_an_overlong_tag_name(self):
+        with pytest.raises(ValidationError):
+            ScenarioCreate(**self._scenario(tags=["t" * (MAX_NAME_LENGTH + 1)]))
+
+    def test_update_rejects_an_oversized_tag_list(self):
+        with pytest.raises(ValidationError):
+            ScenarioUpdate(tags=["t"] * (MAX_LIST_ITEMS + 1))
+
+    def test_update_rejects_an_overlong_tag_name(self):
+        with pytest.raises(ValidationError):
+            ScenarioUpdate(tags=["t" * (MAX_NAME_LENGTH + 1)])
+
+    def test_a_realistic_tag_list_is_accepted(self):
+        s = ScenarioCreate(**self._scenario(tags=["hardware", "fy26"]))
+        assert s.tags == ["hardware", "fy26"]

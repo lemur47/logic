@@ -52,12 +52,23 @@ from scipy import stats
 MAX_SIMULATION_CELLS = 10_000_000
 
 
-def _check_allocation(n_tasks: int, n_simulations: int) -> None:
+def _check_allocation(n_tasks: int, n_simulations: int, n_edges: int = 0) -> None:
     """Reject over-large requests before any array is created."""
     if n_tasks * n_simulations > MAX_SIMULATION_CELLS:
         msg = (
             f"tasks × n_simulations ({n_tasks} × {n_simulations}) exceeds the "
             f"limit of {MAX_SIMULATION_CELLS}"
+        )
+        raise ValueError(msg)
+
+    # Dependency edges are summed, not maxed: the forward pass builds one
+    # (len(depends_on), n_simulations) array per task, so the whole pass costs
+    # the sum of the dependency-list lengths. Measured at 6.4 GB from a ~1 MB
+    # input before this bound existed.
+    if n_edges * n_simulations > MAX_SIMULATION_CELLS:
+        msg = (
+            f"dependency_edges × n_simulations ({n_edges} × {n_simulations}) exceeds "
+            f"the limit of {MAX_SIMULATION_CELLS}"
         )
         raise ValueError(msg)
 
@@ -84,6 +95,12 @@ class Task:
     depends_on: tuple[str, ...] = ()
 
     def __post_init__(self):
+        # Repeated dependency names are semantic no-ops — the forward pass takes
+        # a max over predecessor finish times — but each repeat costs an array
+        # row per task. De-duplicate, preserving first-occurrence order.
+        if len(set(self.depends_on)) != len(self.depends_on):
+            object.__setattr__(self, "depends_on", tuple(dict.fromkeys(self.depends_on)))
+
         if self.optimistic < 0:
             msg = f"Optimistic must be >= 0, got {self.optimistic}"
             raise ValueError(msg)
@@ -236,7 +253,7 @@ def simulate_schedule(
     Raises:
         ValueError: if tasks x n_simulations would exceed MAX_SIMULATION_CELLS.
     """
-    _check_allocation(len(tasks), n_simulations)
+    _check_allocation(len(tasks), n_simulations, n_edges=sum(len(t.depends_on) for t in tasks))
 
     rng = np.random.default_rng(seed)
 

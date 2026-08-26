@@ -23,15 +23,23 @@ import numpy as np
 from scipy import stats
 
 # Monte Carlo allocates several (n_tasks, n_simulations) float64 arrays (up to ~7
-# on the drift path). Cap their product so a single call cannot over-allocate,
-# regardless of how the caller splits it between task count and simulation count.
-# 10_000_000 cells → ~80 MB per array, and still admits a 1000-task network at
-# the default 10_000 simulations. Kept here (the layer that allocates) so the
-# pure core enforces its own safety ceiling; the API schema imports it too.
+# on the drift path). Cap their product, regardless of how the caller splits it
+# between task count and simulation count. 10_000_000 cells → ~80 MB per array,
+# and still admits a 1000-task network at the default 10_000 simulations. Kept
+# here (the layer that allocates) so the pure core enforces its own safety
+# ceiling; the API schema imports it too.
+#
+# This used to say the cap meant "a single call cannot over-allocate". It did
+# not: the 2026-08-21 audit found dependency edges to be a third allocation
+# dimension that nothing bounded, and the reproduction peaked at 6.4 GB from a
+# ~1 MB request. Every dimension that reaches an array shape needs its own
+# budget — see `_check_allocation`, which now takes three.
 MAX_SIMULATION_CELLS = 10_000_000
 
 
-def _check_allocation(n_tasks: int, n_simulations: int, n_classes: int = 0) -> None:
+def _check_allocation(
+    n_tasks: int, n_simulations: int, n_classes: int = 0, n_edges: int = 0
+) -> None:
     """Guard against over-allocation before any array is created.
 
     Defence in depth: the API schema rejects oversized requests at the boundary,
@@ -52,6 +60,16 @@ def _check_allocation(n_tasks: int, n_simulations: int, n_classes: int = 0) -> N
         msg = (
             f"{dimension} × n_simulations ({extent} × {n_simulations}) exceeds the "
             f"limit of {MAX_SIMULATION_CELLS}"
+        )
+        raise ValueError(msg)
+
+    # Dependency edges are the third dimension, and they are summed rather than
+    # maxed: `_forward_pass` builds one (len(depends_on), n_simulations) array
+    # per task, so the whole pass costs the sum of the dependency-list lengths.
+    if n_edges * n_simulations > MAX_SIMULATION_CELLS:
+        msg = (
+            f"dependency_edges × n_simulations ({n_edges} × {n_simulations}) exceeds "
+            f"the limit of {MAX_SIMULATION_CELLS}"
         )
         raise ValueError(msg)
 
@@ -78,6 +96,14 @@ class Task:
     depends_on: tuple[str, ...] = ()
 
     def __post_init__(self):
+        # Repeated dependency names are semantic no-ops — the forward pass takes
+        # a max over predecessor finish times, so a name listed twice cannot
+        # change the result. It can change the cost enormously: one array row
+        # per repeat, per task. De-duplicate here, on the input model, so every
+        # caller is covered — direct, MCP, crud-update and API alike.
+        if len(set(self.depends_on)) != len(self.depends_on):
+            object.__setattr__(self, "depends_on", tuple(dict.fromkeys(self.depends_on)))
+
         if self.optimistic < 0:
             msg = f"Optimistic must be >= 0, got {self.optimistic}"
             raise ValueError(msg)
@@ -323,7 +349,7 @@ def simulate_schedule(
         msg = "At least one task is required"
         raise ValueError(msg)
 
-    _check_allocation(len(tasks), n_simulations)
+    _check_allocation(len(tasks), n_simulations, n_edges=sum(len(t.depends_on) for t in tasks))
 
     rng = np.random.default_rng(seed)
 
@@ -622,7 +648,9 @@ def simulate_with_drift(
     classes = list(config.risk_classes)
     n_classes = len(classes)
 
-    _check_allocation(len(tasks), n_simulations, n_classes)
+    _check_allocation(
+        len(tasks), n_simulations, n_classes, n_edges=sum(len(t.depends_on) for t in tasks)
+    )
 
     rng = np.random.default_rng(config.seed)
     class_names = [c.name for c in classes]
