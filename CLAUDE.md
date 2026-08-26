@@ -32,6 +32,12 @@ python examples/standalone/tco/tco.py
 # Run the site's parity tests (site/src/lib vs the Python core)
 cd site && npm test
 
+# Build the site. NOT optional when you have touched site/ — `npm test` covers the
+# parity net and the crawlability gate's parsing, but the gate itself only runs
+# after `astro build`, because what it checks does not exist until then. CI runs
+# `npm test` BEFORE `npm run build`, so a green test run says nothing about it.
+cd site && npm run build
+
 # Regenerate the site parity fixtures after changing app/pert or app/tco core
 uv run python site/scripts/generate_parity_fixtures.py
 
@@ -190,6 +196,8 @@ The following tools must be installed outside of `uv`:
 - APA 7th title case for H1 and H2 headings
 - Every inline image reference in published markdown (`![...](path)`) must resolve to a real file in the repo. Grep and verify before shipping content.
 - **A TypeScript port must match the Python core's rounding *mode*, not only its decimal places.** Python's `round()` is half-to-even; JavaScript's `Math.round` is half-away-from-zero, so `0.625` becomes `0.62` in one and `0.63` in the other. Scaling before rounding (`value * 100`) is also wrong — it manufactures ties the double does not have, so `51.585` rounds down when Python rounds it up. Use `site/src/lib/round.ts`, and net any new port with fixtures generated from the core rather than reading the two implementations side by side; this divergence survived a line-by-line review because places and mode look alike.
+
+- **A build gate can only see the file you ship, not the one your CDN serves.** `site/public/robots.txt` was correct in this repository for months while production served something else entirely: Cloudflare's managed `robots.txt` setting was on, and it *prepends* its own block — disallowing `ClaudeBot`, `GPTBot`, `Google-Extended`, `CCBot`, `Applebot-Extended`, `meta-externalagent`, `Bytespider` and `Amazonbot` from the whole site. The live file was 1,903 bytes against the 60 in the tree. Nothing in the repository could see it, no grep matched any of those names, and no build could have caught it. `site/scripts/verify-crawlability.mjs` now checks that what we emit is internally coherent — every advertised sitemap resolves, every URL and `hreflang` alternate it lists was emitted, every emitted page is advertised, and nothing is disallowed — and it says plainly that this proves intent, never production. **If AI crawlers ever go quiet, `curl -s https://pmo.run/robots.txt` before you check the tree.** Same class as the dead gitleaks hook above: the configuration was right and inert.
 
 ## Git workflow
 
