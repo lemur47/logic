@@ -1,28 +1,25 @@
 /**
  * Post-build gate: the promises in robots.txt must be true of dist/.
  *
- * This runs AFTER `astro build` rather than in `npm test`, because what it
- * checks only exists once the site is built — and CI runs `npm test` before
- * `npm run build`. A test that skipped when dist/ was absent would be worse
- * than no test: a gate that skips and a gate that passes read identically.
+ * Runs after `astro build` rather than in `npm test`, because what it checks
+ * only exists once the site is built — and CI runs `npm test` before
+ * `npm run build`. A test that skipped when dist/ was absent would report the
+ * same green as one that ran.
  *
- * What went wrong without it: robots.txt named
- * https://pmo.run/sitemap-index.xml as the single entry point we hand a
- * crawler, no sitemap integration was installed, and that URL returned 404 in
- * production for as long as anyone had been looking. Nothing failed, because
- * nothing was watching.
+ * It reads `dist/robots.txt`, not `public/robots.txt`. Astro copies `public/`
+ * verbatim so the two are identical today, but the gate's claim is about what
+ * was emitted; if robots.txt ever comes from a template or an integration
+ * instead of a static file, reading the source would validate a file nobody
+ * ships.
  *
- * Scope, stated honestly: this checks the file WE ship. It cannot see
- * Cloudflare's managed robots.txt, which is a zone setting that prepends its
- * own Disallow rules to the served file and overrides everything below it.
- * Only fetching https://pmo.run/robots.txt shows what crawlers receive. So a
- * green result here proves the repository's intent is coherent — never that
- * production is actually crawlable.
+ * Scope, stated plainly: this checks the file we emit. It cannot see
+ * Cloudflare's managed robots.txt, a zone setting that prepends its own
+ * Disallow rules to the served file and overrides everything below. Only
+ * fetching https://pmo.run/robots.txt shows what crawlers receive. Green here
+ * means the repository's intent is coherent, not that production is crawlable.
  *
- * The parsing below is exported and unit-tested in test/crawlability.spec.ts.
- * This script is the only guard against the incident described above, so a
- * silent regression in its own regexes would fail exactly the way the original
- * bug did: nothing reported, because nothing was testing the tester.
+ * The parsing is exported and unit-tested in test/crawlability.spec.ts, since a
+ * regression in these regexes would fail the same way the original bug did.
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -30,12 +27,21 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join, resolve } from "node:path";
 
 /**
- * Crawlers this site admits. If that stance is ever reversed, change this list
- * in the same commit as robots.txt, so the reversal is deliberate rather than a
- * stray edit.
- * @type {readonly string[]}
+ * Strip a robots.txt comment. `#` opens one at line start or after whitespace;
+ * a bare `#` mid-token is left alone so a URL fragment survives.
+ *
+ * Shared by both parsers deliberately. They previously disagreed — the group
+ * parser stripped comments and the `Sitemap:` matcher did not, so
+ * `Sitemap: https://… # canonical` would have matched nothing and the gate
+ * would have failed with "declares no Sitemap: directive" on a harmless edit.
+ * A gate that cries wolf gets switched off, which costs more than the bug it
+ * was watching for.
+ * @param {string} line
+ * @returns {string}
  */
-export const ADMITTED = ["ClaudeBot", "GPTBot", "Google-Extended", "CCBot", "PerplexityBot"];
+export function stripComment(line) {
+  return line.replace(/(^|\s)#.*$/, "$1").trim();
+}
 
 /**
  * Every URL named by a `Sitemap:` directive.
@@ -43,14 +49,19 @@ export const ADMITTED = ["ClaudeBot", "GPTBot", "Google-Extended", "CCBot", "Per
  * @returns {string[]}
  */
 export function sitemapUrls(robots) {
-  return [...robots.matchAll(/^[ \t]*Sitemap:[ \t]*(\S+)[ \t]*$/gim)].map((m) => m[1]);
+  return robots
+    .split(/\r?\n/)
+    .map(stripComment)
+    .map((line) => line.match(/^Sitemap:[ \t]*(\S+)$/i))
+    .filter((m) => m !== null)
+    .map((m) => m[1]);
 }
 
 /**
  * Parse robots.txt into groups. A group is one or more consecutive `User-agent`
- * lines followed by that group's rules — the shape RFC 9309 defines. Written as
- * a line walk rather than one regex because the regex version could only see
- * single-agent groups, and silently passed a group that named two.
+ * lines followed by that group's rules — the shape RFC 9309 describes. Written
+ * as a line walk rather than one regex because the regex version could only see
+ * single-agent groups, and silently passed a group naming two.
  * @param {string} robots
  * @returns {{ agents: string[], rules: { name: string, value: string }[] }[]}
  */
@@ -61,7 +72,7 @@ export function parseGroups(robots) {
   let current = null;
 
   for (const raw of robots.split(/\r?\n/)) {
-    const line = raw.replace(/#.*$/, "").trim();
+    const line = stripComment(raw);
     if (line === "") continue;
     const match = line.match(/^([A-Za-z-]+)[ \t]*:[ \t]*(.*)$/);
     if (!match) continue;
@@ -69,7 +80,7 @@ export function parseGroups(robots) {
     const value = match[2].trim();
 
     if (name === "user-agent") {
-      // A User-agent line after rules starts a new group; before any rules it
+      // A User-agent line after rules opens a new group; before any rules it
       // adds another agent to the group being opened.
       if (current === null || current.rules.length > 0) {
         current = { agents: [], rules: [] };
@@ -84,32 +95,29 @@ export function parseGroups(robots) {
 }
 
 /**
- * Admitted crawlers that robots.txt disallows from anything at all.
+ * Every non-empty `Disallow` in the file, with the agents it applies to.
  *
- * Any non-empty `Disallow` value counts. An earlier version only flagged an
- * exact `Disallow: /`, so `Disallow: /blog/` — a real block of real content —
- * passed the gate. A bare `Disallow:` is the opposite directive (allow all) and
- * is correctly ignored. A bot with no group of its own falls to `*` and is not
- * blocked, so its absence is not a finding.
+ * This deliberately has no allowlist of crawler names. An earlier version
+ * checked five named bots, which was narrower than the eight the file's own
+ * comment discusses and drifted from the stance the site actually takes: this
+ * site disallows nothing, from anyone. A list of names is a second place for
+ * that stance to live, and the two had already disagreed.
+ *
+ * So the rule is the stance: **any** disallowed path fails the build. If the
+ * site ever needs to withhold something — from a crawler or from anyone else —
+ * that is a deliberate change to this check, made in the same commit as the
+ * robots.txt edit, rather than a name quietly missing from a list.
+ *
+ * A bare `Disallow:` is the opposite directive (allow all) and is ignored.
  * @param {string} robots
- * @param {readonly string[]} [admitted]
- * @returns {{ bot: string, path: string }[]}
+ * @returns {{ agents: string[], path: string }[]}
  */
-export function blockedAdmittedBots(robots, admitted = ADMITTED) {
-  /** @type {{ bot: string, path: string }[]} */
-  const found = [];
-  const groups = parseGroups(robots);
-  for (const bot of admitted) {
-    for (const group of groups) {
-      if (!group.agents.some((a) => a.toLowerCase() === bot.toLowerCase())) continue;
-      for (const rule of group.rules) {
-        if (rule.name === "disallow" && rule.value !== "") {
-          found.push({ bot, path: rule.value });
-        }
-      }
-    }
-  }
-  return found;
+export function disallowedPaths(robots) {
+  return parseGroups(robots).flatMap((group) =>
+    group.rules
+      .filter((rule) => rule.name === "disallow" && rule.value !== "")
+      .map((rule) => ({ agents: group.agents, path: rule.value })),
+  );
 }
 
 /** @param {string} xml @returns {string[]} */
@@ -119,13 +127,21 @@ export function locs(xml) {
 
 /**
  * The gate itself. Returns human-readable failures; empty means green.
- * @param {{ robots: string, distDir: string, exists: (p: string) => boolean, read: (p: string) => string }} io
+ * @param {{ distDir: string, exists: (p: string) => boolean, read: (p: string) => string }} io
  * @returns {{ failures: string[], notes: string[] }}
  */
 export function check(io) {
+  /** @type {string[]} */
   const failures = [];
+  /** @type {string[]} */
   const notes = [];
-  const urls = sitemapUrls(io.robots);
+
+  const robotsPath = join(io.distDir, "robots.txt");
+  if (!io.exists(robotsPath)) {
+    return { failures: [`${robotsPath} was not emitted — the site ships no robots.txt.`], notes };
+  }
+  const robots = io.read(robotsPath);
+  const urls = sitemapUrls(robots);
 
   if (urls.length === 0) failures.push("robots.txt declares no Sitemap: directive.");
 
@@ -157,8 +173,11 @@ export function check(io) {
     }
   }
 
-  for (const { bot, path } of blockedAdmittedBots(io.robots)) {
-    failures.push(`robots.txt disallows ${bot} from ${path}, and ${bot} is an admitted crawler.`);
+  for (const { agents, path } of disallowedPaths(robots)) {
+    failures.push(
+      `robots.txt disallows ${path} from ${agents.join(", ")}. ` +
+        "This site withholds nothing; change this check in the same commit if that is no longer true.",
+    );
   }
 
   return { failures, notes };
@@ -168,7 +187,6 @@ export function check(io) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const siteRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const { failures, notes } = check({
-    robots: readFileSync(join(siteRoot, "public", "robots.txt"), "utf8"),
     distDir: join(siteRoot, "dist"),
     exists: existsSync,
     read: (p) => readFileSync(p, "utf8"),

@@ -1,24 +1,23 @@
 /**
  * Unit tests for the crawlability gate's own parsing.
  *
- * The gate in `scripts/verify-crawlability.mjs` is the only guard against the
- * incident it documents: robots.txt advertising a sitemap that production
- * returned 404 for, with nothing failing. A regression in its regexes would
- * reproduce that failure exactly — nothing reported, because nothing was
- * testing the tester. So the parsing is tested here, and the end-to-end
- * behaviour against a real `dist/` stays a canary run at build time.
+ * The gate in `scripts/verify-crawlability.mjs` guards against robots.txt
+ * advertising a sitemap that production returns 404 for, with nothing failing.
+ * A regression in its regexes would reproduce that silence exactly, so the
+ * parsing is tested here; the end-to-end behaviour against a real `dist/` stays
+ * a canary run at build time, which is the part a unit test cannot stand in for.
  *
- * These cases are pure string-in / findings-out, so they run in `npm test`
- * without needing a build.
+ * Pure string-in / findings-out, so these run in `npm test` without a build.
  */
 
 import { describe, expect, it } from "vitest";
 
 import {
-  blockedAdmittedBots,
   check,
+  disallowedPaths,
   parseGroups,
   sitemapUrls,
+  stripComment,
 } from "../scripts/verify-crawlability.mjs";
 
 const LIVE = `User-agent: *
@@ -28,6 +27,20 @@ Allow: /
 Sitemap: https://pmo.run/sitemap-index.xml
 `;
 
+describe("stripComment", () => {
+  it("removes a trailing comment", () => {
+    expect(stripComment("Allow: / # everything")).toBe("Allow: /");
+  });
+
+  it("removes a whole-line comment", () => {
+    expect(stripComment("  # just a note")).toBe("");
+  });
+
+  it("leaves a URL fragment alone — # only opens a comment after whitespace", () => {
+    expect(stripComment("Sitemap: https://x/y.xml#frag")).toBe("Sitemap: https://x/y.xml#frag");
+  });
+});
+
 describe("sitemapUrls", () => {
   it("finds the declared sitemap", () => {
     expect(sitemapUrls(LIVE)).toEqual(["https://pmo.run/sitemap-index.xml"]);
@@ -35,6 +48,10 @@ describe("sitemapUrls", () => {
 
   it("is case-insensitive and tolerates extra whitespace", () => {
     expect(sitemapUrls("  sitemap:   https://x/y.xml  ")).toEqual(["https://x/y.xml"]);
+  });
+
+  it("survives a trailing comment, which an end-anchored regex did not", () => {
+    expect(sitemapUrls("Sitemap: https://x/y.xml # canonical")).toEqual(["https://x/y.xml"]);
   });
 
   it("finds nothing when none is declared", () => {
@@ -59,80 +76,94 @@ describe("parseGroups", () => {
   });
 });
 
-describe("blockedAdmittedBots", () => {
-  it("passes the file we ship", () => {
-    expect(blockedAdmittedBots(LIVE)).toEqual([]);
+describe("disallowedPaths", () => {
+  it("passes the file we ship — this site withholds nothing", () => {
+    expect(disallowedPaths(LIVE)).toEqual([]);
   });
 
   it("catches a full block", () => {
-    expect(blockedAdmittedBots(`${LIVE}\nUser-agent: ClaudeBot\nDisallow: /\n`)).toEqual([
-      { bot: "ClaudeBot", path: "/" },
+    expect(disallowedPaths(`${LIVE}\nUser-agent: ClaudeBot\nDisallow: /\n`)).toEqual([
+      { agents: ["ClaudeBot"], path: "/" },
     ]);
   });
 
   it("catches a PARTIAL block, which an exact-match check missed", () => {
-    expect(blockedAdmittedBots(`${LIVE}\nUser-agent: GPTBot\nDisallow: /blog/\n`)).toEqual([
-      { bot: "GPTBot", path: "/blog/" },
+    expect(disallowedPaths(`${LIVE}\nUser-agent: GPTBot\nDisallow: /blog/\n`)).toEqual([
+      { agents: ["GPTBot"], path: "/blog/" },
     ]);
   });
 
-  it("catches a bot named alongside others in a shared group", () => {
-    const robots = `${LIVE}\nUser-agent: SomeBot\nUser-agent: CCBot\nDisallow: /docs/\n`;
-    expect(blockedAdmittedBots(robots)).toEqual([{ bot: "CCBot", path: "/docs/" }]);
+  it("catches a crawler no allowlist happened to name", () => {
+    expect(disallowedPaths(`${LIVE}\nUser-agent: Bytespider\nDisallow: /\n`)).toEqual([
+      { agents: ["Bytespider"], path: "/" },
+    ]);
   });
 
-  it("matches the agent name case-insensitively, as the RFC requires", () => {
-    expect(blockedAdmittedBots("User-agent: claudebot\nDisallow: /\n")).toEqual([
-      { bot: "ClaudeBot", path: "/" },
+  it("reports every agent in a shared group", () => {
+    expect(disallowedPaths("User-agent: A\nUser-agent: CCBot\nDisallow: /docs/\n")).toEqual([
+      { agents: ["A", "CCBot"], path: "/docs/" },
     ]);
   });
 
   it("treats a bare Disallow: as the allow-all directive it is", () => {
-    expect(blockedAdmittedBots("User-agent: ClaudeBot\nDisallow:\n")).toEqual([]);
-  });
-
-  it("reports nothing for a bot with no group — it falls to *", () => {
-    expect(blockedAdmittedBots("User-agent: *\nAllow: /\n")).toEqual([]);
+    expect(disallowedPaths("User-agent: ClaudeBot\nDisallow:\n")).toEqual([]);
   });
 });
 
 describe("check", () => {
-  const index = "<sitemapindex><sitemap><loc>https://pmo.run/sitemap-0.xml</loc></sitemap></sitemapindex>";
+  const index =
+    "<sitemapindex><sitemap><loc>https://pmo.run/sitemap-0.xml</loc></sitemap></sitemapindex>";
   const pages = "<urlset><url><loc>https://pmo.run/en/</loc></url></urlset>";
 
   const io = (files: Record<string, string>) => ({
-    robots: LIVE,
     distDir: "/dist",
     exists: (p: string) => p in files,
     read: (p: string) => files[p],
   });
 
+  const emitted = {
+    "/dist/robots.txt": LIVE,
+    "/dist/sitemap-index.xml": index,
+    "/dist/sitemap-0.xml": pages,
+  };
+
   it("is green when the advertised sitemap resolves and lists URLs", () => {
-    const result = check(io({ "/dist/sitemap-index.xml": index, "/dist/sitemap-0.xml": pages }));
+    const result = check(io(emitted));
     expect(result.failures).toEqual([]);
     expect(result.notes).toEqual(["https://pmo.run/sitemap-0.xml lists 1 URLs."]);
   });
 
-  it("fails when the advertised sitemap was not emitted", () => {
+  it("fails when no robots.txt was emitted at all", () => {
     const result = check(io({}));
+    expect(result.failures).toEqual(["/dist/robots.txt was not emitted — the site ships no robots.txt."]);
+  });
+
+  it("reads dist/, not public/ — a stale source file cannot make it pass", () => {
+    const result = check(io({ ...emitted, "/dist/robots.txt": "User-agent: *\nAllow: /\n" }));
+    expect(result.failures).toEqual(["robots.txt declares no Sitemap: directive."]);
+  });
+
+  it("fails when the advertised sitemap was not emitted", () => {
+    const result = check(io({ "/dist/robots.txt": LIVE }));
     expect(result.failures).toHaveLength(1);
     expect(result.failures[0]).toContain("sitemap-index.xml");
   });
 
   it("fails when the index points at a child that was not emitted", () => {
-    const result = check(io({ "/dist/sitemap-index.xml": index }));
+    const result = check(io({ "/dist/robots.txt": LIVE, "/dist/sitemap-index.xml": index }));
     expect(result.failures).toHaveLength(1);
     expect(result.failures[0]).toContain("sitemap-0.xml");
   });
 
   it("fails when the child sitemap lists no pages", () => {
-    const empty = "<urlset></urlset>";
-    const result = check(io({ "/dist/sitemap-index.xml": index, "/dist/sitemap-0.xml": empty }));
+    const result = check(io({ ...emitted, "/dist/sitemap-0.xml": "<urlset></urlset>" }));
     expect(result.failures).toEqual(["https://pmo.run/sitemap-0.xml lists zero URLs."]);
   });
 
-  it("fails when robots.txt declares no sitemap at all", () => {
-    const result = check({ ...io({}), robots: "User-agent: *\nAllow: /\n" });
-    expect(result.failures).toEqual(["robots.txt declares no Sitemap: directive."]);
+  it("fails on any disallowed path, naming the agents", () => {
+    const blocked = `${LIVE}\nUser-agent: Amazonbot\nDisallow: /en/\n`;
+    const result = check(io({ ...emitted, "/dist/robots.txt": blocked }));
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toContain("disallows /en/ from Amazonbot");
   });
 });
