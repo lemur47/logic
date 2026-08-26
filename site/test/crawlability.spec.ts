@@ -13,6 +13,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  advertisedUrls,
+  candidatePaths,
   check,
   disallowedPaths,
   parseGroups,
@@ -110,10 +112,42 @@ describe("disallowedPaths", () => {
   });
 });
 
+describe("advertisedUrls", () => {
+  const entry = `<url><loc>https://pmo.run/en/x/</loc>` +
+    `<xhtml:link rel="alternate" hreflang="en" href="https://pmo.run/en/x/"/>` +
+    `<xhtml:link rel="alternate" hreflang="ja" href="https://pmo.run/ja/x/"/></url>`;
+
+  it("returns locations and hreflang alternates alike", () => {
+    expect(advertisedUrls(entry).sort()).toEqual([
+      "https://pmo.run/en/x/",
+      "https://pmo.run/ja/x/",
+    ]);
+  });
+
+  it("deduplicates a location that is also its own alternate", () => {
+    expect(advertisedUrls(entry)).toHaveLength(2);
+  });
+});
+
+describe("candidatePaths", () => {
+  it("maps a directory URL to its index.html", () => {
+    expect(candidatePaths("/dist", "https://pmo.run/en/blog/")).toEqual(["/dist/en/blog/index.html"]);
+  });
+
+  it("accepts either shape for a file-style URL", () => {
+    expect(candidatePaths("/dist", "https://pmo.run/feed.xml")).toEqual([
+      "/dist/feed.xml",
+      "/dist/feed.xml/index.html",
+    ]);
+  });
+});
+
 describe("check", () => {
   const index =
     "<sitemapindex><sitemap><loc>https://pmo.run/sitemap-0.xml</loc></sitemap></sitemapindex>";
-  const pages = "<urlset><url><loc>https://pmo.run/en/</loc></url></urlset>";
+  const pages =
+    "<urlset><url><loc>https://pmo.run/en/</loc>" +
+    '<xhtml:link rel="alternate" hreflang="ja" href="https://pmo.run/ja/"/></url></urlset>';
 
   const io = (files: Record<string, string>) => ({
     distDir: "/dist",
@@ -125,6 +159,8 @@ describe("check", () => {
     "/dist/robots.txt": LIVE,
     "/dist/sitemap-index.xml": index,
     "/dist/sitemap-0.xml": pages,
+    "/dist/en/index.html": "<html></html>",
+    "/dist/ja/index.html": "<html></html>",
   };
 
   it("is green when the advertised sitemap resolves and lists URLs", () => {
@@ -158,6 +194,27 @@ describe("check", () => {
   it("fails when the child sitemap lists no pages", () => {
     const result = check(io({ ...emitted, "/dist/sitemap-0.xml": "<urlset></urlset>" }));
     expect(result.failures).toEqual(["https://pmo.run/sitemap-0.xml lists zero URLs."]);
+  });
+
+  it("fails when an advertised page was not emitted", () => {
+    const { "/dist/ja/index.html": _dropped, ...withoutJa } = emitted;
+    const result = check(io(withoutJa));
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toContain("https://pmo.run/ja/");
+  });
+
+  it("fails on an hreflang alternate pointing at a slug that does not exist", () => {
+    const mismatched = pages.replace("https://pmo.run/ja/\"", "https://pmo.run/ja/other/\"");
+    const result = check(io({ ...emitted, "/dist/sitemap-0.xml": mismatched }));
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toContain("https://pmo.run/ja/other/");
+  });
+
+  it("logs the page count for a leaf sitemap with no index above it", () => {
+    const flat = { ...emitted, "/dist/robots.txt": LIVE.replace("sitemap-index.xml", "sitemap-0.xml") };
+    const result = check(io(flat));
+    expect(result.failures).toEqual([]);
+    expect(result.notes).toEqual(["https://pmo.run/sitemap-0.xml lists 1 URLs."]);
   });
 
   it("fails on any disallowed path, naming the agents", () => {

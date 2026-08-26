@@ -126,6 +126,69 @@ export function locs(xml) {
 }
 
 /**
+ * Every URL a sitemap advertises to a crawler: the `<loc>` of each entry AND
+ * every `hreflang` alternate. The alternates matter as much as the locations —
+ * an alternate is a promise that the same document exists at that URL in that
+ * language, and a crawler follows it.
+ * @param {string} xml
+ * @returns {string[]}
+ */
+export function advertisedUrls(xml) {
+  const alternates = [...xml.matchAll(/<xhtml:link\b[^>]*\bhref="([^"]+)"/g)].map((m) => m[1]);
+  return [...new Set([...locs(xml), ...alternates])];
+}
+
+/**
+ * Where a URL's page should have been emitted. A directory-style URL is
+ * `index.html` inside it; a file-style URL may be either the file itself or a
+ * directory with an index, depending on the build's trailing-slash handling, so
+ * both are accepted.
+ * @param {string} distDir
+ * @param {string} url
+ * @returns {string[]}
+ */
+export function candidatePaths(distDir, url) {
+  const { pathname } = new URL(url);
+  if (pathname.endsWith("/")) return [join(distDir, pathname, "index.html")];
+  return [join(distDir, pathname), join(distDir, pathname, "index.html")];
+}
+
+/**
+ * Check one leaf sitemap: it must list pages, and every URL it advertises must
+ * have been emitted.
+ *
+ * The second half is the gate's real claim. Counting `<url>` elements only
+ * proves the sitemap is non-empty — a route that failed to render, or a stale
+ * entry, still counts. A crawler does not count entries; it fetches them, and
+ * a sitemap full of 404s is worse than no sitemap.
+ * @param {{ distDir: string, exists: (p: string) => boolean, read: (p: string) => string }} io
+ * @param {string} label
+ * @param {string} body
+ * @param {string[]} failures
+ * @param {string[]} notes
+ */
+function checkLeaf(io, label, body, failures, notes) {
+  const count = [...body.matchAll(/<url>/g)].length;
+  if (count === 0) {
+    failures.push(`${label} lists zero URLs.`);
+    return;
+  }
+  notes.push(`${label} lists ${count} URLs.`);
+
+  const missing = advertisedUrls(body).filter(
+    (url) => !candidatePaths(io.distDir, url).some(io.exists),
+  );
+  if (missing.length > 0) {
+    const shown = missing.slice(0, 5).join(", ");
+    const rest = missing.length > 5 ? ` (and ${missing.length - 5} more)` : "";
+    failures.push(
+      `${label} advertises ${missing.length} URL(s) that were not emitted: ${shown}${rest}. ` +
+        "A sitemap entry is a promise a crawler will follow.",
+    );
+  }
+}
+
+/**
  * The gate itself. Returns human-readable failures; empty means green.
  * @param {{ distDir: string, exists: (p: string) => boolean, read: (p: string) => string }} io
  * @returns {{ failures: string[], notes: string[] }}
@@ -160,16 +223,21 @@ export function check(io) {
       failures.push(`${url} contains no <loc> entries.`);
       continue;
     }
-    if (!body.includes("<sitemapindex")) continue;
-    for (const ref of refs) {
-      const child = join(io.distDir, new URL(ref).pathname);
-      if (!io.exists(child)) {
-        failures.push(`${url} points at ${ref}, which was not emitted.`);
-        continue;
+    // A sitemap index points at further sitemaps; anything else is a leaf. Both
+    // shapes get the same leaf treatment, so the single-sitemap case is not
+    // silently skipped — an earlier version logged its page count only when an
+    // index happened to sit above it, which is the common case here inverted.
+    if (body.includes("<sitemapindex")) {
+      for (const ref of refs) {
+        const child = join(io.distDir, new URL(ref).pathname);
+        if (!io.exists(child)) {
+          failures.push(`${url} points at ${ref}, which was not emitted.`);
+          continue;
+        }
+        checkLeaf(io, ref, io.read(child), failures, notes);
       }
-      const count = [...io.read(child).matchAll(/<url>/g)].length;
-      if (count === 0) failures.push(`${ref} lists zero URLs.`);
-      else notes.push(`${ref} lists ${count} URLs.`);
+    } else {
+      checkLeaf(io, url, body, failures, notes);
     }
   }
 
