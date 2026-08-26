@@ -146,12 +146,20 @@ export function advertisedUrls(xml) {
 /**
  * A URL's pathname, or null if it is not an absolute URL.
  *
- * Every URL here arrives from a generated file rather than from us, so a
- * malformed one is possible — `@astrojs/sitemap` emits relative URLs if `site`
- * is unset in astro.config.mjs, and emission has changed shape across major
- * versions before. Unguarded, `new URL()` would throw a raw TypeError and take
- * the build down with a stack trace, which defeats the point of a gate whose
- * whole value is a readable failure message.
+ * Every URL here is pulled by regex out of a generated XML file on disk, and
+ * nothing guarantees what that file contains — a different generator, a
+ * truncated write, a hand-edit, a future emission shape. Unguarded, `new URL()`
+ * would throw a raw TypeError and take the build down with a stack trace,
+ * which defeats the point of a gate whose whole value is a readable failure
+ * message.
+ *
+ * An earlier version of this comment justified the guard by claiming
+ * `@astrojs/sitemap` emits relative URLs when `site` is unset. It does not: the
+ * integration logs "Skipping" and returns before it reads any option
+ * (`dist/index.js`, the `astro:build:done` hook), and when `site` is set it
+ * builds every page URL with `new URL(...).href`. The guard is still right; the
+ * reason given for it was not, and a wrong reason in a comment outlives the
+ * person who can correct it.
  * @param {string} url
  * @returns {string | null}
  */
@@ -278,6 +286,12 @@ export function isExemptFromSitemap(relPath, html) {
  * @returns {string[]}
  */
 export function advertisedAs(relPath) {
+  // `readdirSync(..., { recursive: true })` joins with the platform separator,
+  // so on Windows every nested page would arrive as `en\\blog\\x\\index.html`,
+  // miss the `/index.html` test below, be read as a flat file and be reported
+  // as absent from the sitemap. CI is Linux, which is why nothing has caught
+  // it; that is a fact about the runner, not about this function.
+  relPath = relPath.replaceAll("\\", "/");
   const absolute = "/" + relPath;
   if (relPath.endsWith("/index.html")) {
     const dir = absolute.replace(/index\.html$/, "");

@@ -147,6 +147,10 @@ describe("advertisedAs", () => {
     expect(advertisedAs("index.html")).toEqual(["/"]);
   });
 
+  it("normalises Windows separators before deciding the shape", () => {
+    expect(advertisedAs("en\\blog\\x\\index.html")).toEqual(["/en/blog/x/", "/en/blog/x"]);
+  });
+
   it("maps a flat file, as build.format 'file' would emit it", () => {
     expect(advertisedAs("en/blog/x.html")).toEqual(["/en/blog/x.html", "/en/blog/x"]);
   });
