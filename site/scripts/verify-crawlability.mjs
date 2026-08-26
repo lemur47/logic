@@ -139,6 +139,26 @@ export function advertisedUrls(xml) {
 }
 
 /**
+ * A URL's pathname, or null if it is not an absolute URL.
+ *
+ * Every URL here arrives from a generated file rather than from us, so a
+ * malformed one is possible — `@astrojs/sitemap` emits relative URLs if `site`
+ * is unset in astro.config.mjs, and emission has changed shape across major
+ * versions before. Unguarded, `new URL()` would throw a raw TypeError and take
+ * the build down with a stack trace, which defeats the point of a gate whose
+ * whole value is a readable failure message.
+ * @param {string} url
+ * @returns {string | null}
+ */
+export function pathnameOf(url) {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Where a URL's page should have been emitted. A directory-style URL is
  * `index.html` inside it; a file-style URL may be either the file itself or a
  * directory with an index, depending on the build's trailing-slash handling, so
@@ -148,7 +168,8 @@ export function advertisedUrls(xml) {
  * @returns {string[]}
  */
 export function candidatePaths(distDir, url) {
-  const { pathname } = new URL(url);
+  const pathname = pathnameOf(url);
+  if (pathname === null) return [];
   if (pathname.endsWith("/")) return [join(distDir, pathname, "index.html")];
   return [join(distDir, pathname), join(distDir, pathname, "index.html")];
 }
@@ -175,8 +196,17 @@ function checkLeaf(io, label, body, failures, notes) {
   }
   notes.push(`${label} lists ${count} URLs.`);
 
-  const missing = advertisedUrls(body).filter(
-    (url) => !candidatePaths(io.distDir, url).some(io.exists),
+  const advertised = advertisedUrls(body);
+  const malformed = advertised.filter((url) => pathnameOf(url) === null);
+  if (malformed.length > 0) {
+    failures.push(
+      `${label} advertises ${malformed.length} URL(s) that are not absolute: ` +
+        `${malformed.slice(0, 5).join(", ")}. Check that \`site\` is set in astro.config.mjs.`,
+    );
+  }
+
+  const missing = advertised.filter(
+    (url) => pathnameOf(url) !== null && !candidatePaths(io.distDir, url).some(io.exists),
   );
   if (missing.length > 0) {
     const shown = missing.slice(0, 5).join(", ");
@@ -209,7 +239,12 @@ export function check(io) {
   if (urls.length === 0) failures.push("robots.txt declares no Sitemap: directive.");
 
   for (const url of urls) {
-    const path = join(io.distDir, new URL(url).pathname);
+    const pathname = pathnameOf(url);
+    if (pathname === null) {
+      failures.push(`robots.txt advertises ${url}, which is not an absolute URL.`);
+      continue;
+    }
+    const path = join(io.distDir, pathname);
     if (!io.exists(path)) {
       failures.push(
         `robots.txt advertises ${url}, but ${path} was not emitted. ` +
@@ -229,7 +264,12 @@ export function check(io) {
     // index happened to sit above it, which is the common case here inverted.
     if (body.includes("<sitemapindex")) {
       for (const ref of refs) {
-        const child = join(io.distDir, new URL(ref).pathname);
+        const childPath = pathnameOf(ref);
+        if (childPath === null) {
+          failures.push(`${url} points at ${ref}, which is not an absolute URL.`);
+          continue;
+        }
+        const child = join(io.distDir, childPath);
         if (!io.exists(child)) {
           failures.push(`${url} points at ${ref}, which was not emitted.`);
           continue;

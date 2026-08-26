@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 import {
   advertisedUrls,
   candidatePaths,
+  pathnameOf,
   check,
   disallowedPaths,
   parseGroups,
@@ -129,9 +130,23 @@ describe("advertisedUrls", () => {
   });
 });
 
+describe("pathnameOf", () => {
+  it("returns the pathname of an absolute URL", () => {
+    expect(pathnameOf("https://pmo.run/en/blog/")).toBe("/en/blog/");
+  });
+
+  it("returns null rather than throwing on a relative URL", () => {
+    expect(pathnameOf("/en/blog/")).toBeNull();
+  });
+});
+
 describe("candidatePaths", () => {
   it("maps a directory URL to its index.html", () => {
     expect(candidatePaths("/dist", "https://pmo.run/en/blog/")).toEqual(["/dist/en/blog/index.html"]);
+  });
+
+  it("yields nothing for a URL it cannot parse", () => {
+    expect(candidatePaths("/dist", "not a url")).toEqual([]);
   });
 
   it("accepts either shape for a file-style URL", () => {
@@ -215,6 +230,21 @@ describe("check", () => {
     const result = check(io(flat));
     expect(result.failures).toEqual([]);
     expect(result.notes).toEqual(["https://pmo.run/sitemap-0.xml lists 1 URLs."]);
+  });
+
+  it("reports a relative sitemap URL as a gate failure, not a crash", () => {
+    const relative = LIVE.replace("https://pmo.run/sitemap-index.xml", "/sitemap-index.xml");
+    const result = check(io({ ...emitted, "/dist/robots.txt": relative }));
+    expect(result.failures).toEqual([
+      "robots.txt advertises /sitemap-index.xml, which is not an absolute URL.",
+    ]);
+  });
+
+  it("reports a relative page URL as a gate failure, not a crash", () => {
+    const relative = pages.replace("https://pmo.run/en/", "/en/");
+    const result = check(io({ ...emitted, "/dist/sitemap-0.xml": relative }));
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toContain("not absolute");
   });
 
   it("fails on any disallowed path, naming the agents", () => {
