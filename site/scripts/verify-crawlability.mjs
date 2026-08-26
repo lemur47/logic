@@ -22,7 +22,7 @@
  * regression in these regexes would fail the same way the original bug did.
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join, resolve } from "node:path";
 
@@ -188,7 +188,7 @@ export function candidatePaths(distDir, url) {
  * @param {string[]} failures
  * @param {string[]} notes
  */
-function checkLeaf(io, label, body, failures, notes) {
+function checkLeaf(io, label, body, failures, notes, advertised) {
   const count = [...body.matchAll(/<url>/g)].length;
   if (count === 0) {
     failures.push(`${label} lists zero URLs.`);
@@ -196,8 +196,12 @@ function checkLeaf(io, label, body, failures, notes) {
   }
   notes.push(`${label} lists ${count} URLs.`);
 
-  const advertised = advertisedUrls(body);
-  const malformed = advertised.filter((url) => pathnameOf(url) === null);
+  const urls = advertisedUrls(body);
+  for (const url of urls) {
+    const p = pathnameOf(url);
+    if (p !== null) advertised.add(p);
+  }
+  const malformed = urls.filter((url) => pathnameOf(url) === null);
   if (malformed.length > 0) {
     failures.push(
       `${label} advertises ${malformed.length} URL(s) that are not absolute: ` +
@@ -205,7 +209,7 @@ function checkLeaf(io, label, body, failures, notes) {
     );
   }
 
-  const missing = advertised.filter(
+  const missing = urls.filter(
     (url) => pathnameOf(url) !== null && !candidatePaths(io.distDir, url).some(io.exists),
   );
   if (missing.length > 0) {
@@ -219,8 +223,48 @@ function checkLeaf(io, label, body, failures, notes) {
 }
 
 /**
+ * Pages a sitemap is not expected to advertise.
+ *
+ * `404.html` is served on a miss and is not a document. Everything else earns
+ * its exemption by saying so in its own markup: a page carrying
+ * `<meta name="robots" content="noindex">` has asked not to be indexed, so
+ * leaving it out of the sitemap is consistent rather than an omission.
+ *
+ * That rule is doing real work rather than tidying. `/index.html` is exempt
+ * today because it is the redirect stub for `/` and carries `noindex`. If
+ * `prefixDefaultLocale` were ever set to false, `/` would become the real
+ * English home page, emitted without `noindex` — and the sitemap filter that
+ * drops `/` would then be dropping a real document. A hardcoded path exemption
+ * would have hidden that; this one fails the build.
+ * @param {string} relPath
+ * @param {string} html
+ * @returns {boolean}
+ */
+export function isExemptFromSitemap(relPath, html) {
+  if (relPath === "404.html") return true;
+  return /<meta[^>]+name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html);
+}
+
+/**
+ * Every emitted page must be advertised, not only every advertised page
+ * emitted. The two are different failures: one leaves a crawler chasing a 404,
+ * the other leaves a page no crawler is told about. Only the first was checked.
+ * @param {{ distDir: string, exists: (p: string) => boolean, read: (p: string) => string, listHtml: () => string[] }} io
+ * @param {Set<string>} advertised — pathnames, not URLs
+ * @returns {string[]}
+ */
+export function unadvertisedPages(io, advertised) {
+  return io.listHtml().filter((rel) => {
+    const html = io.read(join(io.distDir, rel));
+    if (isExemptFromSitemap(rel, html)) return false;
+    const dir = "/" + rel.replace(/index\.html$/, "");
+    return !advertised.has(dir) && !advertised.has("/" + rel);
+  });
+}
+
+/**
  * The gate itself. Returns human-readable failures; empty means green.
- * @param {{ distDir: string, exists: (p: string) => boolean, read: (p: string) => string }} io
+ * @param {{ distDir: string, exists: (p: string) => boolean, read: (p: string) => string, listHtml: () => string[] }} io
  * @returns {{ failures: string[], notes: string[] }}
  */
 export function check(io) {
@@ -228,6 +272,8 @@ export function check(io) {
   const failures = [];
   /** @type {string[]} */
   const notes = [];
+  /** @type {Set<string>} */
+  const advertised = new Set();
 
   const robotsPath = join(io.distDir, "robots.txt");
   if (!io.exists(robotsPath)) {
@@ -274,11 +320,25 @@ export function check(io) {
           failures.push(`${url} points at ${ref}, which was not emitted.`);
           continue;
         }
-        checkLeaf(io, ref, io.read(child), failures, notes);
+        checkLeaf(io, ref, io.read(child), failures, notes, advertised);
       }
     } else {
-      checkLeaf(io, url, body, failures, notes);
+      checkLeaf(io, url, body, failures, notes, advertised);
     }
+  }
+
+  // Only ask about completeness once the sitemap tree itself resolved. If it did
+  // not, `advertised` is empty for that reason and every page would be reported
+  // as unadvertised — fifty lines of noise burying the one failure that caused
+  // them. The build is already red either way; this decides what it says.
+  const unadvertised = failures.length === 0 ? unadvertisedPages(io, advertised) : [];
+  if (unadvertised.length > 0) {
+    const shown = unadvertised.slice(0, 5).join(", ");
+    const rest = unadvertised.length > 5 ? ` (and ${unadvertised.length - 5} more)` : "";
+    failures.push(
+      `${unadvertised.length} emitted page(s) appear in no sitemap: ${shown}${rest}. ` +
+        "Either the sitemap filter is dropping them, or they should declare noindex.",
+    );
   }
 
   for (const { agents, path } of disallowedPaths(robots)) {
@@ -294,10 +354,13 @@ export function check(io) {
 // CLI. Guarded so the module can be imported by tests without running or exiting.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const siteRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+  const distDir = join(siteRoot, "dist");
   const { failures, notes } = check({
-    distDir: join(siteRoot, "dist"),
+    distDir,
     exists: existsSync,
     read: (p) => readFileSync(p, "utf8"),
+    listHtml: () =>
+      readdirSync(distDir, { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".html")),
   });
   for (const note of notes) console.log(`[crawlability] ${note}`);
   if (failures.length > 0) {

@@ -3,6 +3,12 @@
 # The signals below are deliberate: AI systems may index this site, ground
 # answers on it, and train from it.
 #
+# Content-Signal is an emerging convention rather than a settled standard, so
+# treat it as a statement of permission, not as something crawlers are known to
+# act on. The line every crawler does honour is `Allow: /`, and the absence of
+# any Disallow. Nothing here is a technical control in either direction:
+# robots.txt expresses preferences, and compliance is voluntary.
+#
 # This file is only what crawlers actually receive while Cloudflare's managed
 # robots.txt setting is off for this zone. When it is on, Cloudflare prepends
 # its own block — disallowing ClaudeBot, GPTBot, Google-Extended, CCBot,

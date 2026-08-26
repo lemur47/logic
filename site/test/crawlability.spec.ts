@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   advertisedUrls,
+  isExemptFromSitemap,
   candidatePaths,
   pathnameOf,
   check,
@@ -157,6 +158,21 @@ describe("candidatePaths", () => {
   });
 });
 
+describe("isExemptFromSitemap", () => {
+  it("exempts the 404 page", () => {
+    expect(isExemptFromSitemap("404.html", "<html></html>")).toBe(true);
+  });
+
+  it("exempts a page that declares noindex", () => {
+    const stub = '<meta name="robots" content="noindex"><title>Redirecting</title>';
+    expect(isExemptFromSitemap("index.html", stub)).toBe(true);
+  });
+
+  it("does NOT exempt an ordinary page — that is the point", () => {
+    expect(isExemptFromSitemap("index.html", "<html><body>Home</body></html>")).toBe(false);
+  });
+});
+
 describe("check", () => {
   const index =
     "<sitemapindex><sitemap><loc>https://pmo.run/sitemap-0.xml</loc></sitemap></sitemapindex>";
@@ -168,6 +184,10 @@ describe("check", () => {
     distDir: "/dist",
     exists: (p: string) => p in files,
     read: (p: string) => files[p],
+    listHtml: () =>
+      Object.keys(files)
+        .filter((p) => p.endsWith(".html"))
+        .map((p) => p.replace("/dist/", "")),
   });
 
   const emitted = {
@@ -245,6 +265,30 @@ describe("check", () => {
     const result = check(io({ ...emitted, "/dist/sitemap-0.xml": relative }));
     expect(result.failures).toHaveLength(1);
     expect(result.failures[0]).toContain("not absolute");
+  });
+
+  it("fails when an emitted page appears in no sitemap", () => {
+    const orphan = { ...emitted, "/dist/en/orphan/index.html": "<html>lost</html>" };
+    const result = check(io(orphan));
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toContain("en/orphan/index.html");
+  });
+
+  it("does not fault a page that declares noindex", () => {
+    const stub = { ...emitted, "/dist/index.html": '<meta name="robots" content="noindex">' };
+    expect(check(io(stub)).failures).toEqual([]);
+  });
+
+  it("does not fault the 404 page", () => {
+    expect(check(io({ ...emitted, "/dist/404.html": "<html>gone</html>" })).failures).toEqual([]);
+  });
+
+  it("does not pile completeness noise on top of a broken sitemap", () => {
+    // Every page would be 'unadvertised' when the sitemap cannot be read. The
+    // build fails on the root cause alone.
+    const result = check(io({ "/dist/robots.txt": LIVE, "/dist/en/index.html": "<html></html>" }));
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toContain("sitemap-index.xml");
   });
 
   it("fails on any disallowed path, naming the agents", () => {
