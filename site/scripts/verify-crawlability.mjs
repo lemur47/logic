@@ -134,7 +134,12 @@ export function locs(xml) {
  * @returns {string[]}
  */
 export function advertisedUrls(xml) {
-  const alternates = [...xml.matchAll(/<xhtml:link\b[^>]*\bhref="([^"]+)"/g)].map((m) => m[1]);
+  // Either quote style, matching how the noindex test reads meta tags. A
+  // double-quote-only regex would drop single-quoted alternates silently, which
+  // is the failure this gate is least able to notice about itself.
+  const alternates = [...xml.matchAll(/<xhtml:link\b[^>]*\bhref=["']([^"']+)["']/g)].map(
+    (m) => m[1],
+  );
   return [...new Set([...locs(xml), ...alternates])];
 }
 
@@ -261,6 +266,28 @@ export function isExemptFromSitemap(relPath, html) {
 }
 
 /**
+ * The pathnames under which an emitted file could legitimately be advertised.
+ *
+ * The mirror of `candidatePaths`, which maps the other way. It has to hedge the
+ * same shapes for the same reason — `build.format` and trailing-slash handling
+ * are not asserted anywhere — and an earlier version of this function did not,
+ * assuming directory/index.html alone. Under `format: "file"` that would have
+ * reported every correctly advertised page as missing from the sitemap: a build
+ * failure about crawlability, caused by something with no bearing on it.
+ * @param {string} relPath — e.g. "en/blog/x/index.html"
+ * @returns {string[]}
+ */
+export function advertisedAs(relPath) {
+  const absolute = "/" + relPath;
+  if (relPath.endsWith("/index.html")) {
+    const dir = absolute.replace(/index\.html$/, "");
+    return [dir, dir.replace(/\/$/, "")];
+  }
+  if (relPath === "index.html") return ["/"];
+  return [absolute, absolute.replace(/\.html$/, "")];
+}
+
+/**
  * Every emitted page must be advertised, not only every advertised page
  * emitted. The two are different failures: one leaves a crawler chasing a 404,
  * the other leaves a page no crawler is told about. Only the first was checked.
@@ -272,8 +299,7 @@ export function unadvertisedPages(io, advertised) {
   return io.listHtml().filter((rel) => {
     const html = io.read(join(io.distDir, rel));
     if (isExemptFromSitemap(rel, html)) return false;
-    const dir = "/" + rel.replace(/index\.html$/, "");
-    return !advertised.has(dir) && !advertised.has("/" + rel);
+    return !advertisedAs(rel).some((p) => advertised.has(p));
   });
 }
 

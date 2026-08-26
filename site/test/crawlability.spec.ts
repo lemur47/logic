@@ -13,6 +13,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  advertisedAs,
   advertisedUrls,
   isExemptFromSitemap,
   candidatePaths,
@@ -126,8 +127,28 @@ describe("advertisedUrls", () => {
     ]);
   });
 
+  it("reads single-quoted alternates too", () => {
+    const single = "<url><loc>https://pmo.run/en/x/</loc>" +
+      "<xhtml:link rel='alternate' hreflang='ja' href='https://pmo.run/ja/x/'/></url>";
+    expect(advertisedUrls(single)).toContain("https://pmo.run/ja/x/");
+  });
+
   it("deduplicates a location that is also its own alternate", () => {
     expect(advertisedUrls(entry)).toHaveLength(2);
+  });
+});
+
+describe("advertisedAs", () => {
+  it("maps a directory index to its URL, with and without the trailing slash", () => {
+    expect(advertisedAs("en/blog/x/index.html")).toEqual(["/en/blog/x/", "/en/blog/x"]);
+  });
+
+  it("maps the root index to /", () => {
+    expect(advertisedAs("index.html")).toEqual(["/"]);
+  });
+
+  it("maps a flat file, as build.format 'file' would emit it", () => {
+    expect(advertisedAs("en/blog/x.html")).toEqual(["/en/blog/x.html", "/en/blog/x"]);
   });
 });
 
@@ -275,6 +296,18 @@ describe("check", () => {
     const result = check(io({ ...emitted, "/dist/sitemap-0.xml": relative }));
     expect(result.failures).toHaveLength(1);
     expect(result.failures[0]).toContain("not absolute");
+  });
+
+  it("accepts a flat .html page advertised without its extension", () => {
+    const flatPages =
+      "<urlset><url><loc>https://pmo.run/en/x</loc></url></urlset>";
+    const files = {
+      "/dist/robots.txt": LIVE,
+      "/dist/sitemap-index.xml": index,
+      "/dist/sitemap-0.xml": flatPages,
+      "/dist/en/x.html": "<html></html>",
+    };
+    expect(check(io(files)).failures).toEqual([]);
   });
 
   it("fails when an emitted page appears in no sitemap", () => {
