@@ -28,7 +28,13 @@ export default defineConfig({
       // Listing a redirect in a sitemap is a soft error, and here it also
       // emitted a second hreflang="en" alternate pointing at a different URL
       // from the real English home page.
-      filter: (page) => page !== "https://pmo.run/",
+      //
+      // Matched on pathname, not on the whole URL. Comparing against a literal
+      // "https://pmo.run/" would stop matching the moment the build ran under a
+      // different `site` — a staging domain, a preview deploy, a rename — and
+      // the stub would return to the sitemap silently, which is the bug this
+      // filter exists to prevent.
+      filter: (page) => new URL(page).pathname !== "/",
       i18n: {
         defaultLocale: "en",
         locales: { en: "en", ja: "ja" },

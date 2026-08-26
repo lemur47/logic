@@ -1,17 +1,14 @@
 # pmo.run — AI crawlers are welcome here.
 #
-# Decision (CEO, 2026-08-26): AI systems may index this site, ground answers on
-# it, and train on it. The reasoning is not generosity — it is accuracy. A
-# blocked crawler does not stop citing us; it cites us from whatever stale
-# third-party copy it already holds, and a wrong answer about our tool costs
-# more than an unread page.
+# The signals below are deliberate: AI systems may index this site, ground
+# answers on it, and train from it.
 #
-# This file is only meaningful while Cloudflare's managed robots.txt setting is
-# OFF for this zone. When it is on, Cloudflare prepends its own block — which
-# Disallows ClaudeBot, GPTBot, Google-Extended, CCBot, Applebot-Extended,
-# meta-externalagent, Bytespider and Amazonbot — and the grant below is
-# overridden without anything in this repository changing. If AI crawlers ever
-# go quiet again, check the live file before you check this one:
+# This file is only what crawlers actually receive while Cloudflare's managed
+# robots.txt setting is off for this zone. When it is on, Cloudflare prepends
+# its own block — disallowing ClaudeBot, GPTBot, Google-Extended, CCBot,
+# Applebot-Extended, meta-externalagent, Bytespider and Amazonbot — and
+# overrides everything below without anything in this repository changing.
+# If AI crawlers ever go quiet, check what is served before you check this file:
 #
 #   curl -s https://pmo.run/robots.txt
 #
