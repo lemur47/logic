@@ -171,7 +171,16 @@ export function candidatePaths(distDir, url) {
   const pathname = pathnameOf(url);
   if (pathname === null) return [];
   if (pathname.endsWith("/")) return [join(distDir, pathname, "index.html")];
-  return [join(distDir, pathname), join(distDir, pathname, "index.html")];
+  // Three shapes, because the build's trailing-slash and `build.format`
+  // settings decide which one appears and neither is asserted anywhere. Under
+  // the default `format: "directory"` it is the index; under `"file"` it is
+  // `<path>.html`. Accepting all three costs nothing and removes a false
+  // "advertises a URL that was not emitted" on every route if that ever changes.
+  return [
+    join(distDir, pathname),
+    join(distDir, pathname, "index.html"),
+    join(distDir, `${pathname}.html`),
+  ];
 }
 
 /**
@@ -242,7 +251,13 @@ function checkLeaf(io, label, body, failures, notes, advertised) {
  */
 export function isExemptFromSitemap(relPath, html) {
   if (relPath === "404.html") return true;
-  return /<meta[^>]+name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html);
+  // Matched in either attribute order. Anchoring on name-before-content would
+  // have made a template reordering two attributes fail the build with "N
+  // emitted pages appear in no sitemap" — a false failure about crawlability
+  // caused by something with no bearing on it.
+  return [...html.matchAll(/<meta\b[^>]*>/gi)].some(
+    (tag) => /\bname=["']robots["']/i.test(tag[0]) && /\bcontent=["'][^"']*noindex/i.test(tag[0]),
+  );
 }
 
 /**

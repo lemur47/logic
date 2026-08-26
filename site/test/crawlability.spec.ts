@@ -150,10 +150,11 @@ describe("candidatePaths", () => {
     expect(candidatePaths("/dist", "not a url")).toEqual([]);
   });
 
-  it("accepts either shape for a file-style URL", () => {
+  it("accepts every shape a build format might emit", () => {
     expect(candidatePaths("/dist", "https://pmo.run/feed.xml")).toEqual([
       "/dist/feed.xml",
       "/dist/feed.xml/index.html",
+      "/dist/feed.xml.html",
     ]);
   });
 });
@@ -166,6 +167,15 @@ describe("isExemptFromSitemap", () => {
   it("exempts a page that declares noindex", () => {
     const stub = '<meta name="robots" content="noindex"><title>Redirecting</title>';
     expect(isExemptFromSitemap("index.html", stub)).toBe(true);
+  });
+
+  it("exempts noindex written with the attributes reversed", () => {
+    expect(isExemptFromSitemap("x.html", '<meta content="noindex" name="robots">')).toBe(true);
+  });
+
+  it("does not confuse two separate meta tags for one", () => {
+    const decoys = '<meta name="robots" content="all"><meta name="description" content="noindex">';
+    expect(isExemptFromSitemap("x.html", decoys)).toBe(false);
   });
 
   it("does NOT exempt an ordinary page — that is the point", () => {
