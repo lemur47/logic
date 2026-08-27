@@ -268,15 +268,19 @@ rather than discovering:
   webhook delivery for any other action costs one operation and stops.
 - **Bound the diff.** The 200,000-character cap above exists so a single large
   pull request cannot exhaust the budget on its own.
-- **Count the operations before choosing a plan.** The chain is seven modules —
-  trigger, fetch diff, **build the review request**, review, **build the
-  comment**, post comment, record usage — so a reviewed pull request costs
-  **seven operations**. The two emboldened steps build JSON from mapped fields
-  instead of hand-escaped strings, which is what makes the request bodies
-  editable without a parse error; they are the difference between five modules
-  and seven. Deliveries filtered out cost one. Against a 1,000-operation month
-  that is
-  roughly 140 **review runs**, which is not the same as 140 pull requests:
+- **Count the operations before choosing a plan.** The chain is eight modules —
+  trigger, fetch diff, fetch the PR metadata, **build the review request**,
+  review, **build the comment**, post comment, record usage — so a reviewed pull
+  request costs **eight operations**. The two emboldened steps build JSON from
+  mapped fields instead of hand-escaped strings, which is what makes the request
+  bodies editable without a parse error. A failed diff fetch costs **five**: the
+  trigger, the failed fetch, and the three modules that say so and record it.
+  Deliveries filtered out cost one.
+  These figures are **asserted against the blueprint** by
+  `tests/test_pr_auditor_prompt_parity.py`, not maintained by hand — the count
+  read "seven" for a day after the metadata fetch landed, which is the whole
+  reason they are pinned. Against a 1,000-operation month that is
+  roughly 125 **review runs**, which is not the same as 125 pull requests:
   `synchronize` fires on every push to an open pull request, so an iterative one
   reviewed after each of five pushes consumes five runs by itself. Budget against
   pushes, not against pull requests. **The ceiling worth watching is not the
