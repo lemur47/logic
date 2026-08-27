@@ -90,7 +90,7 @@
         {
           "id": 9,
           "mapper": {
-            "body": "**PR auditor** — this review did NOT run.\n\nFetching the diff from GitHub failed, so no review was produced for this commit. This comment exists because a missing comment is indistinguishable from the auditor being switched off — it is not a review finding, and it is not a verdict on the code.\n\n- Pull request: `{{1.number}}`\n- Head SHA per the webhook: `{{1.pull_request.head.sha}}`\n- Error: `{{error.message}}`\n\nA `406` here means the diff was too large for the API to return. Re-running will not help; the change needs splitting, or the auditor needs a per-file fetch. Either way, treat this pull request as unreviewed by the auditor."
+            "body": "**PR auditor** — this review did NOT run.\n\nFetching the diff from GitHub failed, so no review was produced for this commit. This comment exists because a missing comment is indistinguishable from the auditor being switched off — it is not a review finding, and it is not a verdict on the code.\n\n- Pull request: `{{1.number}}`\n- Head SHA per the webhook: `{{1.pull_request.head.sha}}`\n- Failing step: fetching the diff from the GitHub API. The reason is in the scenario's execution log; it is deliberately not interpolated here, because the reference that would carry it renders empty and an empty field reads as no error at all.\n\nThe likeliest cause is a `406`: the diff was too large for the API to return. Re-running will not help; the change needs splitting, or the auditor needs a per-file fetch. Either way, treat this pull request as unreviewed by the auditor."
           },
           "module": "json:CreateJSON",
           "version": 1,
@@ -160,7 +160,7 @@
               "head_sha": "{{1.pull_request.head.sha}}",
               "run_at": "{{formatDate(now; \"YYYY-MM-DDTHH:mm:ssZ\")}}",
               "outcome": "diff_fetch_failed",
-              "error_message": "{{error.message}}"
+              "error_message": "see the Make execution log; the error reference renders empty"
             },
             "overwrite": true
           },
