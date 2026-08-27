@@ -193,6 +193,32 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
+      # Both parity fixture sets declare themselves the contract and say "do not
+      # hand-edit" — but nothing re-ran them, so they caught a port drifting
+      # from the core and never the core drifting from the fixtures. That is the
+      # likelier direction, because the core is where the work happens.
+      #
+      # Deliberately a step INSIDE this job rather than a job of its own. The
+      # "Protect main" ruleset requires nine named contexts, is source_type
+      # Repository, and is managed outside this repository with no committed
+      # IaC — so a new job would be green-but-not-blocking until someone edited
+      # the ruleset by hand. The frontend job's parity step carries the same
+      # note for the same reason. Both generators are Python importing
+      # app.pert.core, so this is the job that already has what they need.
+      - name: Regenerate the parity fixtures from the Python core
+        run: |
+          uv run python site/scripts/generate_parity_fixtures.py
+          uv run python examples/remote-mcp/scripts/generate_fixtures.py
+
+      - name: Fail if the committed fixtures no longer match the core
+        run: |
+          if ! git diff --exit-code -- \
+            site/test/fixtures/parity.json \
+            examples/remote-mcp/test/fixtures/pert-parity.json; then
+            echo "::error::Parity fixtures are stale. The Python core changed and the committed fixtures were not regenerated, so both TypeScript ports are being checked against an old core. Run the two generators above and commit the result — never hand-edit the JSON."
+            exit 1
+          fi
+
       # The standalone examples are outside testpaths, so the step above skips
       # them. They are covered rather than left implicit: the parity-net work
       # ships security tests into exactly this directory, and an untested

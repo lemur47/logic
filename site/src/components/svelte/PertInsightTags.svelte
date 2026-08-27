@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { type TagSelection, effectiveMultiplier } from "../../lib/pert";
+  import {
+    type TagSelection,
+    combinedMultiplier,
+    effectiveMultiplier,
+    formatMultiplier,
+  } from "../../lib/pert";
   import { ui, type Lang } from "../../i18n/ui";
 
   interface Props {
@@ -43,15 +48,10 @@
     onchange(updated);
   }
 
-  const combinedMultiplier = $derived.by(() => {
-    let combined = 1.0;
-    for (const sel of selections) {
-      if (sel.enabled) {
-        combined *= effectiveMultiplier(sel.tag, sel.severity);
-      }
-    }
-    return Math.round(combined * 100) / 100;
-  });
+  // Both figures come from lib/pert, which the parity net checks against the
+  // Python core. This block used to compute the combined value itself, and
+  // disagreed with the core by a penny on selections a visitor could reach.
+  const combined = $derived(combinedMultiplier(selections));
 
   const enabledCount = $derived(selections.filter((s) => s.enabled).length);
 </script>
@@ -81,7 +81,7 @@
             {info?.name ?? sel.tag.name}
           </button>
           {#if sel.enabled}
-            <span class="text-xs font-mono font-medium text-accent">{mult.toFixed(2)}x</span>
+            <span class="text-xs font-mono font-medium text-accent">{formatMultiplier(mult)}x</span>
           {/if}
         </div>
 
@@ -111,7 +111,7 @@
   {#if enabledCount >= 2}
     <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
       <span class="text-xs text-gray-500">{t("pert.calc.combinedMultiplier")}</span>
-      <span class="text-sm font-mono font-semibold text-accent">{combinedMultiplier.toFixed(2)}x</span>
+      <span class="text-sm font-mono font-semibold text-accent">{formatMultiplier(combined)}x</span>
     </div>
   {/if}
 </div>

@@ -32,8 +32,15 @@ python examples/standalone/tco/tco.py
 # Run the site's parity tests (site/src/lib vs the Python core)
 cd site && npm test
 
-# Regenerate the site parity fixtures after changing app/pert or app/tco core
+# Run the remote-MCP example's parity tests (examples/remote-mcp/src vs the core)
+cd examples/remote-mcp && npm test
+
+# Regenerate BOTH parity fixture sets after changing app/pert or app/tco core.
+# The pytest CI job re-runs these and fails on a non-empty diff, so a core change
+# that leaves the fixtures behind now goes red instead of quietly netting the two
+# TypeScript ports against a core that no longer exists.
 uv run python site/scripts/generate_parity_fixtures.py
+uv run python examples/remote-mcp/scripts/generate_fixtures.py
 
 # Lint and format
 ruff check .
@@ -189,7 +196,7 @@ The following tools must be installed outside of `uv`:
 - British English in all docs, comments and content (e.g. "analyse", "colour", "maths")
 - APA 7th title case for H1 and H2 headings
 - Every inline image reference in published markdown (`![...](path)`) must resolve to a real file in the repo. Grep and verify before shipping content.
-- **A TypeScript port must match the Python core's rounding *mode*, not only its decimal places.** Python's `round()` is half-to-even; JavaScript's `Math.round` is half-away-from-zero, so `0.625` becomes `0.62` in one and `0.63` in the other. Scaling before rounding (`value * 100`) is also wrong — it manufactures ties the double does not have, so `51.585` rounds down when Python rounds it up. Use `site/src/lib/round.ts`, and net any new port with fixtures generated from the core rather than reading the two implementations side by side; this divergence survived a line-by-line review because places and mode look alike.
+- **A TypeScript port must match the Python core's rounding *mode*, not only its decimal places.** Python's `round()` is half-to-even; JavaScript's `Math.round` is half-away-from-zero, so `0.625` becomes `0.62` in one and `0.63` in the other. Scaling before rounding (`value * 100`) is also wrong — it manufactures ties the double does not have, so `51.585` rounds down when Python rounds it up. Use `site/src/lib/round.ts`, or its copy at `examples/remote-mcp/src/round.ts` — the two bodies are identical and must stay that way — and net any new port with fixtures generated from the core rather than reading the two implementations side by side; this divergence survived a line-by-line review because places and mode look alike. **A tolerance comparison does not hide this, but a thin case table does.** The example's twelve fixtures were green for a year against a port that rounded the wrong way, because none of them landed on a tie; the mode is now pinned directly by a shared table of rounding cases in both generators. Net the *displayed* value too — the site's tag panel computed its own multipliers and disagreed with the core by a penny on selections a visitor could reach, while every library-level test passed.
 
 ## Git workflow
 
