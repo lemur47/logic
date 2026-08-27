@@ -36,6 +36,12 @@ EXAMPLE_GENERATOR = REPO / "examples" / "remote-mcp" / "scripts" / "generate_fix
 # The module header is the one part that legitimately differs: each copy points
 # at the other, and the site's version speaks for two calculators where the
 # example's speaks for one. Everything below it is the implementation.
+#
+# Exactly ONE leading block comment, deliberately. Stripping every leading
+# comment would eat `roundHalfEven`'s own docstring, which is part of what must
+# stay in step. The cost is that a licence banner or an import above the header
+# makes this stop matching — but that fails loudly, naming the header rule,
+# rather than quietly comparing less than it should. Fail closed and say why.
 MODULE_HEADER = re.compile(r"\A\s*/\*\*.*?\*/\s*", re.DOTALL)
 
 # Named so a failure says which helper went missing rather than only that a
@@ -116,11 +122,21 @@ def test_the_two_generators_pin_the_same_rounding_cases() -> None:
     """
     site_cases = load_generator(SITE_GENERATOR).ROUNDING_CASES
     example_cases = load_generator(EXAMPLE_GENERATOR).ROUNDING_CASES
+
+    # Membership rather than set arithmetic: the entries are tuples today, but
+    # this test does not own their shape. If a table were rewritten with dicts
+    # for readability, hashing them would raise TypeError from inside the
+    # failure message — turning a legible parity failure into an opaque one, at
+    # exactly the moment the message is the only thing the reader has.
+    only_site = [case for case in site_cases if case not in example_cases]
+    only_example = [case for case in example_cases if case not in site_cases]
+
     assert site_cases == example_cases, (
         "The two ROUNDING_CASES tables have drifted. They pin the rounding mode "
         "for two copies of the same port, so a case in one and not the other "
         "leaves that port untested on exactly the input most likely to break it. "
-        f"Only in {SITE_GENERATOR.name}: {sorted(set(site_cases) - set(example_cases))}. "
-        f"Only in {EXAMPLE_GENERATOR.name}: "
-        f"{sorted(set(example_cases) - set(site_cases))}."
+        f"Only in {SITE_GENERATOR.name}: {only_site}. "
+        f"Only in {EXAMPLE_GENERATOR.name}: {only_example}. "
+        "Equal contents in a different order fail here too, and should: the "
+        "tables are read as one shared list, not as two sets."
     )
