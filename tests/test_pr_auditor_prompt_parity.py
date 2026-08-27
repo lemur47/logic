@@ -105,6 +105,24 @@ CLOSING_MARKER = "<<<END_UNTRUSTED_DIFF>>>"
 # a hunk body cannot be counted as a file header.
 ANCHORED_SPLIT = 'split(toString(2.data); newline + "diff --git ")'
 
+# An ALLOWLIST, not a list of things to avoid. The first version of the check
+# below excluded three known-bad fields and the PR auditor pointed out what that
+# really asserted: nothing. `{{1.repository.full_name}}` and `{{1.number}}` were
+# sitting in the trusted half the whole time, and any future field would have
+# joined them silently. Naming what is permitted fails closed instead.
+#
+# These two are here because the scenario constrains them, not because they come
+# from a trustworthy place:
+#   1.repository.full_name — module 2's filter demands an exact string match on
+#     it, so a delivery carrying anything else never reaches the prompt at all.
+#   1.number — used to build the API URL that the metadata fetch then resolves;
+#     a value that is not a real pull request fails that call rather than
+#     reaching the model.
+WEBHOOK_FIELDS_ALLOWED_IN_THE_TRUSTED_HALF = {
+    "1.repository.full_name",
+    "1.number",
+}
+
 
 def deployed_user_turns() -> list[str]:
     """Every user message the exported scenario would actually send."""
@@ -160,12 +178,14 @@ def test_the_trusted_half_is_not_built_from_the_webhook_payload() -> None:
     payload fields.
     """
     trusted_half = deployed_user_turns()[0].split(OPENING_MARKER)[0]
-    leaked = [ref for ref in ("1.pull_request", "1.title", "1.body") if ref in trusted_half]
-    assert not leaked, (
-        f"The operator-authored half interpolates webhook-supplied fields: {leaked}. "
-        "Those are attacker-controllable in principle and sit in the region the "
-        "system prompt tells the reviewer to trust. Re-fetch them from the API "
-        "(module 8) instead."
+    used = set(re.findall(r"\{\{\s*(1\.[A-Za-z0-9_.]+)", trusted_half))
+    unexpected = sorted(used - WEBHOOK_FIELDS_ALLOWED_IN_THE_TRUSTED_HALF)
+    assert not unexpected, (
+        f"The operator-authored half interpolates webhook fields nobody vetted: "
+        f"{unexpected}. Anything from module 1 arrives in the request body; only "
+        "the two fields in the allowlist above are constrained enough to sit in "
+        "the region the system prompt tells the reviewer to trust. Re-fetch the "
+        "rest from the API (module 8), or justify the addition to the allowlist."
     )
 
 
