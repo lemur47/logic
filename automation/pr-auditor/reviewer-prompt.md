@@ -84,15 +84,51 @@ and stop.
 
 ## What goes in the user turn
 
-The system prompt above, then a user message containing only:
+The system prompt above, then a user message. Everything above the opening marker
+is the operator-authored half; everything between the markers is the diff.
 
 ```text
 Review this pull request diff.
 
+Repository: {repository full name, from the webhook}
+Pull request number: {number, from the webhook}
+Head SHA: {head SHA, RE-FETCHED FROM THE GITHUB API}
+Files changed according to GitHub: {changed_files, RE-FETCHED FROM THE GITHUB API}
+File headers present in the diff below: {count of "diff --git " headers}
+If those two numbers differ, GitHub truncated the diff and you are seeing only part of this change. Say so in your comment.
+Diff characters in full: {length of the fetched diff}
+Diff characters included below: {length after the 200,000-character cap}
+If those two numbers differ, the diff was truncated for length and you must say so as well.
+
 <<<UNTRUSTED_DIFF>>>
-{the diff text}
+{the diff text, capped at 200,000 characters}
 <<<END_UNTRUSTED_DIFF>>>
 ```
+
+**This section documented a user turn that had not shipped for weeks.** It read
+"a user message containing only" the intro line and the marked diff, while the
+deployed turn carried six further interpolated lines. The system prompt cannot
+drift — `tests/test_pr_auditor_prompt_parity.py` pins it byte for byte and
+`pytest` is a required context — but nothing guarded this half, so it drifted
+twice inside a single pull request and then sat wrong. The same test now asserts
+the user turn's shape as well.
+
+### The two provenances, and why the distinction is the whole design
+
+The head SHA and the changed-file count are **re-fetched from the GitHub API**,
+not read from the webhook payload. They sit above the opening marker, in the
+region the system prompt tells the reviewer is operator-authored — so a value
+placed there must not be attacker-controlled. Reading them from the payload made
+the trusted half say whatever the caller sent.
+
+The webhook is separately restricted to GitHub's published hook IP ranges, so a
+third party cannot deliver a payload at all. That control is a zone setting,
+invisible from this repository, and it is the reason the exposure was theoretical
+rather than live. Re-fetching is the belt to its braces: it removes the class
+rather than relying on a list of network ranges staying correct.
+
+The counts are computed from the diff Make actually holds, so they describe what
+the model is really being shown rather than what GitHub said it would show.
 
 The markers are opening and closing on purpose. A single leading marker can be
 escaped by diff content that simply writes its own closing marker and continues;
