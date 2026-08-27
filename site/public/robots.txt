@@ -1,4 +1,27 @@
+# pmo.run — AI crawlers are welcome here.
+#
+# The signals below are deliberate: AI systems may index this site, ground
+# answers on it, and train from it.
+#
+# Content-Signal is an emerging convention rather than a settled standard, so
+# treat it as a statement of permission, not as something crawlers are known to
+# act on. The line every crawler does honour is `Allow: /`, and the absence of
+# any Disallow. Nothing here is a technical control in either direction:
+# robots.txt expresses preferences, and compliance is voluntary.
+#
+# This file is only what crawlers actually receive while Cloudflare's managed
+# robots.txt setting is off for this zone. When it is on, Cloudflare prepends
+# its own block — disallowing ClaudeBot, GPTBot, Google-Extended, CCBot,
+# Applebot-Extended, meta-externalagent, Bytespider and Amazonbot — and
+# overrides everything below without anything in this repository changing.
+# If AI crawlers ever go quiet, check what is served before you check this file:
+#
+#   curl -s https://pmo.run/robots.txt
+#
+# A response longer than this file means the managed block is back.
+
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=yes, use=full
 Allow: /
 
 Sitemap: https://pmo.run/sitemap-index.xml
