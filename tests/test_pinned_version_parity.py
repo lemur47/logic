@@ -86,12 +86,18 @@ def uv_lock_version(package: str) -> str | None:
 
 
 def pyproject_floor(package: str) -> str | None:
-    """The `>=` floor declared for a dev dependency."""
+    """The `>=` floor declared for a dev dependency.
+
+    Only the floor, even where the specifier grows an upper bound later:
+    `ruff>=0.16.2,<1` yields `0.16.2`. Returning the whole tail would reach
+    `as_tuple` as `0.16.2,<1` and crash on `int("2,<1")` — a bare traceback in
+    a file that otherwise takes care to say what went wrong and why.
+    """
     config = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
     for extra in config["project"]["optional-dependencies"].values():
         for requirement in extra:
             if requirement.startswith(f"{package}>="):
-                return requirement.split(">=", 1)[1]
+                return requirement.split(">=", 1)[1].split(",")[0].strip()
     return None
 
 
