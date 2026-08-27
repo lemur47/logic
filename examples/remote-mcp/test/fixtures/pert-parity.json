@@ -1,5 +1,82 @@
 {
   "generated_by": "app/pert/core.py calculate_task (tags=None)",
+  "rounding": [
+    {
+      "value": 0.625,
+      "dp": 2,
+      "expected": 0.62
+    },
+    {
+      "value": 0.635,
+      "dp": 2,
+      "expected": 0.64
+    },
+    {
+      "value": 2.675,
+      "dp": 2,
+      "expected": 2.67
+    },
+    {
+      "value": 51.585,
+      "dp": 2,
+      "expected": 51.59
+    },
+    {
+      "value": -7.195,
+      "dp": 2,
+      "expected": -7.2
+    },
+    {
+      "value": -0.625,
+      "dp": 2,
+      "expected": -0.62
+    },
+    {
+      "value": 1.005,
+      "dp": 2,
+      "expected": 1.0
+    },
+    {
+      "value": 0.5,
+      "dp": 0,
+      "expected": 0.0
+    },
+    {
+      "value": 1.5,
+      "dp": 0,
+      "expected": 2.0
+    },
+    {
+      "value": 2.5,
+      "dp": 0,
+      "expected": 2.0
+    },
+    {
+      "value": 1.7195,
+      "dp": 4,
+      "expected": 1.7195
+    },
+    {
+      "value": 1.14925,
+      "dp": 4,
+      "expected": 1.1493
+    },
+    {
+      "value": 1.00005,
+      "dp": 4,
+      "expected": 1.0001
+    },
+    {
+      "value": 0.0,
+      "dp": 2,
+      "expected": 0.0
+    },
+    {
+      "value": 123456.789,
+      "dp": 2,
+      "expected": 123456.79
+    }
+  ],
   "cases": [
     {
       "args": {
@@ -28,6 +105,38 @@
           "range_99": [
             1.0,
             3.0
+          ]
+        },
+        "adjusted": null
+      }
+    },
+    {
+      "args": {
+        "optimistic": 0,
+        "most_likely": 0.065,
+        "pessimistic": 0.13
+      },
+      "expected": {
+        "input": {
+          "optimistic": 0,
+          "most_likely": 0.065,
+          "pessimistic": 0.13
+        },
+        "textbook": {
+          "expected": 0.07,
+          "std_dev": 0.02,
+          "variance": 0.0,
+          "range_68": [
+            0.04,
+            0.09
+          ],
+          "range_95": [
+            0.02,
+            0.11
+          ],
+          "range_99": [
+            0.0,
+            0.13
           ]
         },
         "adjusted": null

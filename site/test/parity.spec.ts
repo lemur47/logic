@@ -22,7 +22,14 @@
 import { describe, expect, it } from "vitest";
 
 import fixtures from "./fixtures/parity.json";
-import { DEFAULT_TAGS, applyTags, calculatePert, pertStats } from "../src/lib/pert";
+import {
+  DEFAULT_TAGS,
+  applyTags,
+  calculatePert,
+  combinedMultiplier,
+  effectiveMultiplier,
+  pertStats,
+} from "../src/lib/pert";
 import { roundHalfEven } from "../src/lib/round";
 import { calculateTco } from "../src/lib/tco";
 
@@ -175,6 +182,54 @@ describe("calculateTco", () => {
       near(actual.npvAnnual, e.npv_annual, "npv_annual");
     });
   }
+});
+
+describe("tag panel display — the numbers a visitor actually reads", () => {
+  /**
+   * The panel is a separate consumer of the same maths, and for a while it was
+   * a separate IMPLEMENTATION of it: its own interpolation, its own rounding,
+   * and a second rounding of the product. Every test above could pass while the
+   * chip on the page showed a different figure from the one the core computes,
+   * because nothing checked the chip.
+   *
+   * Exact equality, not the 2-dp tolerance: these are the displayed values, and
+   * "within half a penny" is not a property a displayed multiplier has.
+   */
+  const tagByName = (name: string) => {
+    const tag = DEFAULT_TAGS.find((t) => t.name === name);
+    if (!tag) throw new Error(`fixture references unknown tag ${name}`);
+    return tag;
+  };
+
+  it("shows each tag's multiplier at the core's own precision", () => {
+    for (const c of fixtures.pert_display.multipliers) {
+      expect(
+        effectiveMultiplier(tagByName(c.tag), c.severity),
+        `${c.tag} @ ${c.severity}`,
+      ).toBe(c.expected);
+    }
+  });
+
+  it("shows the combined multiplier the core computes", () => {
+    for (const c of fixtures.pert_display.combined) {
+      const selections = c.tags.map((t) => ({
+        tag: tagByName(t.name),
+        severity: t.severity,
+        enabled: true,
+      }));
+      const label = c.tags.map((t) => `${t.name}@${t.severity}`).join(" + ");
+      expect(combinedMultiplier(selections), label).toBe(c.expected);
+    }
+  });
+
+  it("ignores tags the visitor has switched off", () => {
+    const selections = [
+      { tag: tagByName("MULTIPLE_STAKEHOLDERS"), severity: 0.5, enabled: true },
+      { tag: tagByName("HIDDEN_DEPENDENCIES"), severity: 0.75, enabled: true },
+      { tag: tagByName("FRAGMENTED_COMMUNICATION"), severity: 1.0, enabled: false },
+    ];
+    expect(combinedMultiplier(selections)).toBe(2.205);
+  });
 });
 
 describe("fixture integrity", () => {

@@ -31,6 +31,8 @@ curl -s https://<your-worker>.workers.dev/api/pert \
 ## Layout
 
 - `src/pert.ts` — the PERT port (pure functions, no Workers APIs)
+- `src/round.ts` — half-to-even rounding, matching Python's `round()`. A copy of
+  `site/src/lib/round.ts`; keep the two in step
 - `src/tools.ts` — shared validation + tool execution seam; both surfaces call this, so their
   behaviour cannot drift apart
 - `src/mcp.ts` — minimal stateless MCP server: JSON-RPC over Streamable HTTP, no SDK dependency
@@ -53,6 +55,10 @@ To regenerate the parity fixtures after changing the Python module, run from the
 ```bash
 uv run python examples/remote-mcp/scripts/generate_fixtures.py
 ```
+
+CI runs that generator in the `pytest` job and fails on a non-empty diff, so a
+core change that leaves these fixtures behind goes red rather than netting this
+port against a core that no longer exists.
 
 ## Deploy (Self-Host)
 

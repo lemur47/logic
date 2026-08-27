@@ -2,13 +2,17 @@
  * Parity suite: the TS port must match the Python module for identical inputs.
  *
  * Fixtures are generated from `app/pert/core.py` (see fixtures/pert-parity.json).
- * Numeric fields are compared with a ±0.005 tolerance on the 2-dp outputs:
- * Python round() is banker's rounding, toFixed is half-away-from-zero, and the
- * two differ only on exact decimal ties.
+ * Numeric fields are compared with a ±0.005 tolerance on the 2-dp outputs, which
+ * absorbs accumulated float noise. It does NOT absorb a rounding-mode
+ * divergence: at 2 dp that is always exactly 0.01, twice the tolerance. The
+ * rounding mode is pinned separately and at exact equality below, because a
+ * tolerance comparison can only report on the ties the PERT cases happen to
+ * reach — and for a year they reached none.
  */
 
 import { describe, expect, it } from "vitest";
 import { calculateTask } from "../src/pert";
+import { roundHalfEven } from "../src/round";
 import fixtures from "./fixtures/pert-parity.json";
 
 const TOLERANCE = 0.005;
@@ -52,4 +56,19 @@ describe("calculateTask parity with app/pert/core.py", () => {
     expect(() => calculateTask(Number.NaN, 1, 2)).toThrow("finite");
     expect(() => calculateTask(1, Number.POSITIVE_INFINITY, 2)).toThrow("finite");
   });
+});
+
+describe("roundHalfEven — matches Python's round()", () => {
+  /**
+   * Exact equality, not tolerance. This is the control the PERT cases cannot
+   * be: it asserts the rounding MODE rather than sampling whichever ties the
+   * three-point inputs produce. Revert `round.ts` to a scale-then-compare
+   * implementation and these cases go red immediately, which is the whole
+   * point of pinning them.
+   */
+  for (const c of fixtures.rounding) {
+    it(`round(${c.value}, ${c.dp}) === ${c.expected}`, () => {
+      expect(roundHalfEven(c.value, c.dp)).toBe(c.expected);
+    });
+  }
 });
