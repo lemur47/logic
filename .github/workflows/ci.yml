@@ -40,6 +40,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # `edited` is not a default type. Without it the pull request's title and
+    # body are scanned once, when the branch is pushed, and an edit afterwards
+    # keeps the green tick it earned under the old text — a gate that checked
+    # something that no longer exists. The cost is the full required set
+    # re-running on a title tweak, which is accepted deliberately: a stale pass
+    # on a message surface is exactly what this gate exists to prevent.
+    types: [opened, synchronize, reopened, edited]
   schedule:
     - cron: "0 6 * * 1" # Weekly Monday 6am UTC
   # Manual re-run — re-verify the full-history scan on demand (e.g. after a
@@ -81,6 +88,14 @@ jobs:
       # lands on `main` is composed in the GitHub web interface at merge time
       # and passes through no local hook on any machine. A web-editor commit,
       # or a clone where `pre-commit install` was never run, does the same.
+      #
+      # WHAT THIS DOES NOT COVER, stated because the first version of this
+      # comment implied otherwise: the squash dialog lets the merger rewrite
+      # the commit message at the moment of merging, and that edit re-triggers
+      # nothing — no workflow, no required check. What is scanned here is the
+      # title and body the dialog is SEEDED from, which covers the common path
+      # of merging them unedited. The residual gap is a text box on the merge
+      # screen, and no required context can see it.
       #
       # Deliberately a step INSIDE this required job rather than a job of its
       # own. "Protect main" requires nine named contexts, is source_type

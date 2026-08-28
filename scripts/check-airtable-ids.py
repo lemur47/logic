@@ -17,7 +17,10 @@ cannot see three surfaces:
   time — so it passes through no local hook, on any machine, and it is the one
   message that actually lands on ``main``.
 
-This script covers exactly those, in three modes.
+This script covers the first two outright. For the third it scans the pull
+request's title and body, which is what the squash dialog is seeded from: that
+covers merging them unedited, and does **not** reach a message rewritten in the
+dialog itself, because that edit re-triggers no check at all.
 
 commit-msg mode (pre-commit ``commit-msg`` stage)::
 
@@ -95,14 +98,23 @@ ENTROPY_FLOOR = 3.5
 #     intact, so nothing gitleaks blocks passes here.
 
 # The service whose identifiers these are. A token below the floor sitting next
-# to its own service name is not a coincidence.
+# to its own service name is not a coincidence — but "next to" has to mean it,
+# so the domain is looked for on the SAME LINE as the token, not anywhere in
+# the text. A pull request that links to airtable.com documentation in one
+# paragraph and uses a lookalike word in another is not a leak.
 SERVICE_URL_PATTERN = re.compile(r"airtable\.com", re.IGNORECASE)
 
-# What may sit between two identifiers for them to count as adjacent: path and
-# query punctuation, or a single space. This is the copy-pasted-URL shape
-# (`.../appXXX/tblYYY/viwZZZ`). Ordinary prose does not produce it — it would
-# need two 17-character guarded-prefix words with only punctuation between them.
-_ADJACENCY_GAP = re.compile(r"^[\s/?&=,;:|<>\"'()\[\]-]{1,3}$")
+# What may sit between two identifiers for them to count as adjacent: URL path
+# and query punctuation only. This is the copy-pasted-URL shape
+# (`.../appXXX/tblYYY/viwZZZ`).
+#
+# Whitespace and commas were in this class in the first version, and that made
+# the claim below false: `", "` between two words in a sentence, and `"\n- "`
+# between two markdown bullets, both qualified as "adjacent". Ordinary
+# formatting is not a paste, and a guard that blocks a bullet list is one people
+# learn to bypass. Two shape-matching words separated by punctuation a URL would
+# not contain are now left alone — the paste-count signal still covers three.
+_ADJACENCY_GAP = re.compile(r"^[/?&=#]{1,3}$")
 
 # How many shape-matching tokens make a message a paste rather than a sentence.
 # One lookalike is a word; two can be a sentence ("recrystallisation and
@@ -130,11 +142,24 @@ def shannon_entropy(text: str) -> float:
 
 
 def _has_adjacent_pair(matches: list[re.Match[str]], text: str) -> bool:
-    """True if two shape-matching tokens are separated by punctuation alone."""
+    """True if two shape-matching tokens are separated by URL punctuation alone."""
     for first, second in zip(matches, matches[1:], strict=False):
         if _ADJACENCY_GAP.fullmatch(text[first.end() : second.start()]):
             return True
     return False
+
+
+def _service_url_on_the_same_line(text: str, match: re.Match[str]) -> bool:
+    """True if the service's own domain sits on the token's line.
+
+    Proximity rather than co-occurrence. Searching the whole text would condemn
+    any low-entropy lookalike in a document that happens to link to the service
+    somewhere else, which is a false positive with no leak behind it.
+    """
+    start = text.rfind("\n", 0, match.start()) + 1
+    end = text.find("\n", match.end())
+    line = text[start:] if end == -1 else text[start:end]
+    return SERVICE_URL_PATTERN.search(line) is not None
 
 
 def find_airtable_id(text: str) -> str | None:
@@ -158,12 +183,13 @@ def find_airtable_id(text: str) -> str | None:
         if shannon_entropy(match.group(0)) >= ENTROPY_FLOOR:
             return match.group(0)
 
-    structural = (
-        SERVICE_URL_PATTERN.search(text) is not None
-        or len(matches) >= _PASTE_TOKEN_COUNT
-        or _has_adjacent_pair(matches, text)
-    )
-    return matches[0].group(0) if structural else None
+    if len(matches) >= _PASTE_TOKEN_COUNT or _has_adjacent_pair(matches, text):
+        return matches[0].group(0)
+
+    for match in matches:
+        if _service_url_on_the_same_line(text, match):
+            return match.group(0)
+    return None
 
 
 def _strip_comment_lines(message: str) -> str:

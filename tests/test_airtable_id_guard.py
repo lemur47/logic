@@ -329,3 +329,48 @@ def test_pr_text_scans_every_file_not_just_the_first(tmp_path: Path) -> None:
     body = tmp_path / "body.md"
     body.write_text(f"Refs {fake_id('fld')}\n", encoding="utf-8")
     assert run_pr_text(title, body).returncode == 1
+
+
+# --- the false-positive boundary, tightened after review ----------------------
+#
+# The first version of the adjacency signal allowed any whitespace in the gap,
+# which made "a comma and a space" and "a newline and a bullet" count as
+# adjacency. Both are ordinary formatting, and the module comment claimed
+# prose could not produce the shape while these two cases plainly did. The gap
+# is now URL punctuation only.
+
+
+def test_a_markdown_bullet_list_of_lookalikes_is_not_adjacency(tmp_path: Path) -> None:
+    message = f"docs: rename the helpers\n\n- {LOW_TAIL}\n- {LOW_TAIL_2}\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_comma_between_two_lookalikes_is_not_adjacency(tmp_path: Path) -> None:
+    message = f"refactor: compare {LOW_TAIL}, {LOW_TAIL_2} for consistency\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_service_link_elsewhere_does_not_condemn_a_distant_lookalike(tmp_path: Path) -> None:
+    """Proximity, not co-occurrence.
+
+    A body that links to airtable.com documentation in one paragraph and uses a
+    low-entropy lookalike in another is not a leak. The signal is a token
+    sitting NEXT TO its own service name, which is what the comment always
+    claimed and what the first implementation did not check.
+    """
+    message = (
+        "docs: explain the plugin layer\n\n"
+        "Background reading lives at https://airtable.com/developers/web/api.\n\n"
+        "The helper is still called " + LOW_TAIL + " and is unrelated.\n"
+    )
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_service_url_still_blocks_the_id_it_carries(tmp_path: Path) -> None:
+    """The signal that must survive the tightening."""
+    message = f"docs: see https://airtable.com/{LOW_TAIL} for the schema\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 1, result.stdout
