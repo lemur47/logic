@@ -82,8 +82,11 @@ def main() -> int:
         "  secret gate that scanned ~0 bytes and exited 0. Reading a pass as\n"
         "  evidence is the failure; an empty scan is now red instead.\n"
         "\n"
-        "  If you meant to record an empty commit, do it with the hooks off\n"
-        "  and say so in the commit message.\n",
+        "  Two ordinary operations land here, and neither is a mistake:\n"
+        "  an empty commit, and `git commit --amend` that changes only the\n"
+        "  message. Both leave the index equal to HEAD, and git gives a\n"
+        "  pre-commit hook no way to tell them apart. If that is what you are\n"
+        "  doing, run it with the hooks off and say so in the message.\n",
         file=sys.stderr,
     )
     return 1
