@@ -204,9 +204,12 @@ merge, label or block, and it is not a required check — the token behind it is
 scoped to commenting. Contributors should expect a comment and read it as one
 reviewer's opinion.
 
-One caveat worth stating plainly: on a very large pull request the diff fetch can
-fail, and the auditor currently produces no comment at all rather than reporting
-the failure. **A missing comment does not mean a clean review.**
+One caveat worth stating plainly, now narrower than it was. A failed **diff
+fetch** — the likely case on a very large pull request — posts a comment saying
+the review did not run. But the model call, the comment post and the metadata
+fetch still stop without any comment if they fail, and incomplete executions are
+not stored, so such a run is lost rather than retried. **A missing comment still
+does not mean a clean review.**
 
 The design, the reviewer's system prompt and the exported scenario are all in
 [`automation/pr-auditor/`](automation/pr-auditor/README.md), because a review
