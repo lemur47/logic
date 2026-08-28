@@ -21,5 +21,19 @@
     "postcss": "8.5.23",
     "sharp": "0.35.0",
     "undici": "^7.29.0"
+  },
+  "overridesReasons": {
+    "postcss": {
+      "reason": "Transitive via vitest to vite; GHSA-r28c-9q8g-f849. Same advisory as the site's, pinned separately because each tree resolves its own (#113).",
+      "reviewBy": "2026-11-30"
+    },
+    "sharp": {
+      "reason": "Transitive via wrangler to miniflare; the libvips CVEs in GHSA-f88m-g3jw-g9cj. Exact pin, verified against workerd and the Workers test suite (#104).",
+      "reviewBy": "2026-11-30"
+    },
+    "undici": {
+      "reason": "Floor, and the only lever available: miniflare pins undici at exactly 7.28.0, so no refresh can move it. Dev-only, and the Workers test suite covers it (#135).",
+      "reviewBy": "2026-11-30"
+    }
   }
 }

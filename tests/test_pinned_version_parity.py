@@ -18,12 +18,22 @@ Those three are one fact and must agree. The fourth is a different fact, and a
 test that folded it in would "fix" a deliberate split by dragging the floor up
 to the interpreter, silently narrowing what the package supports.
 
-**`osv-scanner` is knowingly NOT asserted here.** Its two surfaces are skewed
-today — `.pre-commit-config.yaml` pins `v2.3.3` while CI's action is `v2.5.1`
-(bumped by Dependabot in #155) — so asserting parity would red the merge gate
-for a drift this piece of work is not scoped to close, and no Work Item owns it.
-Named rather than omitted: a gap someone chose is worth more than a gap nobody
-can see.
+**`osv-scanner` IS asserted here now.** It was not: the hook pinned `v2.3.3`
+while CI's action was `v2.5.1`, and this file said so rather than checking it,
+because asserting a known skew would have redded the gate for a drift nothing
+was scoped to close. The hook is now at `v2.5.1` and the assertion is live.
+
+Its CI half is read from the **comment** on the `uses:` line, not from a value —
+the action is SHA-pinned, and the trailing `# vX.Y.Z` that Dependabot maintains
+is the only human-readable version there.
+
+**So be exact about what this proves: comment-versus-rev parity, not
+SHA-versus-rev parity.** If a SHA is changed and the comment left behind, the
+lookup still returns a present-but-stale version and the comparison passes while
+the action that actually runs has drifted from what the comment claims. The
+found-check below catches the comment vanishing; it cannot catch the comment
+lying. Closing that would mean resolving the SHA to a tag over the network,
+which is not something a required unit test should depend on.
 """
 
 from __future__ import annotations
@@ -42,6 +52,8 @@ CI_WORKFLOW = REPO / ".github" / "workflows" / "ci.yml"
 # Whole URLs, not fragments — see `pre_commit_rev`.
 RUFF_HOOK_REPO = "https://github.com/astral-sh/ruff-pre-commit"
 GITLEAKS_HOOK_REPO = "https://github.com/gitleaks/gitleaks"
+OSV_HOOK_REPO = "https://github.com/google/osv-scanner"
+OSV_ACTION = "google/osv-scanner-action/osv-scanner-action"
 
 
 def as_tuple(version: str | None) -> tuple[int, ...]:
@@ -112,6 +124,23 @@ def ci_env_value(name: str) -> str | None:
     return match.group(1) if match else None
 
 
+def ci_action_version(action: str) -> str | None:
+    """The `# vX.Y.Z` comment Dependabot keeps beside a SHA-pinned action.
+
+    The SHA is the control; the comment is the only place the version is legible
+    to a person, which makes it the only thing comparable to a pre-commit rev.
+    A comparison against a comment is worth less than one against a value — so
+    a lookup that stops matching must fail loudly, which is what the found-check
+    is for.
+    """
+    match = re.search(
+        rf"^\s*uses:\s*{re.escape(action)}@[0-9a-f]{{40}}\s*#\s*(v?\d+\.\d+\.\d+)\s*$",
+        CI_WORKFLOW.read_text(encoding="utf-8"),
+        re.MULTILINE,
+    )
+    return match.group(1) if match else None
+
+
 def python_floor_declarations() -> dict[str, str | None]:
     """The three places that state the *support floor*, normalised to `3.12`."""
     config = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
@@ -141,6 +170,8 @@ def test_every_pin_this_file_compares_was_actually_found() -> None:
         "ruff pyproject floor": pyproject_floor("ruff"),
         "gitleaks pre-commit rev": pre_commit_rev(GITLEAKS_HOOK_REPO),
         "gitleaks CI env": ci_env_value("GITLEAKS_VERSION"),
+        "osv-scanner pre-commit rev": pre_commit_rev(OSV_HOOK_REPO),
+        "osv-scanner CI action version": ci_action_version(OSV_ACTION),
         **python_floor_declarations(),
     }
     missing = [name for name, value in found.items() if not value]
@@ -181,6 +212,26 @@ def test_gitleaks_agrees_across_the_hook_and_the_workflow() -> None:
         "in the CI workflow. Neither surface is covered by Dependabot — a bare "
         "env var and a pre-commit rev both move by hand or not at all — and an "
         "unset CI pin makes a SHA-pinned action download an unpinned binary."
+    )
+
+
+def test_osv_scanner_agrees_across_the_hook_and_the_action() -> None:
+    """Two scanners enforcing one policy, with nothing forcing them to agree.
+
+    No Dependabot ecosystem covers a pre-commit `rev`, so the hook moves by hand
+    while the action moves on its own. Skewed, a local green says nothing about
+    CI: the two run different rule sets and different detectors over the same
+    lockfiles, and the difference surfaces as a merge-gate failure nobody could
+    reproduce locally.
+    """
+    rev = pre_commit_rev(OSV_HOOK_REPO)
+    action = ci_action_version(OSV_ACTION)
+
+    assert as_tuple(rev) == as_tuple(action), (
+        f"osv-scanner pre-commit rev {rev} does not match the {action} CI pins. "
+        "The hook is the copy that gates a commit and the action is the copy "
+        "that gates a merge; when they differ, passing locally is not evidence "
+        "about the required job."
     )
 
 

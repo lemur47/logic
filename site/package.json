@@ -37,5 +37,31 @@
     "sharp": "0.35.0",
     "vite": "^8.0.13",
     "yaml": "2.8.3"
+  },
+  "overridesReasons": {
+    "esbuild": {
+      "reason": "Transitive via astro and vite at 0.27.7, which carries GHSA-gv7w-rqvm-qjhr (binary integrity, high) and GHSA-g7r4-m6w7-qqqr; fixed in 0.28.1. Exact pin (#69).",
+      "reviewBy": "2026-11-30"
+    },
+    "js-yaml": {
+      "reason": "Floor, not a pin. Was exactly 4.3.0 while astro declares ^4.3.0 — our own override was the update path Dependabot reported as unavailable, so the advisory read as unfixable. Rewritten as a floor (#135).",
+      "reviewBy": "2026-11-30"
+    },
+    "postcss": {
+      "reason": "Transitive via @astrojs/svelte to vite; GHSA-6g55-p6wh-862q (arbitrary file read) and GHSA-r28c-9q8g-f849 (path traversal). Not reachable by bumping a direct dependency. Exact pin (#113).",
+      "reviewBy": "2026-11-30"
+    },
+    "sharp": {
+      "reason": "Inherits the libvips CVEs in GHSA-f88m-g3jw-g9cj at 0.34.5, and the fix sits OUTSIDE astro's declared `sharp ^0.34.0`, so only an override reaches it. Exact pin; the SVG-to-PNG pipeline was re-verified on 0.35.0 (#104).",
+      "reviewBy": "2026-11-30"
+    },
+    "vite": {
+      "reason": "Floor. Held transitive vite at a fixed version from #71; raising it to ^8.0.13 was required by Astro 7, whose declared floor this override had been sitting below — the bump failed inside vite naming an option we do not set, and nothing named the override (#122).",
+      "reviewBy": "2026-11-30"
+    },
+    "yaml": {
+      "reason": "yaml-language-server pins a nested vulnerable copy that no direct bump reaches; GHSA-48c2-rrv3-qjmp. Exact pin (#71).",
+      "reviewBy": "2026-11-30"
+    }
   }
 }

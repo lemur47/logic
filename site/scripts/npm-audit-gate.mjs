@@ -46,18 +46,47 @@ function advisoryIds(vulnerability) {
   return found;
 }
 
-function main(raw) {
-  let report;
-  try {
-    report = JSON.parse(raw);
-  } catch (error) {
-    console.error(`npm-audit-gate: could not parse npm audit JSON — ${error.message}`);
-    process.exit(2);
+/**
+ * Decide the verdict from a parsed report. Pure: no printing, no exit.
+ *
+ * Split out so the decision can be unit-tested the way the crawlability gate's
+ * parsing is. The process contract — what gets printed and which exit code —
+ * stays in `main` below.
+ */
+export function evaluate(report) {
+  // Refuse before counting. `npm audit` answers a registry failure with a
+  // well-formed JSON document carrying a top-level `error` and no
+  // `vulnerabilities`, so the old `?? {}` fallback counted zero and printed a
+  // clean verdict — a gate reporting success for a scan that never happened.
+  //
+  // Absent is not empty, and the difference is load-bearing: a genuinely clean
+  // audit emits `"vulnerabilities": {}`, the key present. Verified against the
+  // real command, not assumed.
+  //
+  // These throw rather than returning a flag. A returned `invalid` field can be
+  // dropped by a caller that forgets to read it, which is this defect's own
+  // failure mode one level up; an uncaught throw exits non-zero.
+  if (report === null || typeof report !== "object" || Array.isArray(report)) {
+    throw new Error("npm-audit-gate: expected an audit report object, got something else.");
+  }
+  if (report.error) {
+    const summary = report.error.summary ?? report.error.code ?? "no detail given";
+    throw new Error(
+      `npm-audit-gate: the audit did not run — npm reported an error (${summary}). ` +
+        "This is not a clean result; re-run once the registry is reachable.",
+    );
+  }
+  if (!Object.hasOwn(report, "vulnerabilities")) {
+    throw new Error(
+      "npm-audit-gate: the report carries no `vulnerabilities` key. A clean audit " +
+        "reports it present and empty, so its absence means the audit did not " +
+        "produce a result — it does not mean there is nothing to find.",
+    );
   }
 
-  const vulnerabilities = Object.values(report.vulnerabilities ?? {});
   const blocking = [];
   const waived = [];
+  const vulnerabilities = Object.values(report.vulnerabilities);
 
   for (const vulnerability of vulnerabilities) {
     if (!BLOCKING_SEVERITIES.has(vulnerability.severity)) continue;
@@ -77,6 +106,28 @@ function main(raw) {
   }
 
   const expired = ALLOWLIST.filter((entry) => entry.reviewBy < new Date().toISOString().slice(0, 10));
+
+  return { blocking, waived, expired };
+}
+
+function main(raw) {
+  let report;
+  try {
+    report = JSON.parse(raw);
+  } catch (error) {
+    console.error(`npm-audit-gate: could not parse npm audit JSON — ${error.message}`);
+    process.exit(2);
+  }
+
+  let verdict;
+  try {
+    verdict = evaluate(report);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(2);
+  }
+  const { blocking, waived, expired } = verdict;
+
   for (const entry of expired) {
     console.error(
       `npm-audit-gate: allowlist entry ${entry.id} passed its review-by date (${entry.reviewBy}). ` +
@@ -102,7 +153,11 @@ function main(raw) {
   console.log(`npm-audit-gate: clean (${waived.length} waived, 0 blocking).`);
 }
 
-let stdin = "";
-process.stdin.setEncoding("utf8");
-process.stdin.on("data", (chunk) => (stdin += chunk));
-process.stdin.on("end", () => main(stdin));
+// Only read stdin when run as a command. Imported by a test, this module must
+// expose `evaluate` without hanging on a stdin that will never close.
+if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+  let stdin = "";
+  process.stdin.setEncoding("utf8");
+  process.stdin.on("data", (chunk) => (stdin += chunk));
+  process.stdin.on("end", () => main(stdin));
+}
