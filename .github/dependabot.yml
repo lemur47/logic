@@ -74,6 +74,24 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "build(deps)"
+    # TypeScript majors are held back, and this is a deferral with an expiry
+    # rather than a decision to stop updating it.
+    #
+    # The first grouped PR on this new ecosystem proposed typescript 5 -> 7 and
+    # `npm ci` refused it: `@astrojs/check` declares
+    # `peer typescript@"^5.0.0 || ^6.0.0"`, so the whole group failed to install
+    # and none of the other twelve updates could be verified. npm's own error
+    # named 6.0.3 as the version that would resolve.
+    #
+    # 6 is therefore reachable and 7 is not, until @astrojs/check widens its
+    # peer range. Moving to 6 is a major of our own and gets its own piece of
+    # work — `astro check` and the build have to be re-run against it, which is
+    # exactly what a grouped weekly bump cannot give us.
+    #
+    # review-by 2026-11-30
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       site-npm:
         patterns:
