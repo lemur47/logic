@@ -117,11 +117,19 @@ def test_unreadable_message_file_fails_open(tmp_path: Path) -> None:
     assert "could not read" in result.stderr
 
 
-def test_no_arguments_prints_usage() -> None:
+def test_no_arguments_fails_closed() -> None:
+    """No argument is a misconfiguration, and a leak gate must not pass on one.
+
+    This assertion was inverted on purpose. It previously required exit 0:
+    latent, because pre-commit always supplies the message path — but an
+    explicit fail-OPEN inside a gate whose whole job is to refuse. A hook wired
+    up wrongly would have reported success on every commit, which is the exact
+    shape of the `args` defect that made the secret gate a no-op for months.
+    """
     result = subprocess.run(
         [sys.executable, str(SCRIPT)], capture_output=True, text=True, check=False
     )
-    assert result.returncode == 0
+    assert result.returncode != 0
     assert "usage:" in result.stderr
 
 
@@ -181,3 +189,188 @@ def test_hook_survives_unbalanced_quotes() -> None:
     result = run_hook(bash_payload(f'git commit -m "unclosed {fake_id("rec")}'))
     assert result.returncode == 0
     assert denied(result)
+
+
+# --- structural signals -------------------------------------------------------
+#
+# The entropy floor of 3.5 passes about one identifier in thirty-eight: 200,000
+# synthetic identifiers of the real shape scored a mean of 3.847 with a first
+# percentile of 3.455, so 2.63 per cent sit below it. Because the gitleaks rule
+# shares the constant by design, that blind spot is identical on both gates
+# rather than compensating.
+#
+# The signals below block the low tail WITHOUT touching the floor. That
+# direction is deliberate and was reversed during review: demoting the floor to
+# a warning and hard-blocking on structure instead would pass a LONE identifier
+# in a commit message — the canonical leak this guard exists to stop — and would
+# diverge the two gates, since adjacency and "a service URL in context" are
+# inexpressible in a gitleaks TOML rule. Union, never replacement.
+#
+# The words below are ordinary English of the exact guarded shape, chosen from
+# the measured low tail: `applicationlayers` scores 3.455, the first percentile
+# itself. No high-entropy literal appears here either — see the module docstring.
+
+LOW_TAIL = "applicationlayers"  # 3.455 — the measured first percentile
+LOW_TAIL_2 = "recordsallocation"  # 3.337
+LOW_TAIL_3 = "recommendationset"  # 3.337
+
+
+def test_low_tail_id_blocks_when_a_service_url_is_in_context(tmp_path: Path) -> None:
+    """Below the floor, but named next to the service it belongs to."""
+    message = f"docs: the base at airtable.com is {LOW_TAIL}\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 1, result.stdout
+    assert "COMMIT BLOCKED" in result.stderr
+
+
+def test_adjacent_low_tail_ids_block(tmp_path: Path) -> None:
+    """Two guarded prefixes separated by nothing but a path separator.
+
+    This is the copy-pasted-URL shape. Prose does not produce it: it needs two
+    17-character guarded-prefix tokens with only punctuation between them.
+    """
+    result = run_commit_msg(tmp_path, f"chore: sync {LOW_TAIL}/{LOW_TAIL_2}\n")
+    assert result.returncode == 1, result.stdout
+
+
+def test_three_shape_tokens_block_even_when_spread_through_prose(tmp_path: Path) -> None:
+    """One lookalike is a word; three in a message is a paste."""
+    message = f"chore: reconcile {LOW_TAIL} with {LOW_TAIL_2} and then {LOW_TAIL_3}\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 1, result.stdout
+
+
+def test_two_lookalikes_in_ordinary_prose_still_pass(tmp_path: Path) -> None:
+    """The false-positive boundary, asserted rather than assumed.
+
+    Two low-entropy lookalikes separated by prose are not a leak, and a guard
+    that blocked this sentence would teach people to reach for --no-verify.
+    """
+    message = "refactor: extract recrystallisation and selectAllElements into helpers\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 0, result.stderr
+
+
+def test_hook_denies_adjacent_low_tail_ids() -> None:
+    """The union applies to the gh/git surface too, not only to commit messages."""
+    assert denied(run_hook(bash_payload(f"gh pr create --body '{LOW_TAIL}/{LOW_TAIL_2}'")))
+
+
+# --- --pr-text mode (the CI surface) ------------------------------------------
+#
+# This repository squash-merges, so the message that lands on `main` is composed
+# in the GitHub web interface at merge time and passes through no local hook at
+# all. The commit-msg hook is therefore blind to the one message that becomes
+# the public record. This mode is what the merge gate runs over the pull
+# request's title, body and commit messages.
+
+
+def run_pr_text(*paths: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(SCRIPT), "--pr-text", *[str(p) for p in paths]],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_pr_text_blocks_an_id_in_a_body(tmp_path: Path) -> None:
+    body = tmp_path / "body.md"
+    body.write_text(f"Closes the work tracked at {fake_id('rec')}.\n", encoding="utf-8")
+    result = run_pr_text(body)
+    assert result.returncode == 1
+    assert "BLOCKED" in result.stderr
+
+
+def test_pr_text_does_not_strip_markdown_headings(tmp_path: Path) -> None:
+    """The one behaviour that must differ from commit-msg mode.
+
+    Git strips lines beginning with '#' before committing, so scanning them
+    there invents false positives. In a pull request body '#' opens a markdown
+    heading and the line is published verbatim — stripping it would hand every
+    author a one-character bypass of the gate.
+    """
+    body = tmp_path / "body.md"
+    body.write_text(f"## Context\n# {fake_id('tbl')}\n", encoding="utf-8")
+    assert run_pr_text(body).returncode == 1
+
+
+def test_pr_text_passes_clean_files(tmp_path: Path) -> None:
+    title = tmp_path / "title.txt"
+    title.write_text("fix(pert): correct the beta weighting\n", encoding="utf-8")
+    body = tmp_path / "body.md"
+    body.write_text("## Summary\n\nRefer to the sprint housekeeping item.\n", encoding="utf-8")
+    result = run_pr_text(title, body)
+    assert result.returncode == 0, result.stderr
+
+
+def test_pr_text_fails_closed_on_an_unreadable_file(tmp_path: Path) -> None:
+    """Opposite of commit-msg mode, and deliberately so.
+
+    There, git would have failed first on a message it cannot read. Here an
+    unreadable file means the CI step is broken, and a gate that reports a clean
+    pass it never performed is the whole failure class this work closes.
+    """
+    result = run_pr_text(tmp_path / "missing.md")
+    assert result.returncode != 0
+    assert "could not read" in result.stderr
+
+
+def test_pr_text_scans_every_file_not_just_the_first(tmp_path: Path) -> None:
+    """Guards against the mode being absent and the flag silently ignored.
+
+    Without a real --pr-text mode the flag is filtered out as an option and the
+    FIRST path is scanned as a commit message, which passes the single-file
+    cases by accident. Putting the identifier in the second file is what makes
+    the mode itself observable.
+    """
+    title = tmp_path / "title.txt"
+    title.write_text("docs: tidy the README\n", encoding="utf-8")
+    body = tmp_path / "body.md"
+    body.write_text(f"Refs {fake_id('fld')}\n", encoding="utf-8")
+    assert run_pr_text(title, body).returncode == 1
+
+
+# --- the false-positive boundary, tightened after review ----------------------
+#
+# The first version of the adjacency signal allowed any whitespace in the gap,
+# which made "a comma and a space" and "a newline and a bullet" count as
+# adjacency. Both are ordinary formatting, and the module comment claimed
+# prose could not produce the shape while these two cases plainly did. The gap
+# is now URL punctuation only.
+
+
+def test_a_markdown_bullet_list_of_lookalikes_is_not_adjacency(tmp_path: Path) -> None:
+    message = f"docs: rename the helpers\n\n- {LOW_TAIL}\n- {LOW_TAIL_2}\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_comma_between_two_lookalikes_is_not_adjacency(tmp_path: Path) -> None:
+    message = f"refactor: compare {LOW_TAIL}, {LOW_TAIL_2} for consistency\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_service_link_elsewhere_does_not_condemn_a_distant_lookalike(tmp_path: Path) -> None:
+    """Proximity, not co-occurrence.
+
+    A body that links to airtable.com documentation in one paragraph and uses a
+    low-entropy lookalike in another is not a leak. The signal is a token
+    sitting NEXT TO its own service name, which is what the comment always
+    claimed and what the first implementation did not check.
+    """
+    message = (
+        "docs: explain the plugin layer\n\n"
+        "Background reading lives at https://airtable.com/developers/web/api.\n\n"
+        "The helper is still called " + LOW_TAIL + " and is unrelated.\n"
+    )
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 0, result.stderr
+
+
+def test_a_service_url_still_blocks_the_id_it_carries(tmp_path: Path) -> None:
+    """The signal that must survive the tightening."""
+    message = f"docs: see https://airtable.com/{LOW_TAIL} for the schema\n"
+    result = run_commit_msg(tmp_path, message)
+    assert result.returncode == 1, result.stdout
