@@ -34,6 +34,27 @@ repos:
     hooks:
       - id: gitleaks
 
+  # Security - the other half of the secret gate.
+  #
+  # gitleaks reports success identically whether it scanned the staged diff or
+  # scanned nothing, and in --staged mode it always prints `0 commits scanned`,
+  # so the commit count is not a signal in either direction. This hook refuses
+  # the case where the gate had no input at all, so "scanned nothing" is red
+  # rather than a green tick nobody can tell from a real pass.
+  #
+  # It does NOT prove gitleaks read the staged content — see the script's
+  # docstring. The configuration itself is asserted in
+  # tests/test_secret_gate_config.py, which runs in the required pytest job.
+  - repo: local
+    hooks:
+      - id: staged-bytes-guard
+        name: Secret gate - refuse a zero-byte scan
+        entry: python scripts/check-staged-bytes.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
   # Security - Opengrep (SAST with data-flow analysis)
   # Replaces bandit — covers Python, JS/TS, Svelte, YAML, Dockerfile
   - repo: local

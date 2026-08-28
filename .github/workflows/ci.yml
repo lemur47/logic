@@ -73,6 +73,42 @@ jobs:
           # `rev` in .pre-commit-config.yaml. No `v` prefix.
           GITLEAKS_VERSION: "8.30.0"
 
+      # The surfaces gitleaks structurally cannot see.
+      #
+      # gitleaks scans committed FILE CONTENT. A record identifier reaches the
+      # public record through three other doors, and the commit-msg hook only
+      # closes one of them: this repository SQUASH-merges, so the message that
+      # lands on `main` is composed in the GitHub web interface at merge time
+      # and passes through no local hook on any machine. A web-editor commit,
+      # or a clone where `pre-commit install` was never run, does the same.
+      #
+      # Deliberately a step INSIDE this required job rather than a job of its
+      # own. "Protect main" requires nine named contexts, is source_type
+      # Repository, and is managed outside this repository with no committed
+      # IaC — so a new job would be green-but-not-blocking until someone edited
+      # the ruleset by hand, and the guard would look installed while gating
+      # nothing. That is the configured-but-not-active failure this repository
+      # keeps paying for, so the check goes where the gate already is.
+      #
+      # Title and body arrive through `env`, never interpolated into the shell.
+      # A pull request title is attacker-controlled text; `${{ }}` inside `run`
+      # would splice it into the script before bash ever sees a quote.
+      - name: Scan the pull request's message surfaces for record identifiers
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/pr-text"
+          printf '%s\n' "$PR_TITLE" > "$RUNNER_TEMP/pr-text/title.txt"
+          printf '%s\n' "$PR_BODY" > "$RUNNER_TEMP/pr-text/body.md"
+          git log --format=%B "$BASE_SHA..HEAD" > "$RUNNER_TEMP/pr-text/messages.txt"
+          python3 scripts/check-airtable-ids.py --pr-text \
+            "$RUNNER_TEMP/pr-text/title.txt" \
+            "$RUNNER_TEMP/pr-text/body.md" \
+            "$RUNNER_TEMP/pr-text/messages.txt"
+
   # Static analysis with Opengrep (replaces bandit)
   opengrep:
     runs-on: ubuntu-latest
