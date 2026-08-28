@@ -1,12 +1,25 @@
 # Dependabot configuration — keeps the committed locks and pinned Actions fresh.
 #
-# Two ecosystems, both on a weekly cadence so a static lock can't quietly age
+# Four ecosystems, all on a weekly cadence so a static lock can't quietly age
 # into the Monday osv-scanner cron (see .github/workflows/ci.yml):
 #
 #   1. uv      — the native uv ecosystem reads pyproject.toml + uv.lock directly
 #                (NOT the `pip` ecosystem, which mismatches a uv-locked tree).
 #   2. github-actions — refreshes the full-SHA pins in the workflows; Dependabot
 #                updates the SHA in place and keeps the trailing `# vX` comment.
+#   3. npm /site
+#   4. npm /examples/remote-mcp
+#
+# The two npm trees had NO update channel until 2026-08-28. Every commit
+# touching either manifest in the preceding six months was advisory-driven, so
+# upgrades arrived as emergencies on a tree with no incremental movement. The
+# Astro 6 -> 7 bump is the recorded cost: it was blocked by one of our own
+# `overrides` pinned below the new version's declared floor, and no error
+# message named it.
+#
+# NOT covered by any ecosystem here, and moving by hand or not at all: the
+# `rev` pins in .pre-commit-config.yaml and GITLEAKS_VERSION in ci.yml.
+# `tests/test_pinned_version_parity.py` is what keeps those in step.
 #
 # Bot PRs pass the same gate as any PR (frozen uv sync, osv-scanner, ruff,
 # pyright, frontend build). The CEO reviews them like any other PR — no
@@ -19,9 +32,10 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    # Quarantine newly-published versions for a week before opening a PR — the
-    # same supply-chain buffer as site/.npmrc's min-release-age, so a malicious
-    # or yanked release has time to surface first.
+    # Quarantine newly-published versions for a week before opening a PR, so a
+    # malicious or yanked release has time to surface first. This is the same
+    # buffer both .npmrc files ask for with min-release-age=7 — and unlike that
+    # key, `cooldown` applies wherever Dependabot runs.
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
@@ -46,5 +60,38 @@ updates:
       prefix: "build(ci)"
     groups:
       github-actions:
+        patterns:
+          - "*"
+
+  # The site's npm tree. Astro, Svelte and the toolchain behind pmo.run.
+  - package-ecosystem: "npm"
+    directory: "/site"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      site-npm:
+        patterns:
+          - "*"
+
+  # The remote-MCP example's npm tree. Second lockfile osv-scanner walks, and
+  # it carries its own `overrides` block for the same transitive advisories.
+  - package-ecosystem: "npm"
+    directory: "/examples/remote-mcp"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      remote-mcp-npm:
         patterns:
           - "*"

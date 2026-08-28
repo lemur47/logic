@@ -69,7 +69,7 @@ repos:
 
   # Security - osv-scanner (dependency vulnerability scanning)
   - repo: https://github.com/google/osv-scanner
-    rev: v2.3.3
+    rev: v2.5.1
     hooks:
       - id: osv-scanner
         args:
