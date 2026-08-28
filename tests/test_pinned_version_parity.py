@@ -25,9 +25,15 @@ was scoped to close. The hook is now at `v2.5.1` and the assertion is live.
 
 Its CI half is read from the **comment** on the `uses:` line, not from a value —
 the action is SHA-pinned, and the trailing `# vX.Y.Z` that Dependabot maintains
-is the only human-readable version there. That is weaker than the other lookups
-and deliberately so; if the comment ever goes, the found-check below fires
-rather than the comparison quietly passing.
+is the only human-readable version there.
+
+**So be exact about what this proves: comment-versus-rev parity, not
+SHA-versus-rev parity.** If a SHA is changed and the comment left behind, the
+lookup still returns a present-but-stale version and the comparison passes while
+the action that actually runs has drifted from what the comment claims. The
+found-check below catches the comment vanishing; it cannot catch the comment
+lying. Closing that would mean resolving the SHA to a tag over the network,
+which is not something a required unit test should depend on.
 """
 
 from __future__ import annotations

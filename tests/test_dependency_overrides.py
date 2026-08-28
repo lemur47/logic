@@ -23,6 +23,7 @@ and watching it go red; a passing run only says today is fine.
 from __future__ import annotations
 
 import json
+import re
 from datetime import date
 from pathlib import Path
 
@@ -34,6 +35,13 @@ MANIFESTS = [REPO / "site" / "package.json", REPO / "examples" / "remote-mcp" / 
 # Long enough that "transitive" or "security" alone cannot satisfy it. Every
 # real reason names the path the dependency arrives by, or the advisory.
 MINIMUM_REASON = 60
+
+# Length alone is a weak proxy — sixty characters of nothing still passes — so
+# a reason must also cite something a reader can go and check: the advisory it
+# answers, or the pull request that introduced the override. Raised by the
+# automated reviewer, which was right that the length check cannot fail for a
+# bad-but-long reason.
+CITATION = re.compile(r"GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}|#\d+", re.IGNORECASE)
 
 
 @pytest.mark.parametrize("manifest", MANIFESTS, ids=lambda p: p.parent.name)
@@ -62,6 +70,12 @@ def test_every_reason_says_something(manifest: Path) -> None:
         assert len(reason) >= MINIMUM_REASON, (
             f"The reason for the {name} override is too short to be one: {reason!r}. "
             "Name how the dependency arrives, or the advisory it answers."
+        )
+        assert CITATION.search(reason), (
+            f"The reason for the {name} override cites nothing checkable: {reason!r}. "
+            "Give the advisory ID it answers, or the pull request that introduced "
+            "it — a reader has to be able to go and verify the claim, and prose "
+            "alone gives them nowhere to start."
         )
 
 
