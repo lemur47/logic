@@ -105,3 +105,65 @@ def test_the_commit_message_guard_is_still_wired_at_commit_msg_stage() -> None:
         "configured, reported as installed, and never running."
     )
     assert "id: airtable-id-guard" in config
+
+
+# --- the CI half of the same gate -------------------------------------------
+#
+# Raised by the automated reviewer, and fair: the assertions above cover
+# `.pre-commit-config.yaml` and stop there, while the surface that actually
+# gates the public record — the merge-gate scan of the pull request's message
+# text — had nothing but a comment holding it in place. A later edit dropping
+# the step, or dropping `edited` from the trigger, would regress the guarantee
+# this whole change exists to make, with every check still green.
+
+CI_WORKFLOW = REPO / ".github" / "workflows" / "ci.yml"
+
+# The gitleaks job's own steps: from its `  gitleaks:` line to the next job
+# declared at the same indentation.
+GITLEAKS_JOB = re.compile(
+    r"^  gitleaks:\s*$\n(.*?)(?=^  [A-Za-z][\w-]*:\s*$)", re.MULTILINE | re.DOTALL
+)
+
+
+def gitleaks_job_block() -> str:
+    match = GITLEAKS_JOB.search(CI_WORKFLOW.read_text(encoding="utf-8"))
+    assert match is not None, (
+        "The `gitleaks` job was not found in ci.yml, or this pattern stopped "
+        "matching. Either the required job was renamed — which silently un-gates "
+        "`main`, because required contexts key on JOB names — or every assertion "
+        "below is now vacuous."
+    )
+    return match.group(1)
+
+
+def test_the_message_scan_runs_inside_the_required_gitleaks_job() -> None:
+    """Inside a required job, or it gates nothing.
+
+    "Protect main" names nine required contexts and is managed outside this
+    repository with no committed IaC, so a scan moved into a job of its own
+    would be green-but-not-blocking until someone edited the ruleset by hand.
+    """
+    block = gitleaks_job_block()
+    assert "--pr-text" in block, (
+        "The pull-request message scan is no longer part of the required "
+        "gitleaks job. This repository squash-merges, so without it nothing "
+        "checks the message that actually lands on `main`."
+    )
+
+
+def test_the_pull_request_trigger_reruns_the_gate_on_edited() -> None:
+    """`edited` is not a default trigger type, and the gate is stale without it.
+
+    Scanned once at push, a title or body edited afterwards keeps the green
+    tick it earned under the old text — a check that passed against something
+    that no longer exists.
+    """
+    workflow = CI_WORKFLOW.read_text(encoding="utf-8")
+    trigger = re.search(r"^  pull_request:\s*$\n(.*?)(?=^  \w)", workflow, re.MULTILINE | re.DOTALL)
+    assert trigger is not None, "The pull_request trigger block stopped matching."
+    types = re.search(r"^\s*types:\s*\[(.*)\]\s*$", trigger.group(1), re.MULTILINE)
+    assert types is not None, (
+        "The pull_request trigger declares no `types:`. The default set omits "
+        "`edited`, so an edited title or body no longer re-runs the scan."
+    )
+    assert "edited" in types.group(1)
