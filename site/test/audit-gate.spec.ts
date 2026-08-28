@@ -16,6 +16,8 @@
  * Pure report-in / verdict-out, so these run in `npm test` without a network.
  */
 
+import { spawnSync } from "node:child_process";
+
 import { describe, expect, it } from "vitest";
 
 import { evaluate } from "../scripts/npm-audit-gate.mjs";
@@ -77,5 +79,50 @@ describe("evaluate", () => {
       vulnerabilities: { p: { name: "p", severity: "low", via: [{ url: "GHSA-dddd-eeee-ffff" }] } },
     };
     expect(evaluate(low).blocking).toHaveLength(0);
+  });
+});
+
+/**
+ * The process contract, not the function.
+ *
+ * `evaluate` is unit-tested above, but the gate is invoked as a command: what
+ * CI reads is the exit code. The try/catch and its exit 2 were demonstrated by
+ * hand and asserted nowhere, which is the gap this file exists to close one
+ * level down. Raised by the automated reviewer.
+ */
+describe("the command", () => {
+  const GATE = new URL("../scripts/npm-audit-gate.mjs", import.meta.url).pathname;
+
+  function run(stdin: string) {
+    const result = spawnSync(process.execPath, [GATE], { input: stdin, encoding: "utf8" });
+    return { status: result.status, stdout: result.stdout, stderr: result.stderr };
+  }
+
+  it("exits 2 when the audit did not run, and says nothing about being clean", () => {
+    const { status, stdout, stderr } = run(JSON.stringify(REGISTRY_ERROR));
+    expect(status).toBe(2);
+    expect(stderr).toMatch(/did not run/);
+    // The verdict goes to stdout, so that is where a false all-clear would
+    // appear. The first draft of this assertion searched stderr, where the
+    // string can never be, and so could never fail.
+    expect(stdout).not.toMatch(/clean/);
+  });
+
+  it("exits 2 on a report with no vulnerabilities key", () => {
+    expect(run(JSON.stringify({ auditReportVersion: 2 })).status).toBe(2);
+  });
+
+  it("exits 2 on unparseable input rather than assuming the best", () => {
+    expect(run("not json at all").status).toBe(2);
+  });
+
+  it("exits 0 on a genuinely clean audit", () => {
+    const { status, stdout } = run(JSON.stringify(CLEAN));
+    expect(status).toBe(0);
+    expect(stdout).toMatch(/clean/);
+  });
+
+  it("exits 1 on an unwaived advisory", () => {
+    expect(run(JSON.stringify(WITH_MODERATE)).status).toBe(1);
   });
 });
