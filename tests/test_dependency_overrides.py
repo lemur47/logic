@@ -104,3 +104,59 @@ def test_no_re_check_date_has_passed(manifest: Path) -> None:
         "either drop the override or re-date it with what you found. Do not extend "
         "it silently."
     )
+
+
+# --- Dependabot's own deferrals ----------------------------------------------
+#
+# An `ignore` entry is the same promise as an override or a suppression: we are
+# declining an update for a reason, and the reason has a shelf life. Held
+# without an expiry it becomes a dependency frozen by accident — which is the
+# state the two npm trees were already in for six months, arrived at by having
+# no update channel rather than by choosing one.
+
+DEPENDABOT = REPO / ".github" / "dependabot.yml"
+REVIEW_BY = re.compile(r"review-by\s+(\d{4}-\d{2}-\d{2})")
+
+
+def ignore_blocks() -> list[tuple[int, str]]:
+    """Each `ignore:` key, with the comment block directly above it.
+
+    Read textually: dependabot.yml carries the reason in comments, and a YAML
+    parser discards exactly the part under test.
+    """
+    lines = DEPENDABOT.read_text(encoding="utf-8").splitlines()
+    found = []
+    for index, line in enumerate(lines):
+        if line.strip() != "ignore:":
+            continue
+        preamble = []
+        cursor = index - 1
+        while cursor >= 0 and lines[cursor].strip().startswith("#"):
+            preamble.append(lines[cursor])
+            cursor -= 1
+        found.append((index + 1, "\n".join(reversed(preamble))))
+    return found
+
+
+def test_every_dependabot_ignore_is_dated_and_current() -> None:
+    """A held-back dependency needs a reason and a date, like everything else.
+
+    Deliberately enforcing: the date arriving reds the required job, which is
+    the only thing that makes anyone look again. Re-checking does not mean
+    lifting the hold — confirm whether the constraint still stands, say so, and
+    move the date.
+    """
+    today = date.today().isoformat()
+    for line_number, preamble in ignore_blocks():
+        match = REVIEW_BY.search(preamble)
+        assert match, (
+            f"The `ignore:` block at .github/dependabot.yml:{line_number} carries no "
+            "`review-by YYYY-MM-DD` in the comment above it. An update declined "
+            "with no expiry is a dependency frozen by accident."
+        )
+        assert match.group(1) >= today, (
+            f"The `ignore:` block at .github/dependabot.yml:{line_number} passed its "
+            f"review-by date ({match.group(1)}). Check whether the constraint that "
+            "justified it still holds — upstream may have moved — then either lift "
+            "the hold or re-date it with what you found."
+        )
